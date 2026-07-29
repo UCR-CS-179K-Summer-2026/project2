@@ -15,7 +15,7 @@ This project is a high-performance JSON analytics engine, developed as Option 2 
 
 We plan to support two query styles:
 
-  1. Doth-Path Queries (with wildcard support)
+1st Type:  Doth-Path Queries (with wildcard support)
   It uses dot nation to specify a path into the JSON structure. [*] iterates over all elements of an      array and returns one result per element, in array order.
 	
   Rules:
@@ -43,11 +43,11 @@ We plan to support two query styles:
 
 4. Query: Google.employees[*].salary, Result: [100000, 90000, 75000, null]
 5. Query: Google.employees[*].department, Result: ["Engineering", null]
-6. Query: Google.employees[*].email, Result: [null, null, null, null]
+6. Query: Google.employees[*].email, Result: [null, null, null, null]. 
 
+//
 
-
-2. **SQL-style Filter Queries (GET …, FROM …, WHERE ...)**
+ 2nd Type: **SQL-style Filter Queries (GET …, FROM …, WHERE ...)**
 
 Selects a field from records in an array that match a condition. Supports comparison operators (=, <, >, etc.) and logical AND.
 
