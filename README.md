@@ -45,6 +45,8 @@ We plan to support two query styles:
 5. Query: Google.employees[*].department, Result: ["Engineering", null]
 6. Query: Google.employees[*].email, Result: [null, null, null, null]
 
+
+
 2. **SQL-style Filter Queries (GET …, FROM …, WHERE ...)**
 
 Selects a field from records in an array that match a condition. Supports comparison operators (=, <, >, etc.) and logical AND.
