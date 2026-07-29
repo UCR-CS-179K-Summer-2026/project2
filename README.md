@@ -12,3 +12,4 @@ Sprint 2 : scaling the algorithms for larger dataset, and optimizing search and 
 Sprint 3: Merge Search and Parsing algorithms and make them compatible to work together to create the final program. Also to find and create larger dataset for testing purposes
 
 Sprint 4: Adding potential user interface, thorough testing the final package with larger dataset found in sprint 3, and project finalization for demoing.
+![Logo](SystemArchitecture.png)
