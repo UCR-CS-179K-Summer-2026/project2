@@ -24,7 +24,7 @@ We plan to support two query styles:
   2.Results preserve duplicates.
 
 **Example JSON:**
-{
+{	
   "Google": {
     "employees": [
       {"employeeId":1000,"name":"John Doe","jobTitle":"Software Engineer","department":"Engineering","salary":100000},
