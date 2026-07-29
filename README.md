@@ -45,7 +45,6 @@ We plan to support two query styles:
 5. Query: Google.employees[*].department, Result: ["Engineering", null]
 6. Query: Google.employees[*].email, Result: [null, null, null, null]. 
 
-//
 
  2nd Type: **SQL-style Filter Queries (GET …, FROM …, WHERE ...)**
 
