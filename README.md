@@ -1,6 +1,14 @@
 **Team Aaron, Poojan And Tasmin**
 
 System Architecture:
+
+
+
+
+
+
+
+
 <img width="544" height="440" alt="SystemArtchitecture" src="https://github.com/user-attachments/assets/5df4a41f-1088-4574-86ec-d0e483bb0496" />
 
 Module relations:
