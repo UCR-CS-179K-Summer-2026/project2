@@ -1,16 +1,38 @@
-Team Aaron and Poojan
+**Team Aaron, Poojan And Tasmin**
 
-Option 2: JSON analytic engine
-Purpose: input: Large JSON File Output: Data that answers the given query, this project will focus on optimizing parsing algorithm and search algorithm
-Lang: C++
-Goal: Parse JSON data in oaks to reduce the time, increase the efficiency
-
-Sprint 1 : Determine algorithms to use and try incorporating the first algorithms for both parsing and search query, implementations of both features with small dataset
-
-Sprint 2 : scaling the algorithms for larger dataset, and optimizing search and parsing algorithms
-
-Sprint 3: Merge Search and Parsing algorithms and make them compatible to work together to create the final program. Also to find and create larger dataset for testing purposes
-
-Sprint 4: Adding potential user interface, thorough testing the final package with larger dataset found in sprint 3, and project finalization for demoing.
-
+System Architecture:
 <img width="544" height="440" alt="SystemArtchitecture" src="https://github.com/user-attachments/assets/5df4a41f-1088-4574-86ec-d0e483bb0496" />
+
+Module relations:
+
+  1.The JSON Parser reads the input file once and produces an in-memory representation of the data.
+  2. The Indexer consumes that representation and builds lookup structures so the Query Executor doesn't have to re-scan the whole document per query.
+  3. The Query Parser independently parses the query string (dot-path or GET...FROM...WHERE syntax) into a small AST (Abstract Syntax Tree).
+  4.The Query Executor takes the parsed query (AST) and the index, and produces the final result.
+
+This separation means parsing the JSON and parsing the query are decoupled, so we can optimize each independently, and we can run many queries against one parsed/indexed file without re-parsing the JSON each time.
+
+
+Module Descriptions:
+
+JSON Parser:
+Responsibility: Convert raw JSON/JSONL text into an internal tree/array representation.
+Key design decision: parse once, reuse across multiple queries, rather than re-parsing per query.
+
+Indexer:
+Responsibility: Build a structure that maps paths/keys to their locations in the parsed data, so lookups don't require re-traversing the full tree.
+Key design decision: trade a one-time indexing cost for much faster repeated queries — this is where a lot of our optimization work will happen (Sprint 2).
+
+Query Parser:
+Responsibility: Parse the two supported query forms (dot-path with [*], and GET...FROM...WHERE) into a simple AST the executor can walk.
+
+Query Executor:
+Responsibility: Walk the AST against the index to resolve the query and return results in the format defined in our query spec.
+
+Sprint Plan
+Sprint 1: Determine parsing and query algorithms; implement first working versions of both dot-path and filter queries on a small dataset. 
+Sprint 2: Scale algorithms to larger datasets; optimize search and parsing performance.
+Sprint 3: Merge search and parsing into a single working program; source/create a larger dataset for testing.
+Sprint 4: Add a user interface (if applicable), thoroughly test the final package on the larger dataset, and finalize for demo.
+
+
