@@ -42,7 +42,6 @@ This separation means parsing the JSON and parsing the query are decoupled, so w
 * **Sprint 2:** Scale algorithms to larger datasets; optimize search and parsing performance.
 * **Sprint 3:** Merge search and parsing into a single working program; source/create a larger dataset for testing.
 * **Sprint 4:** Add a user interface (if applicable), thoroughly test the final package on the larger dataset, and finalize for demo.
-Use code with caution.Key Formatting Adjustments Made:Headers: Used ### and #### to create a clear visual hierarchy between sections and module titles.Bold Highlights: Wrapped key phrases like Responsibility, Key design decision, and Sprint numbers in double asterisks (**) for scannability.Code Backticks: Wrapped query syntaxes like GET...FROM...WHERE and [*] in backticks so they render like inline code blocks.Would you like to add a table of contents at the top, or link these sections directly back to your module summary table?
 
 **APIs and Their Usage**
 
