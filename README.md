@@ -29,7 +29,7 @@ This separation means parsing the JSON and parsing the query are decoupled, so w
 
 #### Indexer
 * **Responsibility:** Build a structure that maps paths/keys to their locations in the parsed data, so lookups don't require re-traversing the full tree.
-* **Key design decision:** Trade a one-time indexing cost for much faster repeated queries — this is where a lot of our optimization work will happen (Sprint 2).
+* **Key design decision:** Trade a one-time indexing cost for much faster repeated queries, this is where a lot of our optimization work will happen (Sprint 2).
 
 #### Query Parser
 * **Responsibility:** Parse the two supported query forms (dot-path with `[*]`, and `GET...FROM...WHERE`) into a simple AST the executor can walk.
@@ -59,7 +59,7 @@ This separation means parsing the JSON and parsing the query are decoupled, so w
 Sprint-1 (baseline correctness)
 To start off with logic and understanding of JSON we plan to build simpler PArser and query search algorithm.
   Straightforward recursive-descent JSON parsing into a tree and,
-  Naive linear scan for queries (no indexing yet) — get correctness first on a small dataset.  
+  Naive linear scan for queries (no indexing yet): get correctness first on a small dataset.  
           
 
 
