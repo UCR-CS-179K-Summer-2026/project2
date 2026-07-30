@@ -37,11 +37,6 @@ This separation means parsing the JSON and parsing the query are decoupled, so w
 #### Query Executor
 * **Responsibility:** Walk the AST against the index to resolve the query and return results in the format defined in our query spec.
 
-### Sprint Plan
-* **Sprint 1:** Determine parsing and query algorithms; implement first working versions of both dot-path and filter queries on a small dataset.
-* **Sprint 2:** Scale algorithms to larger datasets; optimize search and parsing performance.
-* **Sprint 3:** Merge search and parsing into a single working program; source/create a larger dataset for testing.
-* **Sprint 4:** Add a user interface (if applicable), thoroughly test the final package on the larger dataset, and finalize for demo.
 
 **APIs and Their Usage**
 
