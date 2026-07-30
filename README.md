@@ -12,7 +12,7 @@ System Architecture:
 <img width="544" height="440" alt="SystemArtchitecture" src="https://github.com/user-attachments/assets/5df4a41f-1088-4574-86ec-d0e483bb0496" />
 
 
-```
+
 **Module relations:**
 
   1.The JSON Parser reads the input file once and produces an in-memory representation of the data.
@@ -66,6 +66,6 @@ To start off with logic and understanding of JSON we plan to build simpler PArse
   Straightforward recursive-descent JSON parsing into a tree and,
   Naive linear scan for queries (no indexing yet) — get correctness first on a small dataset.  
           
-```
+
 
 
