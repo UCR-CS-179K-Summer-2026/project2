@@ -96,3 +96,10 @@ Selects a field from records in an array that match a condition. Supports compar
 * **Focus Areas:** Parsing algorithm optimization, query/search algorithm optimization, data locality, and cache aware design.
 
 ---
+
+## Sprint Plan
+
+* **Sprint 1:** Determine parsing and query algorithms; implement first working versions of both dot-path and filter queries on a small dataset.
+* **Sprint 2:** Scale algorithms to larger datasets; optimize search and parsing performance.
+* **Sprint 3:** Merge search and parsing into a single working program; source/create a larger dataset for testing.
+* **Sprint 4:** Add a user interface (if applicable), thoroughly test the final package on the larger dataset, and finalize for demo.
