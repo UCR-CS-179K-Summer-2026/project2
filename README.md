@@ -51,13 +51,13 @@ Sprint 4: Add a user interface (if applicable), thoroughly test the final packag
 **APIs and Their Usage**
 
 
-| Module| Function| Description|
-| :--- | :---: | ---: |
-| Left-aligned | Centered | Right-aligned |
-| JSON Parser| ParsedDoc parse(string filepath) |Reads a JSON/JSONL file, returns a parsed document object |
-| Indexer | Index buildIndex(ParsedDoc doc)| Builds a queryable index from a parsed document |
+
+| Module | Function | Description |
+| :--- | :--- | :--- |
+| JSON Parser | ParsedDoc parse(string filepath) | Reads a JSON/JSONL file, returns a parsed document object |
+| Indexer | Index buildIndex(ParsedDoc doc) | Builds a queryable index from a parsed document |
 | Query Parser | QueryAST parseQuery(string queryStr) | Parses a query string into an AST |
-| Query Executor | Result execute(QueryAST ast, Index idx) | Executes a parsed query against the index, returns results |
+| Query Executor | Result execute(QueryAST ast, Index idx) | Executes a parsed query against the index |
 
 **Algorithms and Optimizations**
 
