@@ -4,7 +4,7 @@
 
 - **Poojan** — Query Search Algorithm
 - **Aaron** — JSON Parser and Indexer
-- **Tasmin** — Query Parser 
+- **Tasnim** — Query Parser, interface, error handling & testing
 
 Poojan will also assist Aaron with the Indexer when needed.
 
