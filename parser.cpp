@@ -8,7 +8,7 @@ int main() {
     std::vector<char> jsonData;
     std::ifstream file("Employee.json", std::ios::binary);
     
-
+    
     if(!file.is_open()) {
         std::cout << "File did not open. \n";
         return 1;
@@ -39,7 +39,7 @@ int main() {
             if(jsonData.at(i) == '\\') {
                 counter++;
             }
-            else if(jsonData.at(i) == '"' && counter >= 1) {
+            else if(jsonData.at(i) == '"') {
                 if(counter % 2 == 0) {
                     
                     inString = false;
