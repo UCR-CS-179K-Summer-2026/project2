@@ -3,12 +3,13 @@
 #include <string>
 #include <vector>
 
+using namespace std;
+
 enum class QueryType {
     DotPath
 };
 
-//allpossible components of a path, 
-//[*] means every element in array
+//all possible parts of a path, [*]=every element in array
 enum class PathPartType {
     Key,
     ArrayIndex,
@@ -18,8 +19,8 @@ enum class PathPartType {
 // Represents one component of a JSON path.
 struct PathPart {
     PathPartType type;
-    std::string key;
-    //when we're using array index
+    string key;
+
     int index = -1;
 };
 
