@@ -1,0 +1,6 @@
+{
+  "items": [
+    { "sku": "A1", "inStock": true },
+    { "sku": "B2", "inStock": false }
+  ]
+}

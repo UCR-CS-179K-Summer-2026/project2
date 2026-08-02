@@ -1,0 +1,10 @@
+{
+  "school": {
+    "classroom": {
+      "students": [
+        { "studentName": "Alice", "grade": 95 },
+        { "studentName": "Bob", "grade": 87 }
+      ]
+    }
+  }
+}

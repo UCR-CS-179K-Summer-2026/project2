@@ -3,17 +3,17 @@
 // When we hit a Wildcard step, we branch into every array element and continue independently for each one. 
 
 #pragma once
- 
-#include "json_value.h"
+#include "AaronJsonParser/parser.h"
 #include "query_ast.h"
 #include <vector>
+#include<string>
  
-// Recursive brute-force walk, appends matches (or nullptr for missing paths) to "results".
-inline void executeStep(const JsonValuePtr& node,
-                         const QueryAST& ast,
-                         size_t stepIndex,
-                         std::vector<JsonValuePtr>& results) {
-    // Base case: we've consumed every step in the query, so this node is a result.
+inline void executeStep(const parser::Node* node, const QueryAST& ast,
+                         size_t stepIndex, std::vector<const parser::Node*>& results) {
+    if (!node) {
+        results.push_back(nullptr);
+        return;
+    }
     if (stepIndex == ast.size()) {
         results.push_back(node);
         return;
@@ -22,33 +22,46 @@ inline void executeStep(const JsonValuePtr& node,
     const QueryStep& step = ast[stepIndex];
  
     if (step.kind == StepKind::Field) {
-        // Need an object to look up a field on.
-        if (!node || node->type != JsonType::Object) {
+        if (node->nodeType == parser::NodeType::object) {
+            auto it = node->objectChildNode.find(step.fieldName);
+            if (it != node->objectChildNode.end()) {
+                executeStep(&(it->second), ast, stepIndex + 1, results);
+                return;
+            }
+        }
+        results.push_back(nullptr);
+    } else { // StepKind::Wildcard
+        if (node->nodeType == parser::NodeType::array) {
+            for (const auto& elem : node->arrayChildNode) {
+                executeStep(&elem, ast, stepIndex + 1, results);
+            }
+        } else {
             results.push_back(nullptr);
-            return;
-        }
-        auto it = node->objVal.find(step.fieldName);
-        if (it == node->objVal.end()) {
-            results.push_back(nullptr); // field missing on this node
-            return;
-        }
-        executeStep(it->second, ast, stepIndex + 1, results);
- 
-    } else { // StepKind::Wildcard. Need an array to expand.
-        if (!node || node->type != JsonType::Array) {
-            results.push_back(nullptr);
-            return;
-        }
-        // Brute-force: visit every element, no shortcuts.
-        for (const auto& elem : node->arrVal) {
-            executeStep(elem, ast, stepIndex + 1, results);
         }
     }
 }
  
-// Public entry point: run a parsed query (QueryAST) against a parsed JSON tree (JsonValuePtr) and get back the list of matching values.
-inline std::vector<JsonValuePtr> executeQuery(const JsonValuePtr& root, const QueryAST& ast) {
-    std::vector<JsonValuePtr> results;
-    executeStep(root, ast, 0, results);
+inline std::vector<const parser::Node*> executeQuery(const parser::Node& root, const QueryAST& ast) {
+    std::vector<const parser::Node*> results;
+    executeStep(&root, ast, 0, results);
     return results;
+}
+ 
+// Node leaves only store position/ePosition (lazy extraction), so printing
+// or reading a leaf's actual value requires the raw jsonData buffer too.
+inline std::string nodeToString(const parser::Node* node, const std::vector<char>& jsonData) {
+    if (!node) return "null";
+    switch (node->nodeType) {
+        case parser::NodeType::string:
+            return "\"" + std::string(jsonData.data() + node->position + 1,
+                                       jsonData.data() + node->ePosition) + "\"";
+        case parser::NodeType::number:
+        case parser::NodeType::boolean:
+            return std::string(jsonData.data() + node->position,
+                                jsonData.data() + node->ePosition + 1);
+        case parser::NodeType::null:
+            return "null";
+        default:
+            return "<complex>";
+    }
 }
