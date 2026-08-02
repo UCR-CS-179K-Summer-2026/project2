@@ -1,59 +1,56 @@
+#include "parser.h"
+
 #include <iostream>
 #include <fstream>
-#include <vector>
 
 
-int main() {
-
-    std::vector<char> jsonData;
-    std::ifstream file("Employee.json", std::ios::binary);
-    
-    
+bool parser::loadFile(const std::string& s) {
+    std::ifstream file(s, std::ios::binary);
     if(!file.is_open()) {
-        std::cout << "File did not open. \n";
-        return 1;
+        std::cout << "File did not open. \n" << std::endl;
+        return false; 
     }
 
-    file.seekg(0, std::ifstream::end);
+    file.seekg(0, std::ios::end);
     auto size = file.tellg();
-    file.seekg(0, std::ifstream::beg);
+    file.seekg(0, std::ios::beg);
 
     jsonData.resize(size);
     file.read(jsonData.data(), size);
-    if (!file) {
-        std::cout << "Incomplete/Failed Read \n";
-        return 1;
+    if(!file) {
+        std::cout << "Incomplete/Failed Read \n" << std::endl;
+        return false;
     }
 
-    bool inString = false;
-    int counter = 0;
-    
-    for(int i = 0; i < jsonData.size(); i++) {
-        
-        if(inString == false) {
-            if(jsonData.at(i) == '"') {
-                inString = true;
+    return true;
+}
+
+
+parser::quote parser::detectString(char c) {
+    if(c == '"' &&  quoteStart == false) {
+        quoteStart = true;
+        return quote::start;
+    }
+    else {
+        if(c == '\\') {
+            backSlashCounter++;
+            return quote::none;
+        }
+        else if(c == '"') {
+            if(backSlashCounter % 2 == 0) {
+                backSlashCounter = 0;
+                quoteStart = false;
+                return quote::end;
+            }
+            else {
+                backSlashCounter = 0;
+                return quote::none;
             }
         }
         else {
-            if(jsonData.at(i) == '\\') {
-                counter++;
-            }
-            else if(jsonData.at(i) == '"') {
-                if(counter % 2 == 0) {
-                    
-                    inString = false;
-                    counter = 0;
-                }
-                else {
-                    
-                    counter = 0;
-                }
-            }
-            else {
-                counter = 0;
-            }
+            return quote::none;
         }
     }
 }
+
 
