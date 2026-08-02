@@ -4,21 +4,36 @@
 #include <vector>
 #include <string>
 
-Class parser {
+class parser {
 public:
-    bool openFile(const std::string& s);
-    quote detectString(char c);
-
+    bool loadFile(const std::string& s);
+    Type detectString(char c);
+    void indexStructure();
+    void getTypeIndex;
 private:
 
     std::vector<char> jsonData;
     int backSlashCounter = 0;
-    bool quoteStart = 0;
-    enum class quote {
-        none,
-        start,
-        end
+    bool inString = false;
+
+    enum class Type {
+        arrayStart,
+        arrayEnd,
+        quoteStart,
+        quoteEnd,
+        objectStart,
+        objectEnd,
+        comma,
+        colon,
+        none
     };
+
+    struct TypeStruct {
+        Type type;
+        size_t position;
+    };
+
+    std::vector<TypeStruct> typeIndex;
 
 };
 

@@ -26,31 +26,67 @@ bool parser::loadFile(const std::string& s) {
 }
 
 
-parser::quote parser::detectString(char c) {
-    if(c == '"' &&  quoteStart == false) {
-        quoteStart = true;
-        return quote::start;
+parser::Type parser::detectString(char c) {
+    if(c == '"' &&  inString == false) {
+        inString = true;
+        return Type::quoteStart;
     }
     else {
         if(c == '\\') {
             backSlashCounter++;
-            return quote::none;
+            return Type::none;
         }
         else if(c == '"') {
             if(backSlashCounter % 2 == 0) {
                 backSlashCounter = 0;
-                quoteStart = false;
-                return quote::end;
+                inString = false;
+                return Type::quoteEnd;
             }
             else {
                 backSlashCounter = 0;
-                return quote::none;
+                return Type::none;
             }
         }
         else {
-            return quote::none;
+            return Type::none;
         }
     }
 }
+
+
+void parser::indexStructure() {
+    for(size_t i = 0; i < jsonData.size(); i++) {
+        if(inString) {
+            Type t = detectString(jsonData.at(i));
+            if(t != Type::none) {
+                typeIndex.push_back({t, i});
+            }
+        }
+        else { 
+            if(jsonData.at(i) == '"') {
+                typeIndex.push_back({detectString(jsonData.at(i)), i});
+            }
+            else if(jsonData.at(i) == '[') {
+                typeIndex.push_back({Type::arrayStart, i});
+            }
+            else if(jsonData.at(i) == ']') {
+                typeIndex.push_back({Type::arrayEnd, i});
+            }
+            else if(jsonData.at(i) == '{') {
+                typeIndex.push_back({Type::objectStart, i});
+            }
+            else if(jsonData.at(i) == '}') {
+                typeIndex.push_back({Type::objectEnd, i});
+            }
+            else if(jsonData.at(i) == ',') {
+                typeIndex.push_back({Type::comma, i});
+            }
+            else if(jsonData.at(i) == ':') {
+                typeIndex.push_back({Type::colon, i});
+            }
+        }
+    }
+}
+
 
 
