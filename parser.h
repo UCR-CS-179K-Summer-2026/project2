@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <string>
+#include <map>
+#include <deque>
 
 class parser {
 public:
@@ -21,6 +23,25 @@ public:
         null,
         none
     };
+    enum class NodeType {
+        object,
+        array,
+        string,
+        number,
+        boolean,
+        null
+    };
+
+
+    struct Node {
+        NodeType nodeType;
+        std::map<std::string, Node> objectChildNode;
+        std::deque<Node> arrayChildNode;
+
+        size_t position;
+        size_t ePosition;
+    };
+
     struct TypeStruct {
         Type type;
         size_t position;
@@ -34,6 +55,8 @@ public:
     const std::vector<TypeStruct>& getTypeIndex() const;
     Type detectValue();  
 
+    void constructTree();
+
 private:
 
     std::vector<char> jsonData;
@@ -41,7 +64,12 @@ private:
     bool inString = false;
     bool inValue = false;
     std::vector<TypeStruct> typeIndex;
+    
 
+    Node root;
+    std::deque<Node*> nodes;
+    std::string key;
+    bool containsKey = false;
 };
 
 

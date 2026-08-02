@@ -48,6 +48,7 @@ parser::Type parser::detectString(char c) {
             }
         }
         else {
+            backSlashCounter = 0;
             return Type::none;
         }
     }
@@ -129,6 +130,45 @@ void parser::indexStructure() {
 
 const std::vector<parser::TypeStruct>& parser::getTypeIndex() const {
     return typeIndex;
+}
+
+
+void parser::constructTree() {
+    for(size_t i = 0; i < typeIndex.size(); i++) {
+        if(typeIndex.at(i).type == Type::objectStart) {
+            Node newNode;
+            newNode.nodeType = NodeType::object;
+            if(nodes.empty()) {
+                root = newNode;
+                nodes.push_back(&root);
+            }
+            else if(nodes.back()->nodeType == NodeType::object) {
+                nodes.back()->objectChildNode[key] = newNode;
+                nodes.push_back(&(nodes.back()->objectChildNode[key]));
+            }
+            else if(nodes.back()->nodeType == NodeType::array) {
+                nodes.back()->arrayChildNode.push_back(newNode);
+                nodes.push_back(&(nodes.back()->arrayChildNode.back()));
+                
+            }
+        }
+        else if(typeIndex.at(i).type == Type::arrayStart) {
+            Node newNode;
+            newNode.nodeType = NodeType::array;
+            if(nodes.empty()) {
+                root = newNode;
+                nodes.push_back(&root);
+            }
+            else if(nodes.back()->nodeType == NodeType::object) {
+                nodes.back()->objectChildNode[key] = newNode;
+                nodes.push_back(&(nodes.back()->objectChildNode[key]));
+            }
+            else if(nodes.back()->nodeType == NodeType::array) {
+                nodes.back()->arrayChildNode.push_back(newNode);
+                nodes.push_back(&(nodes.back()->arrayChildNode.back()));
+            }
+        }
+    }
 }
 
 
