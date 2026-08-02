@@ -168,6 +168,26 @@ void parser::constructTree() {
                 nodes.push_back(&(nodes.back()->arrayChildNode.back()));
             }
         }
+        else if(typeIndex.at(i).type == Type::string) {
+            if(typeIndex.at(i+1).type == Type::colon) {
+                std::string value(jsonData.data() + typeIndex.at(i).position + 1, jsonData.data() + typeIndex.at(i).ePosition);
+                key = value;
+                containsKey = true;
+            }  
+        }
+        else if(typeIndex.at(i).type == Type::number) {
+            Node newNode;
+            newNode.nodeType = NodeType::number;
+            
+        }
+        else if(typeIndex.at(i).type == Type::boolean) {
+            Node newNode;
+            newNode.nodeType = NodeType::boolean;
+        }
+        else if(typeIndex.at(i).type == Type::null) {
+            Node newNode;
+            newNode.nodeType = NodeType::null;
+        }
     }
 }
 
