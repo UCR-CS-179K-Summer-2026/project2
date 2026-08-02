@@ -54,7 +54,6 @@ public:
     void indexStructure();
     const std::vector<TypeStruct>& getTypeIndex() const;
     Type detectValue();  
-
     void constructTree();
 
 private:

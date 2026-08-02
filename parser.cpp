@@ -173,23 +173,73 @@ void parser::constructTree() {
                 std::string value(jsonData.data() + typeIndex.at(i).position + 1, jsonData.data() + typeIndex.at(i).ePosition);
                 key = value;
                 containsKey = true;
+            }
+            else {
+                Node newNode;
+                newNode.nodeType = NodeType::string;
+                newNode.position = typeIndex.at(i).position;
+                newNode.ePosition = typeIndex.at(i).ePosition;
+
+                if(nodes.back()->nodeType == NodeType::object) {
+                    nodes.back()->objectChildNode[key] = newNode;
+                    containsKey = false;
+                }
+                else if(nodes.back()->nodeType == NodeType::array) {
+                    nodes.back()->arrayChildNode.push_back(newNode);
+                }
+            
             }  
         }
         else if(typeIndex.at(i).type == Type::number) {
             Node newNode;
             newNode.nodeType = NodeType::number;
+            newNode.position = typeIndex.at(i).position;
+            newNode.ePosition = typeIndex.at(i).ePosition;
+
+            if(nodes.back()->nodeType == NodeType::object) {
+                nodes.back()->objectChildNode[key] = newNode;
+                containsKey = false;
+            }
+            else if(nodes.back()->nodeType == NodeType::array) {
+                nodes.back()->arrayChildNode.push_back(newNode);
+            }
+
             
         }
         else if(typeIndex.at(i).type == Type::boolean) {
             Node newNode;
             newNode.nodeType = NodeType::boolean;
+            newNode.position = typeIndex.at(i).position;
+            newNode.ePosition = typeIndex.at(i).ePosition;
+
+            if(nodes.back()->nodeType == NodeType::object) {
+                nodes.back()->objectChildNode[key] = newNode;
+                containsKey = false;
+            }
+            else if(nodes.back()->nodeType == NodeType::array) {
+                nodes.back()->arrayChildNode.push_back(newNode);
+            }
+            
         }
         else if(typeIndex.at(i).type == Type::null) {
             Node newNode;
             newNode.nodeType = NodeType::null;
+            newNode.position = typeIndex.at(i).position;
+            newNode.ePosition = typeIndex.at(i).ePosition;
+
+            if(nodes.back()->nodeType == NodeType::object) {
+                nodes.back()->objectChildNode[key] = newNode;
+                containsKey = false;
+            }
+            else if(nodes.back()->nodeType == NodeType::array) {
+                nodes.back()->arrayChildNode.push_back(newNode);
+            }
+            
+        }
+        else if(typeIndex.at(i).type == Type::objectEnd || typeIndex.at(i).type == Type::arrayEnd) {
+            nodes.pop_back();
         }
     }
 }
-
 
 

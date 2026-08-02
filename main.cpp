@@ -10,6 +10,7 @@ int main() {
         return 1;
     }
     p.indexStructure();
+    p.constructTree();
 
     return 0;
 }
