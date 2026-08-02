@@ -10,5 +10,7 @@ int main() {
         return 1;
     }
     p.indexStructure();
+
+    return 0;
 }
 

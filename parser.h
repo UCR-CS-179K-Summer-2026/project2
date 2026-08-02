@@ -6,16 +6,6 @@
 
 class parser {
 public:
-    bool loadFile(const std::string& s);
-    Type detectString(char c);
-    void indexStructure();
-    void getTypeIndex;
-private:
-
-    std::vector<char> jsonData;
-    int backSlashCounter = 0;
-    bool inString = false;
-
     enum class Type {
         arrayStart,
         arrayEnd,
@@ -25,14 +15,31 @@ private:
         objectEnd,
         comma,
         colon,
+        string,
+        number,
+        boolean,
+        null,
         none
     };
-
     struct TypeStruct {
         Type type;
         size_t position;
+        size_t ePosition;
     };
 
+    bool loadFile(const std::string& s);
+    Type detectString(char c);
+    Type detectType(char c);
+    void indexStructure();
+    const std::vector<TypeStruct>& getTypeIndex() const;
+    Type detectValue();  
+
+private:
+
+    std::vector<char> jsonData;
+    int backSlashCounter = 0;
+    bool inString = false;
+    bool inValue = false;
     std::vector<TypeStruct> typeIndex;
 
 };
