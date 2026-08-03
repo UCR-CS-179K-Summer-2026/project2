@@ -18,7 +18,6 @@ Determine the parsing and query algorithms and create the first working versions
 
 ### Tasks
 
-- Define the supported dot-path and `GET...FROM...WHERE` query formats.
 - Design the Query AST structure.
 - Implement the first version of the Query Parser.
 - Determine how JSON input will be represented.
@@ -26,9 +25,7 @@ Determine the parsing and query algorithms and create the first working versions
 - Design the first version of the Indexer.
 - Define and implement the query search algorithm.
 - Implement dot-path lookup.
-- Implement basic filter-query execution.
 - Create a small JSON dataset for testing.
-
 
 ---
 
@@ -36,10 +33,11 @@ Determine the parsing and query algorithms and create the first working versions
 
 ### Sprint Goal
 
-Scale the algorithms to larger datasets and improve parsing, indexing, and query performance.
+Scale the algorithms to larger datasets and improve parsing, indexing, and query performance. Create Filter query parsing. Improve testing and edge case range.
 
 ### Tasks
 
+- Implement Filter query lookup.
 - Test communication between the modules.
 - Improve query parsing and error handling.
 - Optimize JSON parsing.
@@ -48,6 +46,7 @@ Scale the algorithms to larger datasets and improve parsing, indexing, and query
 - Optimize filter-query searching.
 - Add timing and benchmark tests.
 - Document the optimization decisions.
+- Improve edge case range.
 
 
 ---
