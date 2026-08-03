@@ -1,0 +1,30 @@
+{
+  "Google": {
+    "employees": [
+      {
+        "employeeId": 1000,
+        "name": "John Doe",
+        "jobTitle": "Software Engineer",
+        "department": "Engineering",
+        "salary": 100000
+      },
+      {
+        "employeeId": 1001,
+        "name": "Jane Doe",
+        "jobTitle": "Cloud Engineer",
+        "department": "Engineering",
+        "salary": 90000
+      },
+      {
+        "employeeId": 1002,
+        "name": "Johnny Doe",
+        "jobTitle": "Database Engineer",
+        "department": "Engineering",
+        "salary": 75000
+      },
+      {
+        "employeeId": 3
+      }
+    ]
+  }
+}
