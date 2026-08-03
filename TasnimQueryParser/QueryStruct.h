@@ -2,9 +2,7 @@
  
 #include <string>
 #include <vector>
- 
-using namespace std;
- 
+  
 enum class QueryType {
     DotPath
 };
@@ -19,7 +17,7 @@ enum class PathPartType {
 // Represents one component of a JSON path.
 struct PathPart {
     PathPartType type;
-    string key;
+    std::string key;
  
     int index = -1;
 };
