@@ -35,7 +35,7 @@ int main() {
 
     };
 
-    int passed = 0;
+    int passed = 0; //num of total passing tests
 
     for (const auto& test : tests) {
         bool success = false; //test status for each

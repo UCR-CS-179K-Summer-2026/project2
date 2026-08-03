@@ -6,7 +6,7 @@
 
 class QueryParser {
 public:
-    Query parse(const std::string& input) const;  // Parses a complete query string.
+    Query parse(const std::string& input) const;  //parses a complete query string
 
 
 private:

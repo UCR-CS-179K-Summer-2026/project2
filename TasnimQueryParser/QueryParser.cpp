@@ -107,7 +107,6 @@ DotPathQuery QueryParser::parseDotPath(const string& input) const {
 
         //if input isn't finished, 
         if (i < input.size()) {
-            
 			if (input[i] != '.') {
                 throw runtime_error(
                     "Error: Expected '.' at position " + to_string(i)
