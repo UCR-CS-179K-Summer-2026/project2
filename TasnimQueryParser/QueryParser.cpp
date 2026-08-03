@@ -76,14 +76,30 @@ DotPathQuery QueryParser::parseDotPath(const string& input) const {
 
 
             //specific array index handling
-			else if (isdigit(static_cast<unsigned char>(input[i]))) {
+			else if (isdigit(static_cast<unsigned char>(input[i])) || input[i] == '-') {
                 string digits;
+
+                if (input[i] == '-') {
+                    digits += input[i];
+                    ++i;
+                }
+                if (i >= input.size() || !isdigit(static_cast<unsigned char>(input[i]))) {
+                    throw runtime_error(
+                        "error: '-' must be followed by digits in array index"
+                    );
+                }
 
                 while (i < input.size() && isdigit(input[i])) {
 					digits += input[i]; //load nums into digits to convert
 					++i;
 				}
 				int index = stoi(digits);
+
+                 if (index < 0) {
+                    throw runtime_error(
+                        "negative array indices not supported"
+                    );
+                }
 
                 if (i >= input.size() || input[i] != ']') { //unclosed brackets
                     throw runtime_error(

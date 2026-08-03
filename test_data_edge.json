@@ -1,0 +1,11 @@
+{
+  "empty_obj": {},
+  "empty_arr": [],
+  "a": { "b": null },
+  "nested": { "x": { "y": { "z": { "w": "deep_value" } } } },
+  "name": "just_a_string",
+  "items": [
+    { "sku": "A1", "tags": ["red", "small"] },
+    { "sku": "B2", "tags": ["blue"] }
+  ]
+}

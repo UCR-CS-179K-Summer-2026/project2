@@ -51,6 +51,39 @@ int main() {
  
     std::cout << "\n--- Test 5: malformed query -> should throw, not crash ---" << std::endl;
     runTest("test_data_inventory.json", "items[abc]");
+
+    std::cout << "\n--- Test 6: empty object -> null, not crash ---" << std::endl;
+    runTest("test_data_edge.json", "empty_obj.anything");
+
+    std::cout << "\n--- Test 7: empty array with wildcard -> [] ---" << std::endl;
+    runTest("test_data_edge.json", "empty_arr[*].sku");
+
+    std::cout << "\n--- Test 8: nonexistent top-level key -> null ---" << std::endl;
+    runTest("test_data_edge.json", "foo.bar");
+
+    std::cout << "\n--- Test 9: null partway through path -> null, not throw ---" << std::endl;
+    runTest("test_data_edge.json", "a.b.c");
+
+    std::cout << "\n--- Test 10: deep nesting (5+ levels) ---" << std::endl;
+    runTest("test_data_edge.json", "nested.x.y.z.w");
+
+    std::cout << "\n--- Test 11: query resolves to non-leaf object ---" << std::endl;
+    runTest("test_data_edge.json", "items[0]");
+
+    std::cout << "\n--- Test 12: negative index ---" << std::endl;
+    runTest("test_data_edge.json", "items[-1].sku");
+
+    std::cout << "\n--- Test 13: nested wildcards (array of arrays) ---" << std::endl;
+    runTest("test_data_edge.json", "items[*].tags[*]");
+
+    std::cout << "\n--- Test 14: empty query string ---" << std::endl;
+    runTest("test_data_edge.json", "");
+
+    std::cout << "\n--- Test 15: trailing dot ---" << std::endl;
+    runTest("test_data_edge.json", "a.b.");
+
+    std::cout << "\n--- Test 16: double dots ---" << std::endl;
+    runTest("test_data_edge.json", "a..b");
  
     return 0;
 }

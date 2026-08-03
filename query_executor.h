@@ -84,7 +84,29 @@ inline std::string nodeToString(const parser::Node* node, const std::vector<char
                                 jsonData.data() + node->ePosition + 1);
         case parser::NodeType::null:
             return "null";
+        case parser::NodeType::object: {
+            std::string result = "{";
+            bool first = true;
+            for (const auto& [key, child] : node->objectChildNode) {
+                if (!first) result += ",";
+                first = false;
+                result += "\"" + key + "\":" + nodeToString(&child, jsonData);
+            }
+            result += "}";
+            return result;
+        }
+        case parser::NodeType::array: {
+            std::string result = "[";
+            bool first = true;
+            for (const auto& child : node->arrayChildNode) {
+                if (!first) result += ",";
+                first = false;
+                result += nodeToString(&child, jsonData);
+            }
+            result += "]";
+            return result;
+        }
         default:
-            return "<complex>";
+            return "null";
     }
 }
