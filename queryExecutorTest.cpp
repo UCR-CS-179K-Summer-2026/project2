@@ -1,4 +1,5 @@
 #include "AaronJsonParser/parser.h"
+#include "TasnimQueryParser/QueryParser.h"
 #include "query_executor.h"
 #include <iostream>
  
@@ -13,49 +14,43 @@ void printResults(const std::string& label,
     std::cout << "]" << std::endl;
 }
  
-void runTest(const std::string& label, const std::string& file, const QueryAST& ast) {
+void runTest(const std::string& file, const std::string& queryStr) {
     parser p;
     if (!p.loadFile(file)) {
-        std::cout << label << " => FAILED TO LOAD " << file << std::endl;
+        std::cout << queryStr << " => FAILED TO LOAD " << file << std::endl;
         return;
     }
     p.indexStructure();
     p.constructTree();
  
-    auto results = executeQuery(p.getRoot(), ast);
-    printResults(label, results, p.getJsonData());
+    QueryParser qp;
+    try {
+        Query query = qp.parse(queryStr);
+        auto results = executeQuery(p.getRoot(), query);
+        printResults(queryStr, results, p.getJsonData());
+    } catch (const std::exception& e) {
+        std::cout << queryStr << " => PARSE ERROR: " << e.what() << std::endl;
+    }
 }
  
 int main() {
-    std::cout << "--- Test 1: Employees dataset ---" << std::endl;
-    runTest("Google.employees[*].name", "test_data_employees.json", {
-        {StepKind::Field, "Google"},
-        {StepKind::Field, "employees"},
-        {StepKind::Wildcard, ""},
-        {StepKind::Field, "name"}
-    });
+    std::cout << "--- Test 1: Employees dataset (wildcard) ---" << std::endl;
+    runTest("test_data_employees.json", "Google.employees[*].name");
  
-    std::cout << "\n--- Test 2: School dataset (different shape) ---" << std::endl;
-    runTest("school.classroom.students[*].studentName", "test_data_school.json", {
-        {StepKind::Field, "school"},
-        {StepKind::Field, "classroom"},
-        {StepKind::Field, "students"},
-        {StepKind::Wildcard, ""},
-        {StepKind::Field, "studentName"}
-    });
+    std::cout << "\n--- Test 2: School dataset (deep nesting) ---" << std::endl;
+    runTest("test_data_school.json", "school.classroom.students[*].studentName");
  
-    std::cout << "\n--- Test 3: Inventory dataset (top-level array, booleans) ---" << std::endl;
-    runTest("items[*].inStock", "test_data_inventory.json", {
-        {StepKind::Field, "items"},
-        {StepKind::Wildcard, ""},
-        {StepKind::Field, "inStock"}
-    });
+    std::cout << "\n--- Test 3: Inventory dataset (wildcard + missing field) ---" << std::endl;
+    runTest("test_data_inventory.json", "items[*].inStock");
+    runTest("test_data_inventory.json", "items[*].missingField");
  
-    runTest("items[*].missingField", "test_data_inventory.json", {
-        {StepKind::Field, "items"},
-        {StepKind::Wildcard, ""},
-        {StepKind::Field, "missingField"}
-    });
+    std::cout << "\n--- Test 4: NEW capability - array indexing ---" << std::endl;
+    runTest("test_data_inventory.json", "items[0].sku");
+    runTest("test_data_inventory.json", "items[1].inStock");
+    runTest("test_data_inventory.json", "items[99].sku"); // out of range -> null
+ 
+    std::cout << "\n--- Test 5: malformed query -> should throw, not crash ---" << std::endl;
+    runTest("test_data_inventory.json", "items[abc]");
  
     return 0;
 }

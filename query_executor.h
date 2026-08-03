@@ -1,54 +1,77 @@
-//taking parsed json tree fro mAaron and parsed query from Tasnim and executing the query on the json tree and returning the result
-//Algorithm: brute-force, full traversal, no indexing At every step we just look at the current node and follow the next QueryStep
-// When we hit a Wildcard step, we branch into every array element and continue independently for each one. 
-
 #pragma once
 #include "AaronJsonParser/parser.h"
-#include "query_ast.h"
+#include "TasnimQueryParser/QueryStruct.h"
 #include <vector>
 #include<string>
+#include<list>
+#include<iterator>
  
-inline void executeStep(const parser::Node* node, const QueryAST& ast,
-                         size_t stepIndex, std::vector<const parser::Node*>& results) {
+// query_executor.h — now consuming Tasnim's PathPart/DotPathQuery directly
+//New: PathPartType::ArrayIndex supportdescends into exactly one array element by position, rather than expanding every element (AllElements)
+
+inline void executeStep(const parser::Node* node, const std::vector<PathPart>& path, size_t stepIndex, std::vector<const parser::Node*>& results) {
     if (!node) {
         results.push_back(nullptr);
         return;
     }
-    if (stepIndex == ast.size()) {
+    if (stepIndex == path.size()) {
         results.push_back(node);
         return;
     }
  
-    const QueryStep& step = ast[stepIndex];
+    const PathPart& part = path[stepIndex];
  
-    if (step.kind == StepKind::Field) {
-        if (node->nodeType == parser::NodeType::object) {
-            auto it = node->objectChildNode.find(step.fieldName);
-            if (it != node->objectChildNode.end()) {
-                executeStep(&(it->second), ast, stepIndex + 1, results);
-                return;
+    switch (part.type) {
+        case PathPartType::Key: {
+            if (node->nodeType == parser::NodeType::object) {
+                auto it = node->objectChildNode.find(part.key);
+                if (it != node->objectChildNode.end()) {
+                    executeStep(&(it->second), path, stepIndex + 1, results);
+                    return;
+                }
             }
-        }
-        results.push_back(nullptr);
-    } else { // StepKind::Wildcard
-        if (node->nodeType == parser::NodeType::array) {
-            for (const auto& elem : node->arrayChildNode) {
-                executeStep(&elem, ast, stepIndex + 1, results);
-            }
-        } else {
             results.push_back(nullptr);
+            break;
+        }
+ 
+        case PathPartType::AllElements: {
+            if (node->nodeType == parser::NodeType::array) {
+                for (const auto& elem : node->arrayChildNode) {
+                    executeStep(&elem, path, stepIndex + 1, results);
+                }
+            } else {
+                results.push_back(nullptr);
+            }
+            break;
+        }
+ 
+        case PathPartType::ArrayIndex: {
+            if (node->nodeType == parser::NodeType::array &&
+                part.index >= 0 &&
+                static_cast<size_t>(part.index) < node->arrayChildNode.size()) {
+                auto it = node->arrayChildNode.begin();
+                std::advance(it, part.index);
+                executeStep(&(*it), path, stepIndex + 1, results);
+            } else {
+                results.push_back(nullptr);
+            }
+            break;
         }
     }
 }
  
-inline std::vector<const parser::Node*> executeQuery(const parser::Node& root, const QueryAST& ast) {
+inline std::vector<const parser::Node*> executeQuery(const parser::Node& root, const DotPathQuery& query) {
     std::vector<const parser::Node*> results;
-    executeStep(&root, ast, 0, results);
+    executeStep(&root, query.path, 0, results);
     return results;
 }
  
-// Node leaves only store position/ePosition (lazy extraction), so printing
-// or reading a leaf's actual value requires the raw jsonData buffer too.
+// Convenience overload: takes the full Query (as returned by QueryParser::parse()) and pulls out the dot-path automatically.
+inline std::vector<const parser::Node*> executeQuery(const parser::Node& root, const Query& query) {
+    return executeQuery(root, query.dotPath);
+}
+ 
+// Node leaves only store position/ePosition, so printing or reading a leaf's actual value requires the raw jsonData buffer too.
 inline std::string nodeToString(const parser::Node* node, const std::vector<char>& jsonData) {
     if (!node) return "null";
     switch (node->nodeType) {
