@@ -4,7 +4,8 @@
 
 <div align="center">
 
-<img width="544" height="440" alt="SystemArtchitecture" src="https://github.com/user-attachments/assets/5df4a41f-1088-4574-86ec-d0e483bb0496" />
+<img width="1274" height="898" alt="image" src="https://github.com/user-attachments/assets/afb95e79-9a4f-4666-9bdb-6487a219fc23" />
+
 
 </div>
 
