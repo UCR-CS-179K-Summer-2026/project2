@@ -12,9 +12,9 @@ public:
 private:
     DotPathQuery parseDotPath(const std::string& input) const; //dot path query parser
     
-    std::vector<PathPart> parsePath(const std::string& input) const; //parsing path
+    std::vector<PathPart> parsePath(const std::string& input, std::size_t& i) const; //parsing path
 
-    FilterQuery parseFilterQuery(const std::string& input) const; //GET FROM WHERE
+    FilterQuery parseFilterQuery(const std::string& input) const; //GET, FROM, WHERE
 
     FilterOperators parseOperator(const std::string& operatorText) const;
-};
+};p
