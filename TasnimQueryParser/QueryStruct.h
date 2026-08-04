@@ -64,7 +64,3 @@ struct Query {
     DotPathQuery dotPath;
     FilterQuery filter;
 };
-
-
-//edge cases:
-//empty string, emok

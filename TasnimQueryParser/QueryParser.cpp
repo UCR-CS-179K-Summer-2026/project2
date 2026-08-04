@@ -172,8 +172,7 @@ FilterQuery QueryParser::parseFilterQuery(const std::string& input) const { //GE
 }
 
 std::vector<PathPart> QueryParser::parsePath(const std::string& input, std::size_t& i) const { //parsing path
-    // vector<PathPart> path;
-    DotPathQuery query;
+    std::vector<PathPart> path;
 
     while (i < input.size()) {
 
@@ -198,7 +197,7 @@ std::vector<PathPart> QueryParser::parsePath(const std::string& input, std::size
             ++i;
         }
 
-        query.path.push_back({
+        path.push_back({
             PathPartType::Key,
             key,
             -1
@@ -227,7 +226,7 @@ std::vector<PathPart> QueryParser::parsePath(const std::string& input, std::size
 
                 ++i;
 
-                query.path.push_back({ //encompassing all elements of arr
+                path.push_back({ //encompassing all elements of arr
                     PathPartType::AllElements, "", -1
                 });
             }
@@ -251,7 +250,7 @@ std::vector<PathPart> QueryParser::parsePath(const std::string& input, std::size
 
                 ++i;
 
-                query.path.push_back({
+                path.push_back({
                     PathPartType::ArrayIndex, "", index
                 });
             }
@@ -261,6 +260,10 @@ std::vector<PathPart> QueryParser::parsePath(const std::string& input, std::size
                     "error: missing array index or * in brackets."
                 );
             }
+        }
+
+        if (i < input.size() && isspace(static_cast<unsigned char>(input[i]))) { //skip extra space without throwing an error
+            break;
         }
 
         //if input isn't finished, 
@@ -282,7 +285,6 @@ std::vector<PathPart> QueryParser::parsePath(const std::string& input, std::size
     }
 
     //return query;
-
     return path;
 
 }
