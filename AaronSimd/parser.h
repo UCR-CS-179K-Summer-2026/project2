@@ -1,0 +1,90 @@
+#ifndef PARSER_H
+#define PARSER_H
+
+#include <vector>
+#include <string>
+#include <map>
+#include <deque>
+#include <list>
+
+class parser {
+public:
+    enum class Type {
+        arrayStart,
+        arrayEnd,
+        quoteStart,
+        quoteEnd,
+        objectStart,
+        objectEnd,
+        comma,
+        colon,
+        string,
+        number,
+        boolean,
+        null,
+        none
+    };
+    enum class NodeType {
+        object,
+        array,
+        string,
+        number,
+        boolean,
+        null
+    };
+
+
+    struct Node {
+        NodeType nodeType;
+        std::map<std::string, Node> objectChildNode;
+        // i am changing deque to list because deque is not working for me, it is giving me segmentation fault when I try to access the elements of the deque, so I am changing it to list and see if it works
+        //std::deque is NOT guaranteed by the C++ standard to support an incomplete/self-referential element type (only vector/list/forward_list are)
+        std::list<Node> arrayChildNode;
+
+        size_t position;
+        size_t ePosition;
+    };
+
+    struct TypeStruct {
+        Type type;
+        size_t position;
+        size_t ePosition;
+    };
+
+    bool loadFile(const std::string& s);
+    Type detectString(char c);
+    Type detectType(char c);
+    void indexStructure();
+    const std::vector<TypeStruct>& getTypeIndex() const;
+    Type detectValue();  
+    void constructTree();
+
+    //this is Poojan and I am adding some new helper functions to print and see the tree structure and to help my query search algorithm
+    // NEW: accessors needed so main.cpp / other files can see the result
+    const Node& getRoot() const;
+    const std::vector<char>& getJsonData() const;
+
+    //NEW: recursive print, so the tree can actually be verified by eye
+    void printTree() const;
+
+private:
+
+    std::vector<char> jsonData;
+    int backSlashCounter = 0;
+    bool inString = false;
+    bool inValue = false;
+    std::vector<TypeStruct> typeIndex;
+    std::vector<char> LBracket = {'{','{','{','{','{','{','{','{','{','{','{','{','{','{','{','{','{','{','{','{','{','{','{','{','{','{','{','{','{','{','{','{'};
+    
+
+    Node root;
+    std::deque<Node*> nodes;
+    std::string key;
+    bool containsKey = false;
+
+    //NEW: helper used by printTree()
+    void printNode(const Node& node, int depth) const;
+};
+
+
+#endif
