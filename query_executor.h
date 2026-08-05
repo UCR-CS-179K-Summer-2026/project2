@@ -155,3 +155,66 @@ inline bool compareValues(const parser::Node* node, const std::vector<char>& jso
         }
         return false;
     }
+
+        // string / boolean: lexical compare. <, <=, >, >= still work
+    // (alphabetical ordering) but are mainly meant for Equal/NotEqual here.
+    std::string lhs = nodeRawValue(node, jsonData);
+
+    switch (op) {
+        case FilterOperators::Equal:              return lhs == conditionValue;
+        case FilterOperators::NotEqual:           return lhs != conditionValue;
+        case FilterOperators::LessThan:           return lhs <  conditionValue;
+        case FilterOperators::LessThanOrEqual:    return lhs <= conditionValue;
+        case FilterOperators::GreaterThan:        return lhs >  conditionValue;
+        case FilterOperators::GreaterThanOrEqual: return lhs >= conditionValue;
+    }
+    return false;
+}
+
+/* [NEW] The actual filter algorithm. Three steps, matching GET/FROM/WHERE:
+   1. Resolve FROM (filter.sourcePath) via the existing executeStep(), reused unchanged to find the array to scan.
+   2. For every element (row) in that array, evaluate every WHERE condition against it using executeStep() + compareValues(). A row must pass ALL conditions to be included (AND semantics).
+   3. For rows that pass, resolve GET (filter.selectField) relative to that row via executeStep() again, and collect the result(s). */
+
+inline std::vector<const parser::Node*> executeFilterQuery(const parser::Node& root,
+    const FilterQuery& filter, const std::vector<char>& jsonData) {
+    std::vector<const parser::Node*> results;
+
+    // Step 1 (FROM): resolve the source array node(s).
+    std::vector<const parser::Node*> sources;
+    executeStep(&root, filter.sourcePath, 0, sources);
+
+    for (const parser::Node* source : sources) {
+        if (!source || source->nodeType != parser::NodeType::array) {
+            continue; // FROM must resolve to an array; skip null/non-array sources
+        }
+
+        // Step 2 (WHERE): scan every row in the source array.
+        for (const auto& rowNode : source->arrayChildNode) {
+            bool include = true;
+
+            for (const Condition& cond : filter.conditions) {
+                std::vector<const parser::Node*> fieldResults;
+                executeStep(&rowNode, cond.field, 0, fieldResults);
+
+                // WHERE expects a single scalar field per row (no wildcards in the condition field) — if it resolved to nothing, or the comparison fails, the row is excluded.
+                if (fieldResults.empty() ||
+                    !compareValues(fieldResults[0], jsonData, cond.comparisonOp, cond.value)) {
+                    include = false;
+                    break;
+                }
+            }
+
+            if (!include) continue;
+
+            // Step 3 (GET): resolve the select field relative to this row and collect it.
+            std::vector<const parser::Node*> selected;
+            executeStep(&rowNode, filter.selectField, 0, selected);
+            for (const parser::Node* sel : selected) {
+                results.push_back(sel);
+            }
+        }
+    }
+
+    return results;
+}
