@@ -10,16 +10,27 @@ Query QueryParser::parse(const string& input) const {
     if (input.empty()) {
         throw runtime_error("Query is empty.");
     }
+    /* Trim leading/trailing whitespace before doing anything else, so both the GET/dot-path branch check and the parsers below
+     always see clean input.*/
+    size_t start = input.find_first_not_of(" \t\n\r\f\v");
+    size_t end = input.find_last_not_of(" \t\n\r\f\v");
+
+    if (start == string::npos) {
+        // if the input was entirely whitespace
+        throw runtime_error("Query is empty.");
+    }
+
+    string trimmed = input.substr(start, end - start + 1);
     
     Query query;
 
-    if (input.rfind("GET ", 0) == 0) { //if it starts with GET, filter parser
+    if (trimmed.rfind("GET ", 0) == 0) { //if it starts with GET, filter parser
         query.type = QueryType::Filter;
-        query.filter = parseFilterQuery(input);
+        query.filter = parseFilterQuery(trimmed);
     }
     else {
         query.type = QueryType::DotPath;
-        query.dotPath = parseDotPath(input);
+        query.dotPath = parseDotPath(trimmed);
     }
 
     return query;
