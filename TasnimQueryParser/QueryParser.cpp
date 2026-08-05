@@ -10,6 +10,7 @@ Query QueryParser::parse(const string& input) const {
     if (input.empty()) {
         throw runtime_error("Query is empty.");
     }
+    /*Fix: white space handling */
     /* Trim leading/trailing whitespace before doing anything else, so both the GET/dot-path branch check and the parsers below
      always see clean input.*/
     size_t start = input.find_first_not_of(" \t\n\r\f\v");
@@ -21,16 +22,16 @@ Query QueryParser::parse(const string& input) const {
     }
 
     string trimmed = input.substr(start, end - start + 1);
-    
+   /*----------------------------------*/ 
     Query query;
 
     if (trimmed.rfind("GET ", 0) == 0) { //if it starts with GET, filter parser
         query.type = QueryType::Filter;
-        query.filter = parseFilterQuery(trimmed);
+        query.filter = parseFilterQuery(trimmed); //using trimmed for filterr query to check for whitespace
     }
     else {
         query.type = QueryType::DotPath;
-        query.dotPath = parseDotPath(trimmed);
+        query.dotPath = parseDotPath(trimmed); //using trimmed for dot path query to check for whitespace
     }
 
     return query;
@@ -244,14 +245,31 @@ std::vector<PathPart> QueryParser::parsePath(const std::string& input, std::size
 
 
             //specific array index handling
-			else if (isdigit(static_cast<unsigned char>(input[i]))) {
+			else if (isdigit(static_cast<unsigned char>(input[i])) || input[i] == '-') {
                 string digits;
+
+                if (input[i] == '-') {
+                    digits += input[i];
+                    ++i;
+                }
+
+                if (i >= input.size() || !isdigit(static_cast<unsigned char>(input[i]))) {
+                    throw runtime_error(
+                        "error: '-' must be followed by digits in array index"
+                    );
+                }
 
                 while (i < input.size() && isdigit(input[i])) {
 					digits += input[i]; //load nums into digits to convert
 					++i;
 				}
 				int index = stoi(digits);
+
+                if (index < 0) {
+                    throw runtime_error(
+                        "negative array indices not supported"
+                    );
+                }
 
                 if (i >= input.size() || input[i] != ']') { //unclosed brackets
                     throw runtime_error(
