@@ -27,7 +27,7 @@ bool parser::loadFile(const std::string& s) {
     return true;
 }
 
-
+/*
 parser::Type parser::detectString(char c) {
     if(c == '"' &&  inString == false) {
         inString = true;
@@ -55,6 +55,7 @@ parser::Type parser::detectString(char c) {
         }
     }
 }
+*/
 
 parser::Type parser::detectType(char c) {
     
@@ -107,49 +108,48 @@ void parser::indexStructure() {
         int resultBac = _mm256_movemask_epi8(compareBackSlash); 
 
 
-        bool prev = false;
 
-        for(size_t j = 0; j < 32; i++) {
+        for(size_t j = 0; j < 32; j++) {
 
-
-            if(resultLCB & (1 << i)) {
-                
+            if(resultLCB & (1 << j) && !inString) {
+                typeIndex.push_back({Type::objectStart, i + j});
             }
-            else if(resultRCB & (1 << i)) {
-                
+            else if(resultRCB & (1 << j) && !inString) {
+                typeIndex.push_back({Type::objectEnd, i + j});
             }
-            else if(resultLSB & (1 << i)) {
-
+            else if(resultLSB & (1 << j) && !inString) {
+                typeIndex.push_back({Type::arrayStart, i + j});
             }
-            else if(resultRSB & (1 << i)) {
-
+            else if(resultRSB & (1 << j) && !inString) {
+                typeIndex.push_back({Type::arrayEnd, i + j});
             }
-            else if(resultQ & (1 << i)) {
+            else if(resultQ & (1 << j)) {
                 if(inString == false) {
                     inString = true;
-                    //I should push the start quote in the array
+                    typeIndex.push_back({Type::quoteStart, i + j});
                 }
                 else {
-                    //if we reach a quote again it will fall in this conditionsince inString = true then it will check if its escaped or not if it is not escaped then push to vector
+                    if(backSlashCounter % 2 == 0) {
+                        typeIndex.back().ePosition = i + j;
+                        typeIndex.back().type = Type::string;
+                        inString = false;
+                    } 
+                    else {
+                        backSlashCounter = 0;
+                    } 
                 }
             }
-            else if(resultCol & (1 << i)) {
-
+            else if(resultCol & (1 << j) && !inString) {
+                typeIndex.push_back({Type::colon, i + j});
             }
-            else if(resultCom & (1 << i)) {
-
+            else if(resultCom & (1 << j) && !inString) {
+                typeIndex.push_back({Type::comma, i + j});
             }
-            else if(resultBac & (1 << i)) {
-                if(prev == false) {
-                    prev = true;
-                    backSlashCounter++;
-                }
-                else {
-                    
-                }
+            else if(resultBac & (1 << j)) {
+                backSlashCounter++;
             }
             else {
-                prev = false;
+                backSlashCounter = 0;
             }
         }
     } 
