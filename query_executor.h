@@ -130,3 +130,28 @@ inline std::string nodeRawValue(const parser::Node* node, const std::vector<char
             return "";
     }
 }
+
+// [NEW] Applies a single WHERE comparison: numeric compare for number nodes (parses both sides as double), lexical/string compare otherwise (covers string and boolean values, e.g. WHERE active = true). If the numeric parse fails on either side (e.g. WHERE age > "abc"), the comparison is treated as a non-match instead of throwing and aborting the whole query.
+inline bool compareValues(const parser::Node* node, const std::vector<char>& jsonData,
+                           FilterOperators op, const std::string& conditionValue) {
+    if (!node) return false;
+
+    if (node->nodeType == parser::NodeType::number) {
+        double lhs, rhs;
+        try {
+            lhs = std::stod(nodeRawValue(node, jsonData));
+            rhs = std::stod(conditionValue);
+        } catch (const std::exception&) {
+            return false; // non-numeric value on either side: no match
+        }
+
+        switch (op) {
+            case FilterOperators::Equal:              return lhs == rhs;
+            case FilterOperators::NotEqual:           return lhs != rhs;
+            case FilterOperators::LessThan:           return lhs <  rhs;
+            case FilterOperators::LessThanOrEqual:    return lhs <= rhs;
+            case FilterOperators::GreaterThan:        return lhs >  rhs;
+            case FilterOperators::GreaterThanOrEqual: return lhs >= rhs;
+        }
+        return false;
+    }
