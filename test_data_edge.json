@@ -6,6 +6,6 @@
   "name": "just_a_string",
   "items": [
     { "sku": "A1", "tags": ["red", "small"] },
-    { "sku": "B2", "tags": ["blue"] }
+    { "sku": "B2", "tags": ["😃"] }
   ]
 }

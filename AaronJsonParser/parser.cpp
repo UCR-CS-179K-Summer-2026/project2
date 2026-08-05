@@ -169,7 +169,6 @@ void parser::constructTree() {
             }
         }
         else if(typeIndex.at(i).type == Type::string) {
-            // NEW: guard against a string being the very last token (for truncated file)
             bool nextIsColon = (i + 1 < typeIndex.size()) &&
                                 (typeIndex.at(i + 1).type == Type::colon);
 
@@ -184,7 +183,6 @@ void parser::constructTree() {
                 newNode.position = typeIndex.at(i).position;
                 newNode.ePosition = typeIndex.at(i).ePosition;
 
-                // NEW: guard against nodes being empty (bare top-level scalar, malformed input)
                 if(!nodes.empty() && nodes.back()->nodeType == NodeType::object) {
                     nodes.back()->objectChildNode[key] = newNode;
                     containsKey = false;

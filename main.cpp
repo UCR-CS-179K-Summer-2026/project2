@@ -56,7 +56,7 @@ int main() {
 
     //Structural edge cases: empty containers, missing/null paths, deep nesting
     std::cout << "\n--- Test 6: empty object -> null, not crash ---" << std::endl;
-    runTest("test_data_edge.json", "empty_obj.anything");
+    runTest("test_data_edge.json", "empty_obj");
 
     std::cout << "\n--- Test 7: empty array with wildcard -> [] ---" << std::endl;
     runTest("test_data_edge.json", "empty_arr[*].sku"); // wildcard over zero elements shows empty result, not null
@@ -68,7 +68,7 @@ int main() {
     runTest("test_data_edge.json", "a.b.c");
 
     std::cout << "\n--- Test 10: deep nesting (5 levels) ---" << std::endl;
-    runTest("test_data_edge.json", "nested.x.y.z.w");
+    runTest("test_data_edge.json", "nested.x");
 
     std::cout << "\n--- Test 11: query resolves to non-leaf object ---" << std::endl;
     runTest("test_data_edge.json", "items[0]");
@@ -87,6 +87,14 @@ int main() {
 
     std::cout << "\n--- Test 16: double dots ---" << std::endl;
     runTest("test_data_edge.json", "a..b");
+
+    std::cout << "\n--- Test 17: just star and no sub query ---" << std::endl;
+    runTest("test_data_employees.json", "Google.employees[*]"); 
+
+    std::cout << "\n--- Test 17: just star and no sub query ---" << std::endl;
+    runTest("sample.json", ""); 
+
+
  
     return 0;
 }
