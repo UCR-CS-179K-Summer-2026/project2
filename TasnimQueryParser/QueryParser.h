@@ -17,4 +17,6 @@ private:
     FilterQuery parseFilterQuery(const std::string& input) const; //GET, FROM, WHERE
 
     FilterOperators parseOperator(const std::string& operatorText) const;
+    // Checks whether `keyword` occurs at position i AND is followed by whitespace or end-of-string (not another letter). Prevents false matches like "FROMX" being read as the FROM keyword.
+    bool matchKeyword(const std::string& input, std::size_t i, const std::string& keyword) const;
 };

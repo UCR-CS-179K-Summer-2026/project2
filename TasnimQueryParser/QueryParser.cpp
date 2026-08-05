@@ -57,7 +57,20 @@ DotPathQuery QueryParser::parseDotPath(const string& input) const {
 }
 
 //note: helper function to skip spaces for filter parser
-
+/*FIX 3: Checks that "keyword" appears at position i AND is immediately followed by whitespace or the end of the string. Without this, a typo like "FROMX" or "WHEREX" would silently match the keyword and then fail later with a confusing "expected key" or "trailing token" error instead of a clear message about the keyword itself.*/
+bool QueryParser::matchKeyword(const std::string& input, std::size_t i, const std::string& keyword) const {
+    if (input.compare(i, keyword.size(), keyword) != 0) {
+        return false;
+    }
+ 
+    size_t after = i + keyword.size();
+ 
+    if (after < input.size() && !isspace(static_cast<unsigned char>(input[after]))) {
+        return false;
+    }
+ 
+    return true;
+}
 
 FilterQuery QueryParser::parseFilterQuery(const std::string& input) const { //GET, FROM, WHERE
     FilterQuery filterQuery;
@@ -69,8 +82,8 @@ FilterQuery QueryParser::parseFilterQuery(const std::string& input) const { //GE
     }
 
     //GET comparison
-
-    if (input.compare(i, 3, "GET") != 0) {
+    // FIX 3: use matchKeyword instead of a bare compare, so "GETX" is rejected here too rather than only relying on the "GET " check in parse().
+     if (!matchKeyword(input, i, "GET")) {
         throw std::runtime_error(
             "filter query needs to start with GET"
         );
@@ -93,7 +106,8 @@ FilterQuery QueryParser::parseFilterQuery(const std::string& input) const { //GE
     }
 
     //FROM comparison, following GET
-    if (input.compare(i, 4, "FROM") != 0) {
+     // FIX 3: word-boundary check so "FROMX" isn't mistaken for the FROM keyword.
+    if (!matchKeyword(input, i, "FROM")) {
         throw std::runtime_error(
             "Expected FROM"
         );
@@ -115,8 +129,8 @@ FilterQuery QueryParser::parseFilterQuery(const std::string& input) const { //GE
     }
 
     //WHERE
-
-    if (input.compare(i, 5, "WHERE") == 0) { //where filter not mandatory for query to run, available choice
+    // FIX 3: word-boundary check so "WHEREX" isn't mistaken for the WHERE keyword 
+    if (matchKeyword(input, i, "WHERE") == 0) { //where filter not mandatory for query to run, available choice
         i += 5;
 
         Condition whereCond;
@@ -245,6 +259,7 @@ std::vector<PathPart> QueryParser::parsePath(const std::string& input, std::size
 
 
             //specific array index handling
+            /*fix: negative indices check fix*/
 			else if (isdigit(static_cast<unsigned char>(input[i])) || input[i] == '-') {
                 string digits;
 
@@ -283,7 +298,7 @@ std::vector<PathPart> QueryParser::parsePath(const std::string& input, std::size
                     PathPartType::ArrayIndex, "", index
                 });
             }
-
+            /*------------------------------*/
             else {
                 throw runtime_error(
                     "error: missing array index or * in brackets."
