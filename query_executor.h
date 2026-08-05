@@ -218,3 +218,12 @@ inline std::vector<const parser::Node*> executeFilterQuery(const parser::Node& r
 
     return results;
 }
+
+// [NEW] Entry point for filter queries. Unlike the dot-path executeQuery overloads above, this one takes jsonData, because WHERE comparisons need to read actual values out of the raw buffer, not just locate matching nodes. This is a new overload (3 arguments instead of 2), so it does not conflict with or replace the existing executeQuery(root, query) above callers (functions) pick whichever overload matches the query type they're running.
+inline std::vector<const parser::Node*> executeQuery(const parser::Node& root, const Query& query,
+                                                        const std::vector<char>& jsonData) {
+    if (query.type == QueryType::Filter) {
+        return executeFilterQuery(root, query.filter, jsonData);
+    }
+    return executeQuery(root, query.dotPath);
+}
