@@ -84,6 +84,7 @@ void parser::indexStructure() {
         __m256i QUO = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(Quote.data()));
         __m256i COL = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(Colon.data()));
         __m256i COM = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(Comma.data()));
+        __m256i BAC = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(backSlash.data()));
 
 
 
@@ -94,6 +95,7 @@ void parser::indexStructure() {
         __m256i compareQuote = _mm256_cmpeq_epi8 (data, QUO); //"
         __m256i compareColon = _mm256_cmpeq_epi8 (data, COL); //:
         __m256i compareComma = _mm256_cmpeq_epi8 (data, COM); //,
+        __m256i compareBackSlash = _mm256_cmpeq_epi8 (data, BAC); //\
 
         int resultLCB = _mm256_movemask_epi8(compareLCB); 
         int resultRCB = _mm256_movemask_epi8(compareRCB); 
@@ -102,19 +104,54 @@ void parser::indexStructure() {
         int resultQ = _mm256_movemask_epi8(compareQuote); 
         int resultCol = _mm256_movemask_epi8(compareColon);  
         int resultCom = _mm256_movemask_epi8(compareComma); 
+        int resultBac = _mm256_movemask_epi8(compareBackSlash); 
 
-        
-        for(size_t i = 0; i < 32; i++) {
-            if(result & (1 << i)) {
+
+        bool prev = false;
+
+        for(size_t j = 0; j < 32; i++) {
+
+
+            if(resultLCB & (1 << i)) {
+                
+            }
+            else if(resultRCB & (1 << i)) {
+                
+            }
+            else if(resultLSB & (1 << i)) {
 
             }
-            else if() {
+            else if(resultRSB & (1 << i)) {
 
             }
+            else if(resultQ & (1 << i)) {
+                if(inString == false) {
+                    inString = true;
+                    //I should push the start quote in the array
+                }
+                else {
+                    //if we reach a quote again it will fall in this conditionsince inString = true then it will check if its escaped or not if it is not escaped then push to vector
+                }
+            }
+            else if(resultCol & (1 << i)) {
 
+            }
+            else if(resultCom & (1 << i)) {
+
+            }
+            else if(resultBac & (1 << i)) {
+                if(prev == false) {
+                    prev = true;
+                    backSlashCounter++;
+                }
+                else {
+                    
+                }
+            }
+            else {
+                prev = false;
+            }
         }
-
-
     } 
 }
 

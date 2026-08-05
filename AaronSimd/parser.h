@@ -58,13 +58,8 @@ public:
     const std::vector<TypeStruct>& getTypeIndex() const;
     Type detectValue();  
     void constructTree();
-
-    //this is Poojan and I am adding some new helper functions to print and see the tree structure and to help my query search algorithm
-    // NEW: accessors needed so main.cpp / other files can see the result
     const Node& getRoot() const;
     const std::vector<char>& getJsonData() const;
-
-    //NEW: recursive print, so the tree can actually be verified by eye
     void printTree() const;
 
 private:
@@ -90,6 +85,7 @@ private:
     std::vector<char> Colon = {':',':',':',':',':',':',':',':',':',':',':',':',':',':',':',':',':',':',':',':',':',':',':',':',':',':',':',':',':',':',':',':'};
     std::vector<char> Comma = {',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',',','};
     std::vector<char> Quote = {'"','"','"','"','"','"','"','"','"','"','"','"','"','"','"','"','"','"','"','"','"','"','"','"','"','"','"','"','"','"','"','"'};
+    std::vector<char> backSlash = {'\\','\\','\\','\\','\\','\\','\\','\\','\\','\\','\\','\\','\\','\\','\\','\\','\\','\\','\\','\\','\\','\\','\\','\\','\\','\\','\\','\\','\\','\\','\\','\\'};
 };  
 
 
