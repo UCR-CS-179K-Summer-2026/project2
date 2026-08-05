@@ -170,15 +170,32 @@ FilterQuery QueryParser::parseFilterQuery(const std::string& input) const { //GE
             ++i;
         }     
 
-        if (i >= input.size()) { //check if there's actually a number after the operator
-            throw runtime_error("expected number after operator");
+        if (i >= input.size()) { //check if there's actually a value after the operator
+            throw runtime_error("expected value after operator");
         }
 
         string readVal;
         
-        while (i < input.size() && !isspace(static_cast<unsigned char>(input[i]))) {
-            readVal += input[i];
-            ++i;
+        // FIX 4: support quoted string values so they can contain spaces, e.g. WHERE name = 'John Doe'. Unquoted values (numbers, bare words) keeps the old behavior of stopping at the next whitespace.
+        if (input[i] == '\'') {
+            ++i; // skip opening quote
+ 
+            while (i < input.size() && input[i] != '\'') {
+                readVal += input[i];
+                ++i;
+            }
+ 
+            if (i >= input.size()) {
+                throw runtime_error("unterminated string value after operator");
+            }
+ 
+            ++i; // skip closing quote
+        }
+        else {
+            while (i < input.size() && !isspace(static_cast<unsigned char>(input[i]))) {
+                readVal += input[i];
+                ++i;
+            }
         }
         
         whereCond.value = readVal;
