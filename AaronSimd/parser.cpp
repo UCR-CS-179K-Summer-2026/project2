@@ -76,17 +76,42 @@ parser::Type parser::detectType(char c) {
 
 void parser::indexStructure() {
     for(size_t i  = 0; i < jsonData.size(); i+=32) {
-        __m256i data = _mm256_loadu_si256 (jsonData.data());
-        __m256i openBracket = _mm256_loadu_si256 (jsonData.data());
-        __m256i compare = _mm256_cmpeq_epi8 (data, openBracket);
+        __m256i data = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(jsonData.data() + i));
+        __m256i LCB = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(LBracket.data()));
+        __m256i RCB = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(RBracket.data()));
+        __m256i LSB= _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(LBrace.data()));
+        __m256i RSB = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(RBrace.data()));
+        __m256i QUO = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(Quote.data()));
+        __m256i COL = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(Colon.data()));
+        __m256i COM = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(Comma.data()));
 
-        int result = _mm256_movemask_epi8(compare);
+
+
+        __m256i compareLCB = _mm256_cmpeq_epi8 (data, LCB); //{
+        __m256i compareRCB = _mm256_cmpeq_epi8 (data, RCB); //}
+        __m256i compareLSB = _mm256_cmpeq_epi8 (data, LSB); //[
+        __m256i compareRSB = _mm256_cmpeq_epi8 (data, RSB); //]
+        __m256i compareQuote = _mm256_cmpeq_epi8 (data, QUO); //"
+        __m256i compareColon = _mm256_cmpeq_epi8 (data, COL); //:
+        __m256i compareComma = _mm256_cmpeq_epi8 (data, COM); //,
+
+        int resultLCB = _mm256_movemask_epi8(compareLCB); 
+        int resultRCB = _mm256_movemask_epi8(compareRCB); 
+        int resultLSB = _mm256_movemask_epi8(compareLSB); 
+        int resultRSB = _mm256_movemask_epi8(compareRSB); 
+        int resultQ = _mm256_movemask_epi8(compareQuote); 
+        int resultCol = _mm256_movemask_epi8(compareColon);  
+        int resultCom = _mm256_movemask_epi8(compareComma); 
+
         
         for(size_t i = 0; i < 32; i++) {
             if(result & (1 << i)) {
 
             }
-            
+            else if() {
+
+            }
+
         }
 
 
