@@ -17,4 +17,6 @@ private:
     FilterQuery parseFilterQuery(const std::string& input) const; //GET, FROM, WHERE
 
     FilterOperators parseOperator(const std::string& operatorText) const;
+
+    void skipWhitespace(const std::string& input, std::size_t& i) const;
 };

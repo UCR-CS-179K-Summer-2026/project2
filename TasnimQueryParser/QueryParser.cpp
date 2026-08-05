@@ -45,6 +45,11 @@ DotPathQuery QueryParser::parseDotPath(const string& input) const {
 }
 
 //note: helper function to skip spaces for filter parser
+void QueryParser::skipWhitespace(const std::string& input, std::size_t& i) const {
+    while (i < input.size() && isspace(static_cast<unsigned char>(input[i]))) {
+        ++i;
+    }
+}
 
 
 FilterQuery QueryParser::parseFilterQuery(const std::string& input) const { //GET, FROM, WHERE
@@ -52,9 +57,7 @@ FilterQuery QueryParser::parseFilterQuery(const std::string& input) const { //GE
     size_t i = 0;
 
     //skipping extra spaces before comparing
-    while (i < input.size() && isspace(static_cast<unsigned char>(input[i]))) {
-        ++i;
-    }
+    skipWhitespace(input, i);
 
     //GET comparison
 
@@ -65,9 +68,7 @@ FilterQuery QueryParser::parseFilterQuery(const std::string& input) const { //GE
     }
     i += 3;
     
-    while (i < input.size() && isspace(static_cast<unsigned char>(input[i]))) { //skip spaces
-        ++i;
-    }    
+    skipWhitespace(input, i);
 
     filterQuery.selectField = parsePath(input, i);
     
@@ -76,9 +77,7 @@ FilterQuery QueryParser::parseFilterQuery(const std::string& input) const { //GE
         throw runtime_error("expected field after GET");
     }
 
-    while (i < input.size() && isspace(static_cast<unsigned char>(input[i]))) { //skip spaces
-        ++i;
-    }
+    skipWhitespace(input, i);
 
     //FROM comparison, following GET
     if (input.compare(i, 4, "FROM") != 0) {
@@ -88,9 +87,7 @@ FilterQuery QueryParser::parseFilterQuery(const std::string& input) const { //GE
     }
     i += 4;
 
-    while (i < input.size() && std::isspace(static_cast<unsigned char>(input[i]))) {
-        ++i;
-    }    
+    skipWhitespace(input, i);
     
     filterQuery.sourcePath = parsePath(input, i);
     
@@ -98,9 +95,7 @@ FilterQuery QueryParser::parseFilterQuery(const std::string& input) const { //GE
         throw runtime_error("missing source path after 'FROM'");
     }
 
-    while (i < input.size() && isspace(static_cast<unsigned char>(input[i]))) { //skip space
-        ++i;
-    }
+    skipWhitespace(input, i);
 
     //WHERE
 
@@ -110,9 +105,7 @@ FilterQuery QueryParser::parseFilterQuery(const std::string& input) const { //GE
         Condition whereCond;
 
         //left-hand parsing
-        while (i < input.size() && std::isspace(static_cast<unsigned char>(input[i]))) { //skipping white spaces
-            ++i;
-        }
+        skipWhitespace(input, i);
         
         whereCond.field = parsePath(input, i);
         
@@ -120,9 +113,7 @@ FilterQuery QueryParser::parseFilterQuery(const std::string& input) const { //GE
             throw runtime_error("expected input after WHERE filter");
         }
 
-        while (i < input.size() && std::isspace(static_cast<unsigned char>(input[i]))) { //skip spaces
-            ++i;
-        }        
+        skipWhitespace(input, i);
         
         string operatortext;
         
@@ -140,9 +131,7 @@ FilterQuery QueryParser::parseFilterQuery(const std::string& input) const { //GE
 
         //right hand
 
-        while (i < input.size() && std::isspace(static_cast<unsigned char>(input[i]))) { //skippinf spaces
-            ++i;
-        }     
+        skipWhitespace(input, i);
 
         if (i >= input.size()) { //check if there's actually a number after the operator
             throw runtime_error("expected number after operator");
@@ -160,9 +149,7 @@ FilterQuery QueryParser::parseFilterQuery(const std::string& input) const { //GE
         filterQuery.conditions.push_back(whereCond);
     }
     
-    while (i < input.size() && std::isspace(static_cast<unsigned char>(input[i]))) { //skip space
-        ++i;
-    }    
+    skipWhitespace(input, i);
 
     if (i < input.size()) {
         throw runtime_error("unread/extra input located at index: " + to_string(i));
@@ -315,128 +302,3 @@ FilterOperators QueryParser::parseOperator(const std::string& operatorText) cons
         "Unsupported operator"
     );
 }
-
-
-
-//filter query parser:
-//        if (input[i] == '\'') {
-//             ++i; //skip opening quote
-            
-//             while (i < input.size() && input[i] != '\'') {
-//                 readVal += input[i]; //add i to the value being read in, bypasing quotes
-//                 ++i;
-//             }
-            
-//             if (i >= input.size()) {
-//                 throw runtime_error("invalid value entry");
-//             }
-//             ++i;
-//         } 
-
-
-    // DotPathQuery query;
-
-    // size_t i = 0;
-
-    // while (i < input.size()) {
-
-    //     if (!isalpha(static_cast<unsigned char>(input[i])) &&
-    //         input[i] != '_') {
-    //         throw runtime_error(
-    //             "Expected key at position " + to_string(i) //throw error for invalid position placement
-    //         );
-    //     }
-
-    //     string key;
-
-    //     //reading key name:
-    //     while (i < input.size() && (isalnum(static_cast<unsigned char>(input[i])) || 
-	// 		input[i] == '_')) {
-    //         key += input[i];
-    //         ++i;
-    //     }
-
-    //     query.path.push_back({
-    //         PathPartType::Key,
-    //         key,
-    //         -1
-    //     });
-
-    //     //arr handling after key
-    //     if (i < input.size() && input[i] == '[') { //'[' opens correctly
-    //         ++i;
-
-	// 		//unclosed brackets error
-    //         if (i >= input.size()) {
-    //             throw runtime_error(
-    //                 "Unclosed bracket at end of query"
-    //             );
-    //         }
-
-    //         //wildcard handling: [*]
-    //         if (input[i] == '*') {
-    //             ++i;
-
-    //             if (i >= input.size() || input[i] != ']') { //err for unclosed [
-    //                 throw runtime_error(
-    //                     "Unclosed bracket after *."
-    //                 );
-    //             }
-
-    //             ++i;
-
-    //             query.path.push_back({ //encompassing all elements of arr
-    //                 PathPartType::AllElements, "", -1
-    //             });
-    //         }
-
-
-    //         //specific array index handling
-	// 		else if (isdigit(static_cast<unsigned char>(input[i]))) {
-    //             string digits;
-
-    //             while (i < input.size() && isdigit(input[i])) {
-	// 				digits += input[i]; //load nums into digits to convert
-	// 				++i;
-	// 			}
-	// 			int index = stoi(digits);
-
-    //             if (i >= input.size() || input[i] != ']') { //unclosed brackets
-    //                 throw runtime_error(
-    //                     "Unclosed bracket after array index"
-    //                 );
-    //             }
-
-    //             ++i;
-
-    //             query.path.push_back({
-    //                 PathPartType::ArrayIndex, "", index
-    //             });
-    //         }
-
-    //         else {
-    //             throw runtime_error(
-    //                 "error: missing array index or * in brackets."
-    //             );
-    //         }
-    //     }
-
-    //     //if input isn't finished, 
-    //     if (i < input.size()) {
-	// 		if (input[i] != '.') {
-    //             throw runtime_error(
-    //                 "Error: Expected '.' at position " + to_string(i)
-    //             );
-    //         }
-
-    //         ++i;
-
-    //         if (i >= input.size()) {
-    //             throw runtime_error(
-    //                 "Error: Query is ending with a dot"
-    //             );
-    //         }
-    //     }
-    // }
-
-    // return query;
