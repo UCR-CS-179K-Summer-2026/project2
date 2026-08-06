@@ -2,19 +2,23 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <chrono>
 
 
 int main() {
     parser p;
-    if(!p.loadFile("Employee.json")) {
+    if(!p.loadFile("test.json")) {
         return 1;
     }
+    auto start = std::chrono::steady_clock::now();
     p.indexStructure();
-    p.constructTree();
+    auto end = std::chrono::steady_clock::now();
+    auto duration = std::chrono::duration<double>(end - start);
+    std::cout << "indexStructure function took " << duration.count() << " seconds" << std::endl;
 
-    // NEW: actually show the tree so it can be verified
-    std::cout << "--- Parsed tree ---" << std::endl;
-    p.printTree();
+    //p.constructTree();
+    //std::cout << "--- Parsed tree ---" << std::endl;
+    //p.printTree();
 
     return 0;
 }

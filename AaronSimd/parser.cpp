@@ -78,6 +78,7 @@ parser::Type parser::detectType(char c) {
 void parser::indexStructure() {
     for(size_t i  = 0; i < jsonData.size(); i+=32) {
         __m256i data = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(jsonData.data() + i));
+
         __m256i LCB = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(LBracket.data()));
         __m256i RCB = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(RBracket.data()));
         __m256i LSB= _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(LBrace.data()));
@@ -87,7 +88,10 @@ void parser::indexStructure() {
         __m256i COM = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(Comma.data()));
         __m256i BAC = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(backSlash.data()));
 
-
+        __m256i Space = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(space.data()));
+        __m256i NewLine = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(newline.data()));
+        __m256i Carriage = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(carriage.data()));
+        __m256i Tab = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(tab.data()));
 
         __m256i compareLCB = _mm256_cmpeq_epi8 (data, LCB); //{
         __m256i compareRCB = _mm256_cmpeq_epi8 (data, RCB); //}
@@ -98,6 +102,11 @@ void parser::indexStructure() {
         __m256i compareComma = _mm256_cmpeq_epi8 (data, COM); //,
         __m256i compareBackSlash = _mm256_cmpeq_epi8 (data, BAC); //\
 
+        __m256i compareSpace = _mm256_cmpeq_epi8 (data, Space); // 
+        __m256i compareNewline = _mm256_cmpeq_epi8 (data, NewLine); //\n
+        __m256i compareCarriage = _mm256_cmpeq_epi8 (data, Carriage); //\r
+        __m256i compareTab = _mm256_cmpeq_epi8 (data, Tab); //\t
+
         int resultLCB = _mm256_movemask_epi8(compareLCB); 
         int resultRCB = _mm256_movemask_epi8(compareRCB); 
         int resultLSB = _mm256_movemask_epi8(compareLSB); 
@@ -106,6 +115,11 @@ void parser::indexStructure() {
         int resultCol = _mm256_movemask_epi8(compareColon);  
         int resultCom = _mm256_movemask_epi8(compareComma); 
         int resultBac = _mm256_movemask_epi8(compareBackSlash); 
+       
+        int resultSpace = _mm256_movemask_epi8(compareSpace); 
+        int resultNewline = _mm256_movemask_epi8(compareNewline); 
+        int resultCarriage = _mm256_movemask_epi8(compareCarriage); 
+        int resultTab = _mm256_movemask_epi8(compareTab); 
 
 
 
