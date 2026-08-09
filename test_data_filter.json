@@ -1,0 +1,44 @@
+{
+  "store": {
+    "name": "TechMart",
+    "products": [
+      {
+        "name": "Laptop",
+        "price": 1200,
+        "inStock": true,
+        "category": "electronics",
+        "maker": { "name": "acme laptops", "location": "USA" }
+      },
+      {
+        "name": "Mouse",
+        "price": 1000,
+        "inStock": true,
+        "category": "electronics"
+      },
+      {
+        "name": "Wireless Mouse",
+        "price": 4500,
+        "inStock": true,
+        "category": "electronics"
+      },
+      {
+        "name": "Desk",
+        "price": 30000,
+        "inStock": false,
+        "category": "furniture"
+      },
+      {
+        "name": "Chair",
+        "price": 15000,
+        "inStock": true,
+        "category": "furniture"
+      },
+      {
+        "name": "Monitor",
+        "price": 400,
+        "inStock": false,
+        "category": "electronics"
+      }
+    ]
+  }
+}

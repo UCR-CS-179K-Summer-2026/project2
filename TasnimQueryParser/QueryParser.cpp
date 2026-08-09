@@ -130,7 +130,7 @@ FilterQuery QueryParser::parseFilterQuery(const std::string& input) const { //GE
 
     //WHERE
     // FIX 3: word-boundary check so "WHEREX" isn't mistaken for the WHERE keyword 
-    if (matchKeyword(input, i, "WHERE") == 0) { //where filter not mandatory for query to run, available choice
+    if (matchKeyword(input, i, "WHERE")) { //where filters not mandatory for query to run, available choice
         i += 5;
 
         Condition whereCond;
