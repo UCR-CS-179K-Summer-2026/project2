@@ -7,7 +7,7 @@
 
 int main() {
     parser p;
-    if(!p.loadFile("test.json")) {
+    if(!p.loadFile("Employee.json")) {
         return 1;
     }
     auto start = std::chrono::steady_clock::now();
@@ -16,9 +16,9 @@ int main() {
     auto duration = std::chrono::duration<double>(end - start);
     std::cout << "indexStructure function took " << duration.count() << " seconds" << std::endl;
 
-    //p.constructTree();
-    //std::cout << "--- Parsed tree ---" << std::endl;
-    //p.printTree();
+    p.constructTree();
+    std::cout << "--- Parsed tree ---" << std::endl;
+    p.printTree();
 
     return 0;
 }

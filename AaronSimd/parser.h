@@ -67,7 +67,7 @@ private:
     std::vector<char> jsonData;
     int backSlashCounter = 0;
     bool inString = false;
-    //bool inValue = false;
+    bool inValue = false;
     std::vector<TypeStruct> typeIndex;
 
     Node root;
@@ -91,6 +91,7 @@ private:
     std::vector<char> newline = {'\n','\n','\n','\n','\n','\n','\n','\n','\n','\n','\n','\n','\n','\n','\n','\n','\n','\n','\n','\n','\n','\n','\n','\n','\n','\n','\n','\n','\n','\n','\n','\n'};
     std::vector<char> carriage = {'\r','\r','\r','\r','\r','\r','\r','\r','\r','\r','\r','\r','\r','\r','\r','\r','\r','\r','\r','\r','\r','\r','\r','\r','\r','\r','\r','\r','\r','\r','\r','\r'};
     std::vector<char> tab = {'\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t'};
+    std::vector<char> zero = {'0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'};
 };  
 
 

@@ -87,6 +87,7 @@ void parser::indexStructure() {
         __m256i COL = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(Colon.data()));
         __m256i COM = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(Comma.data()));
         __m256i BAC = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(backSlash.data()));
+        __m256i NUM = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(zero.data()));
 
         __m256i Space = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(space.data()));
         __m256i NewLine = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(newline.data()));
@@ -107,6 +108,9 @@ void parser::indexStructure() {
         __m256i compareCarriage = _mm256_cmpeq_epi8 (data, Carriage); //\r
         __m256i compareTab = _mm256_cmpeq_epi8 (data, Tab); //\t
 
+        __m256i greaterThanZero = _mm256_cmpgt_epi8(data, NUM);
+        __m256i greaterThanNine = _mm256_cmpgt_epi8(data, COL);
+        
         int resultLCB = _mm256_movemask_epi8(compareLCB); 
         int resultRCB = _mm256_movemask_epi8(compareRCB); 
         int resultLSB = _mm256_movemask_epi8(compareLSB); 
@@ -121,23 +125,25 @@ void parser::indexStructure() {
         int resultCarriage = _mm256_movemask_epi8(compareCarriage); 
         int resultTab = _mm256_movemask_epi8(compareTab); 
 
+        int resultZero = _mm256_movemask_epi8(greaterThanZero);
+        int resultNine = _mm256_movemask_epi8(greaterThanNine);
 
 
         for(size_t j = 0; j < 32; j++) {
 
-            if(resultLCB & (1 << j) && !inString) {
+            if(resultLCB & (1 << j) && !inString && !inValue) {
                 typeIndex.push_back({Type::objectStart, i + j});
             }
-            else if(resultRCB & (1 << j) && !inString) {
+            else if(resultRCB & (1 << j) && !inString && !inValue) {
                 typeIndex.push_back({Type::objectEnd, i + j});
             }
-            else if(resultLSB & (1 << j) && !inString) {
+            else if(resultLSB & (1 << j) && !inString && !inValue) {
                 typeIndex.push_back({Type::arrayStart, i + j});
             }
-            else if(resultRSB & (1 << j) && !inString) {
+            else if(resultRSB & (1 << j) && !inString && !inValue) {
                 typeIndex.push_back({Type::arrayEnd, i + j});
             }
-            else if(resultQ & (1 << j)) {
+            else if((resultQ & (1 << j)) && !inValue) {
                 if(inString == false) {
                     inString = true;
                     typeIndex.push_back({Type::quoteStart, i + j});
@@ -153,14 +159,22 @@ void parser::indexStructure() {
                     } 
                 }
             }
-            else if(resultCol & (1 << j) && !inString) {
+            else if(resultCol & (1 << j) && !inString && !inValue) {
                 typeIndex.push_back({Type::colon, i + j});
             }
-            else if(resultCom & (1 << j) && !inString) {
+            else if(resultCom & (1 << j) && !inString && !inValue) {
                 typeIndex.push_back({Type::comma, i + j});
             }
-            else if(resultBac & (1 << j)) {
+            else if((resultBac & (1 << j)) && !inValue) {
                 backSlashCounter++;
+            }
+            else if((resultZero & (1 << j)) && (resultNine & (1 << j)) && !inString) {
+                inValue = true;
+                typeIndex.push_back({Type::number, i + j});
+            }
+            else if(((resultSpace & (1 << j)) || (resultNewline & (1 << j)) || (resultCarriage & (1 << j)) || (resultTab & (1 << j))) && inValue) {
+                inValue = false;
+                typeIndex.back().ePosition = i + j - 1;
             }
             else {
                 backSlashCounter = 0;
