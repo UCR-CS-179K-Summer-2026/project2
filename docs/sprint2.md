@@ -30,6 +30,7 @@ As a user, I want to be able to load a large JSON file to query datasets.
 
 As a user, I want to be able to query nested data.
 
+
 ### Query Executer:
 
 As a user, I want a dot-path query to return the data at my exact requested path.
@@ -41,6 +42,7 @@ As a user, I want my filter queries to return the elements satisfying my conditi
 
 Example:
 `GET name FROM store.products WHERE price > 300`
+
 
 ### Query Parser:
 
@@ -60,11 +62,17 @@ Example:
 
 **Multiple Conditions**
 
-As a user, I want to be able to have multiple conditions and get elements that only satisfy all my conditions.
+As a user, I want to be able to have multiple conditions to get elements that only satisfy all my conditions.
 
 Example:
 `GET name FROM School.students WHERE year > 2 AND grade >= 90`
 
+
+### Error Handling
+
+As a user, I want to know when my queries are structured wrong.
+
+As a user, I want to know where to fix my queries to get what I want.
 
 
 ## Test Cases for Demo
