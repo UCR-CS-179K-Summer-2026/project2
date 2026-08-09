@@ -126,72 +126,87 @@ FilterQuery QueryParser::parseFilterQuery(const std::string& input) const { //GE
 
     //WHERE
     // FIX 3: word-boundary check so "WHEREX" isn't mistaken for the WHERE keyword 
+    
     if (matchKeyword(input, i, "WHERE")) { //where filters not mandatory for query to run, available choice
         i += 5;
 
-        Condition whereCond;
+        while(true) {
+            Condition whereCond;
 
-        //left-hand parsing
-        skipWhitespace(input, i);
-        
-        whereCond.field = parsePath(input, i);
-        
-        if (whereCond.field.empty()) {
-            throw runtime_error("expected input after WHERE filter");
-        }
+            //left-hand parsing
+            skipWhitespace(input, i);
+            
+            whereCond.field = parsePath(input, i);
+            
+            if (whereCond.field.empty()) {
+                throw runtime_error("expected input after WHERE filter");
+            }
 
-        skipWhitespace(input, i);
-        
-        string operatortext;
-        
-        //found one of these operators
-        while (i < input.size() && (input[i] == '=' || input[i] == '!' || input[i] == '<' || input[i] == '>')) { 
-            operatortext += input[i]; //load operator text
-            ++i;
-        }
-        
-        if (operatortext.empty()) {
-            throw runtime_error("expecting a comparison operator after WHERE filter");
-        }
-        
-        whereCond.comparisonOp = parseOperator(operatortext);
-
-        //right hand
-
-        skipWhitespace(input, i);
-
-        if (i >= input.size()) { //check if there's actually a value after the operator
-            throw runtime_error("expected value after operator");
-        }
-
-        string readVal;
-        
-        // FIX 4: support quoted string values so they can contain spaces, e.g. WHERE name = 'John Doe'. Unquoted values (numbers, bare words) keeps the old behavior of stopping at the next whitespace.
-        if (input[i] == '\'') {
-            ++i; // skip opening quote
- 
-            while (i < input.size() && input[i] != '\'') {
-                readVal += input[i];
+            skipWhitespace(input, i);
+            
+            string operatortext;
+            
+            //found one of these operators
+            while (i < input.size() && (input[i] == '=' || input[i] == '!' || input[i] == '<' || input[i] == '>')) { 
+                operatortext += input[i]; //load operator text
                 ++i;
             }
- 
-            if (i >= input.size()) {
-                throw runtime_error("unterminated string value after operator");
+            
+            if (operatortext.empty()) {
+                throw runtime_error("expecting a comparison operator after WHERE filter");
             }
- 
-            ++i; // skip closing quote
-        }
-        else {
-            while (i < input.size() && !isspace(static_cast<unsigned char>(input[i]))) {
-                readVal += input[i];
-                ++i;
-            }
-        }
-        
-        whereCond.value = readVal;
+            
+            whereCond.comparisonOp = parseOperator(operatortext);
 
-        filterQuery.conditions.push_back(whereCond);
-    }
+            //right hand
+
+            skipWhitespace(input, i);
+
+            if (i >= input.size()) { //check if there's actually a value after the operator
+                throw runtime_error("expected value after operator");
+            }
+
+            string readVal;
+            
+            // FIX 4: support quoted string values so they can contain spaces, 
+            //e.g. WHERE name = 'John Doe'. Unquoted values (numbers, bare words) keeps the old behavior of stopping at the next whitespace.
+            if (input[i] == '\'') {
+                ++i; // skip opening quote
+    
+                while (i < input.size() && input[i] != '\'') {
+                    readVal += input[i];
+                    ++i;
+                }
+    
+                if (i >= input.size()) {
+                    throw runtime_error("unterminated string value after operator");
+                }
+    
+                ++i; // skip closing quote
+            }
+            else {
+                while (i < input.size() && !isspace(static_cast<unsigned char>(input[i]))) {
+                    readVal += input[i];
+                    ++i;
+                }
+            }
+            
+            whereCond.value = readVal;
+
+            filterQuery.conditions.push_back(whereCond);
+
+            //check for an AND condition:
+            
+            skipWhitespace(input, i);
+
+            if(matchKeyword(input, i, "AND")) {
+                i += 3;
+                continue;
+            }
+
+            //no and, break loop;
+            break;
+        }
     
     skipWhitespace(input, i);
 
