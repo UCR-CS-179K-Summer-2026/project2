@@ -98,20 +98,15 @@ int main() {
 
     std::cout << "\n--- Test 18: filter query, numeric > ---" << std::endl;
     runTest("test_data_filter.json", "GET name FROM store.products WHERE price > 300");
-    // Expects: ["Laptop", "Monitor"] (1200 and 400 are > 300; Desk at exactly
-    // 300 must NOT appear, confirming > is strict rather than >=)
 
    std::cout << "\n--- Test 19: filter query, boolean equality ---" << std::endl;
     runTest("test_data_filter.json", "GET name FROM store.products WHERE inStock = true");
-    // Expects: ["Laptop", "Mouse", "Wireless Mouse", "Chair"]
 
     std::cout << "\n--- Test 20: filter query, string equality, GET differs from WHERE field ---" << std::endl;
     runTest("test_data_filter.json", "GET price FROM store.products WHERE category = electronics");
-    // Expects: [1200, 25, 45, 400] -- confirms GET and WHERE can reference different fields
 
     std::cout << "\n--- Test 21: filter query, exact numeric match ---" << std::endl;
     runTest("test_data_filter.json", "GET name FROM store.products WHERE price = 300");
-    // Expects: ["Desk"]
 
     std::cout << "\n--- Test 22: filter query, no rows match ---" << std::endl;
     runTest("test_data_filter.json", "GET name FROM store.products WHERE price > 9999");
@@ -119,36 +114,20 @@ int main() {
 
     std::cout << "\n--- Test 23: filter query, quoted string value with a space ---" << std::endl;
     runTest("test_data_filter.json", "GET price FROM store.products WHERE name = 'Wireless Mouse'");
-    // Expects: [45] -- this exercises Fix 4 (quoted WHERE values) end-to-end
 
     std::cout << "\n--- Test 24: filter query, FROM path does not exist ---" << std::endl;
     runTest("test_data_filter.json", "GET name FROM store.nonexistentList WHERE price > 0");
-    // Expects: [] -- FROM resolves to null/non-array, so the scan finds
-    // nothing to iterate rather than throwing
+    // Expects: [] -- FROM resolves to null/non-array, so the scan finds nothing to iterate rather than throwing
 
     std::cout << "\n--- Test 25: filter query, <= operator ---" << std::endl;
     runTest("test_data_filter.json", "GET name FROM store.products WHERE price <= 300");
-    // Expects: ["Mouse", "Wireless Mouse", "Desk", "Chair"]
 
     std::cout << "\n--- Test 26: filter query against existing Sprint-1 inventory data ---" << std::endl;
     runTest("test_data_inventory.json", "GET sku FROM items WHERE inStock = true");
-    // Confirms filter queries also work against your original dataset, not
-    // just the new one -- exact expected output depends on your inventory
-    // data's actual sku/inStock values.
-
-
-    // ========================================================================
-    // [NEW] Tier 6: Bug-Fix Regression Tests
-    // One test per bug fixed on Tasnim's filter query branch. These exist so
-    // a future change can't silently reintroduce a bug that was already
-    // fixed once.
-    // ========================================================================
 
     std::cout << "\n--- Test 27: Bug 1 regression - leading whitespace on filter query ---" << std::endl;
     runTest("test_data_filter.json", "   GET name FROM store.products WHERE price > 300");
-    // Before the fix: leading whitespace caused a misroute into dot-path
-    // parsing and threw "Unexpected trailing token...". Expects same result
-    // as Test 18.
+    // Before the fix: leading whitespace caused a misroute into dot-path parsing and threw "Unexpected trailing token...".
 
     std::cout << "\n--- Test 28: Bug 1 regression - trailing whitespace on dot-path query ---" << std::endl;
     runTest("test_data_employees.json", "Google.employees[*].name   ");
@@ -157,8 +136,6 @@ int main() {
     std::cout << "\n--- Test 29: Bug 2 regression - negative array index ---" << std::endl;
     runTest("test_data_filter.json", "store.products[-1].name");
     // Expects: PARSE ERROR: negative array indices not supported
-    // (Same fix as Test 12 above, re-verified through the filter dataset's
-    // nested path to confirm it isn't dataset-specific.)
 
     std::cout << "\n--- Test 30: Bug 3 regression - FROM keyword typo ---" << std::endl;
     runTest("test_data_filter.json", "GET name FROMX store.products");
@@ -168,14 +145,37 @@ int main() {
     std::cout << "\n--- Test 31: Bug 3 regression - WHERE keyword typo ---" << std::endl;
     runTest("test_data_filter.json", "GET name FROM store.products WHEREX price > 0");
     // Expects: PARSE ERROR: unread/extra input located at index: ...
-    // WHERE is optional, so "WHEREX" must NOT match it -- it should instead
-    // be rejected as leftover trailing input after a successful FROM parse.
+    // WHERE is optional, so "WHEREX" must NOT match it. it should instead be rejected as leftover trailing input after a successful FROM parse.
 
     std::cout << "\n--- Test 32: Bug 4 regression - unquoted WHERE value containing a space ---" << std::endl;
     runTest("test_data_filter.json", "GET price FROM store.products WHERE name = Wireless Mouse");
-    // Expects: PARSE ERROR (unread/extra input) -- without quotes, only
-    // "Wireless" is read as the value and "Mouse" is leftover. Contrast with
-    // Test 23, which succeeds because the value is quoted.
+    // Expects: PARSE ERROR (unread/extra input) -- without quotes, only "Wireless" is read as the value and "Mouse" is leftover. 
 
+    std::cout << "\n--- Test 33: GET + FROM, no WHERE ---" << std::endl;
+    runTest("test_data_filter.json", "GET name FROM store.products");
+
+    std::cout << "\n--- Test 34: GET + FROM, no WHERE, different field ---" << std::endl;
+    runTest("test_data_filter.json", "GET price FROM store.products");
+
+    std::cout << "\n--- Test 35: GET + FROM, no WHERE, trailing whitespace ---" << std::endl;
+    runTest("test_data_filter.json", "GET name FROM store.products   ");
+    // Expects: confirms trailing whitespace after FROM doesn't falsely trigger the WHERE block
+
+    std::cout << "\n--- Test 36: GET + FROM, bad FROM path, no WHERE ---" << std::endl;
+    runTest("test_data_filter.json", "GET name FROM store.nonexistentList");
+    // Expects: [] (no rows to project, no error)
+
+    std::cout << "\n--- Test 37: GET + FROM + WHERE, boolean equality (regression check) ---" << std::endl;
+    runTest("test_data_filter.json", "GET name FROM store.products WHERE inStock = true");
+
+    std::cout << "\n--- Test 38: GET + FROM + WHERE, numeric > (regression check) ---" << std::endl;
+    runTest("test_data_filter.json", "GET name FROM store.products WHERE price > 300");
+
+    std::cout << "\n--- Test 39: GET + FROM + WHERE, quoted string value (regression check) ---" << std::endl;
+    runTest("test_data_filter.json", "GET price FROM store.products WHERE name = 'Wireless Mouse'");
+
+    std::cout << "\n--- Test 40: WHEREX typo, confirms it's rejected not silently entered ---" << std::endl;
+    runTest("test_data_filter.json", "GET name FROM store.products WHEREX price > 0");
+    // Expects: PARSE ERROR: unread/extra input located at index
     return 0;
 } 
