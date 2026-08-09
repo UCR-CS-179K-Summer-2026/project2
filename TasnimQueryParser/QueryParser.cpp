@@ -207,7 +207,7 @@ FilterQuery QueryParser::parseFilterQuery(const std::string& input) const { //GE
             //no and, break loop;
             break;
         }
-    
+    }
     skipWhitespace(input, i);
 
     if (i < input.size()) {
