@@ -1,0 +1,4 @@
+{
+  "user": { "name": "Alice", "middleName": null, "age": 30 },
+  "items": [{ "sku": "A1" }]
+}
