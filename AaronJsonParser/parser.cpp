@@ -15,7 +15,10 @@ bool parser::loadFile(const std::string& s) {
     auto size = file.tellg();
     file.seekg(0, std::ios::beg);
 
-    jsonData.resize(size);
+    size_t actualSize = static_cast<size_t>(size);
+    size_t adjustSize = ((actualSinze + 31) / 32) * 32;
+
+    jsonData.resize(adjustSize, ' ');
     file.read(jsonData.data(), size);
     if(!file) {
         std::cout << "Incomplete/Failed Read \n" << std::endl;

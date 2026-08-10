@@ -6,7 +6,7 @@
 
 int main() {
     parser p;
-    if(!p.loadFile("test.json")) {
+    if(!p.loadFile("data_1gb.json")) {
         return 1;
     }
     auto start = std::chrono::steady_clock::now();

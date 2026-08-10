@@ -37,8 +37,6 @@ public:
     struct Node {
         NodeType nodeType;
         std::map<std::string, Node> objectChildNode;
-        // i am changing deque to list because deque is not working for me, it is giving me segmentation fault when I try to access the elements of the deque, so I am changing it to list and see if it works
-        //std::deque is NOT guaranteed by the C++ standard to support an incomplete/self-referential element type (only vector/list/forward_list are)
         std::list<Node> arrayChildNode;
 
         size_t position;
@@ -93,6 +91,9 @@ private:
     std::vector<char> tab = {'\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t','\t'};
     std::vector<char> zero = {'/','/','/','/','/','/','/','/','/','/','/','/','/','/','/','/','/','/','/','/','/','/','/','/','/','/','/','/','/','/','/','/'};
     std::vector<char> nine = {'9','9','9','9','9','9','9','9','9','9','9','9','9','9','9','9','9','9','9','9','9','9','9','9','9','9','9','9','9','9','9','9'};
+    std::vector<char> tChar = {'t','t','t','t','t','t','t','t','t','t','t','t','t','t','t','t','t','t','t','t','t','t','t','t','t','t','t','t','t','t','t','t'};
+    std::vector<char> fChar = {'f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f'};
+    std::vector<char> nChar = {'n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n'};
 };  
 
 

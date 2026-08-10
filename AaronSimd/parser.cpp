@@ -27,36 +27,6 @@ bool parser::loadFile(const std::string& s) {
     return true;
 }
 
-/*
-parser::Type parser::detectString(char c) {
-    if(c == '"' &&  inString == false) {
-        inString = true;
-        return Type::quoteStart;
-    }
-    else {
-        if(c == '\\') {
-            backSlashCounter++;
-            return Type::none;
-        }
-        else if(c == '"') {
-            if(backSlashCounter % 2 == 0) {
-                backSlashCounter = 0;
-                inString = false;
-                return Type::quoteEnd;
-            }
-            else {
-                backSlashCounter = 0;
-                return Type::none;
-            }
-        }
-        else {
-            backSlashCounter = 0;
-            return Type::none;
-        }
-    }
-}
-*/
-
 parser::Type parser::detectType(char c) {
     
     if((c >= '0' && c <= '9') || c == '-') {
@@ -89,11 +59,15 @@ void parser::indexStructure() {
         __m256i BAC = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(backSlash.data()));
         __m256i NUM = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(zero.data()));
         __m256i NUMTWO = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(nine.data()));
+        __m256i TCHAR = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(tChar.data()));
+        __m256i FCHAR = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(fChar.data()));
+        __m256i NCHAR = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(nChar.data()));
 
         __m256i Space = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(space.data()));
         __m256i NewLine = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(newline.data()));
         __m256i Carriage = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(carriage.data()));
         __m256i Tab = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(tab.data()));
+        
 
         __m256i compareLCB = _mm256_cmpeq_epi8 (data, LCB); //{
         __m256i compareRCB = _mm256_cmpeq_epi8 (data, RCB); //}
@@ -102,7 +76,11 @@ void parser::indexStructure() {
         __m256i compareQuote = _mm256_cmpeq_epi8 (data, QUO); //"
         __m256i compareColon = _mm256_cmpeq_epi8 (data, COL); //:
         __m256i compareComma = _mm256_cmpeq_epi8 (data, COM); //,
-        __m256i compareBackSlash = _mm256_cmpeq_epi8 (data, BAC); //\
+        __m256i compareBackSlash = _mm256_cmpeq_epi8 (data, BAC);
+        __m256i compareT = _mm256_cmpeq_epi8(data, TCHAR);
+        __m256i compareF = _mm256_cmpeq_epi8(data, FCHAR);
+        __m256i compareN = _mm256_cmpeq_epi8(data, NCHAR);
+        
 
         __m256i compareSpace = _mm256_cmpeq_epi8 (data, Space); // 
         __m256i compareNewline = _mm256_cmpeq_epi8 (data, NewLine); //\n
@@ -120,7 +98,10 @@ void parser::indexStructure() {
         int resultCol = _mm256_movemask_epi8(compareColon);  
         int resultCom = _mm256_movemask_epi8(compareComma); 
         int resultBac = _mm256_movemask_epi8(compareBackSlash); 
-       
+        int resultT = _mm256_movemask_epi8(compareT);
+        int resultF = _mm256_movemask_epi8(compareF);
+        int resultN = _mm256_movemask_epi8(compareN);
+
         int resultSpace = _mm256_movemask_epi8(compareSpace); 
         int resultNewline = _mm256_movemask_epi8(compareNewline); 
         int resultCarriage = _mm256_movemask_epi8(compareCarriage); 
@@ -177,6 +158,24 @@ void parser::indexStructure() {
                 inValue = false;
                 typeIndex.back().ePosition = i + j - 1;
             }
+            else if((resultT & (1 << j)) && !inString && !inValue) {
+                if(i + j + 1 < jsonData.size() && jsonData.at(i + j + 1) == 'r') {
+                    inValue = true;
+                    typeIndex.push_back({Type::boolean, i + j});
+                }
+            }
+            else if((resultF & (1 << j)) && !inString && !inValue) {
+                if(i + j + 1 < jsonData.size() && jsonData.at(i + j + 1) == 'a') {
+                    inValue = true;
+                    typeIndex.push_back({Type::boolean, i + j});
+                }
+            }
+            else if((resultN & (1 << j)) && !inString && !inValue) {
+                if(i + j + 1 < jsonData.size() && jsonData.at(i + j + 1) == 'u') {
+                    inValue = true;
+                    typeIndex.push_back({Type::null, i + j});
+                }
+            }
             else {
                 backSlashCounter = 0;
             }
@@ -184,63 +183,7 @@ void parser::indexStructure() {
     } 
 }
 
-/*
-void parser::indexStructure() {
-    for(size_t i = 0; i < jsonData.size(); i++) {
-        char c = jsonData.at(i);
 
-        if(inString) {
-            Type t = detectString(jsonData.at(i));
-            if(t != Type::none) {
-                typeIndex.back().ePosition = i;
-                typeIndex.back().type = Type::string;
-            }
-            continue;
-        }
-
-        if(inValue) {
-            bool structure;
-            structure = (c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '"' || c == '{' || c == '}' || c == '[' || c == ']' || c == ':' || c == ',');
-            if(structure) {
-                typeIndex.back().ePosition = i - 1;
-                inValue = false;
-            }
-        }
-
-        if(jsonData.at(i) == '"') {
-            typeIndex.push_back({detectString(jsonData.at(i)), i});
-        }
-        else if(jsonData.at(i) == '[') {
-            typeIndex.push_back({Type::arrayStart, i});
-        }
-        else if(jsonData.at(i) == ']') {
-            typeIndex.push_back({Type::arrayEnd, i});
-        }
-        else if(jsonData.at(i) == '{') {
-            typeIndex.push_back({Type::objectStart, i});
-        }
-        else if(jsonData.at(i) == '}') {
-            typeIndex.push_back({Type::objectEnd, i});
-        }
-        else if(jsonData.at(i) == ',') {
-            typeIndex.push_back({Type::comma, i});
-        }
-        else if(jsonData.at(i) == ':') {
-            typeIndex.push_back({Type::colon, i});
-        }
-        else if(c == ' ' || c == '\n' || c == '\r' || c == '\t') {
-
-        }
-        else if(!inValue) {
-            typeIndex.push_back({detectType(c), i});
-            inValue = true;
-        }
-        
-    }
-    
-}
-
-*/
 
 const std::vector<parser::TypeStruct>& parser::getTypeIndex() const {
     return typeIndex;
