@@ -4,7 +4,8 @@
 
 <div align="center">
 
-<img width="1718" height="1078" alt="image" src="https://github.com/user-attachments/assets/6a625e2e-3237-423e-9d1e-8a309d140e8b" />
+<img width="1566" height="1038" alt="image" src="https://github.com/user-attachments/assets/64747a5c-01db-4c27-839a-93f32c1b1764" />
+
 
 ### JSON Parser Architecture
 
