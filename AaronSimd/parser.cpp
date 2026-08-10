@@ -88,6 +88,7 @@ void parser::indexStructure() {
         __m256i COM = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(Comma.data()));
         __m256i BAC = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(backSlash.data()));
         __m256i NUM = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(zero.data()));
+        __m256i NUMTWO = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(nine.data()));
 
         __m256i Space = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(space.data()));
         __m256i NewLine = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(newline.data()));
@@ -109,7 +110,7 @@ void parser::indexStructure() {
         __m256i compareTab = _mm256_cmpeq_epi8 (data, Tab); //\t
 
         __m256i greaterThanZero = _mm256_cmpgt_epi8(data, NUM);
-        __m256i greaterThanNine = _mm256_cmpgt_epi8(data, COL);
+        __m256i greaterThanNine = _mm256_cmpgt_epi8(data, NUMTWO);
         
         int resultLCB = _mm256_movemask_epi8(compareLCB); 
         int resultRCB = _mm256_movemask_epi8(compareRCB); 
@@ -168,11 +169,11 @@ void parser::indexStructure() {
             else if((resultBac & (1 << j)) && !inValue) {
                 backSlashCounter++;
             }
-            else if((resultZero & (1 << j)) && (resultNine & (1 << j)) && !inString) {
+            else if((resultZero & (1 << j)) && !(resultNine & (1 << j)) && !inString && !inValue) {
                 inValue = true;
                 typeIndex.push_back({Type::number, i + j});
             }
-            else if(((resultSpace & (1 << j)) || (resultNewline & (1 << j)) || (resultCarriage & (1 << j)) || (resultTab & (1 << j))) && inValue) {
+            else if(((resultSpace & (1 << j)) || (resultNewline & (1 << j)) || (resultCarriage & (1 << j)) || (resultTab & (1 << j)) || (resultCom & (1 << j)) || (resultCol & (1 << j)) || (resultRCB & (1 << j)) || (resultRSB & (1 << j))) && inValue) {
                 inValue = false;
                 typeIndex.back().ePosition = i + j - 1;
             }
