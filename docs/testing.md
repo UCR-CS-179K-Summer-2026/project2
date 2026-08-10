@@ -13,7 +13,46 @@ Tests include:
 - Whitespace
 - Malformed operators
 
-Expected Outputs:
+Expected Outputs for example test cases:
+
+| Test Case | Expected |
+|---|---|
+| `School.students[*].name` | Parses successfully |
+| `School.students[14].year` | Parses successfully |
+| `School..students` | Parse error |
+| `School.students[-1].name` | Parse error |
+| `GET name FROM School.students WHERE year > 2` | Parses successfully |
+| `GET name FROM School.students WHERE year > 2 AND grade >= 90` | Parses successfully |
+| `GET name FROM School.students WHERE year > 2 AND` | Parse error |
+
+### Parsed Structure Verification
+
+The parser tests also verify that valid queries are converted into the correct internal query structure.
+
+Example:
+
+`School.students[*].name`
+
+Expected structure:
+
+- `Key("School")`
+- `Key("students")`
+- `AllElements`
+- `Key("name")`
+
+AND filter query:
+
+`GET name FROM School.students WHERE year > 2 AND grade >= 90`
+
+Expected:
+
+- Query type: `Filter`
+- Select field: `name`
+- Source path: `School.students`
+- 2 conditions
+  - `year > 2`
+  - `grade >= 90`
+
 
 
 ## Integration Tests
@@ -27,7 +66,15 @@ JSON file:
 → Query Executor
 → Output
 
-Expected Outputs:
+Expected Outputs for integration tests:
+
+| Query | Expected Output |
+|---|---|
+| `items[0].sku` | Value stored in the first item's `sku` field |
+| `items[*].inStock` | One result for each array element |
+| `GET name FROM store.products WHERE price > 300` | Names of products whose price is greater than 300 |
+| `GET name FROM store.products WHERE inStock = true` | Names of products that are in stock |
+| `GET name FROM store.products WHERE price > 300 AND inStock = true` | Products satisfying both conditions |
 
 ## Edge Cases
 
@@ -42,4 +89,11 @@ Expected Outputs:
 
 Expected Outputs:
 
+### Expected Behavior
 
+- Missing fields return `DNE` when appropriate
+- Wildcards over empty arrays return an empty result
+- Out-of-range array indexes return `null`
+- Negative array indexes are rejected, and return `Error`
+- Invalid query syntax produces a parse error instead of crashing
+- Invalid keywords are rejected
