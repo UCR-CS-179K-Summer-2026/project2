@@ -54,7 +54,6 @@ Expected:
   - `grade >= 90`
 
 
-
 ## Integration Tests
 
 Tests the complete pipeline:
@@ -100,6 +99,8 @@ Expected Outputs:
 
 
 ### Running
+
+query parser:
 
 `g++ -std=c++17 TasnimQueryParser/QueryParser.cpp TasnimQueryParser/QParserTests.cpp -o qparser_tests`
 
