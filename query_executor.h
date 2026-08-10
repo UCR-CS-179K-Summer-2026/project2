@@ -156,7 +156,7 @@ inline std::string nodeToString(const parser::Node* node, const std::vector<char
 }
 
 // [NEW] its like nodeToString, but returns the bare value with no surrounding quotes, its needed here because we are comparing values (WHERE age > 30), not just displaying them for the user. Only string/number/boolean leaves have a comparable raw value; object, array, and null nodes return "" (so a WHERE condition against one of those always fails to match, rather than crashing).
-// [CHANGED] Sprint 2 optimization: returns std::string_view instead of std::string now -- a view into the existing jsonData buffer, no copy. compareValues()'s string/boolean branch compares directly against this view with zero allocations, instead of always building a new std::string first even for a plain equality check.
+// [CHANGED] Sprint 2 optimization: returns std::string_view instead of std::string now a view into the existing jsonData buffer, no copy. compareValues()'s string/boolean branch compares directly against this view with zero allocations, instead of always building a new std::string first even for a plain equality check.
 inline std::string_view nodeRawValue(const parser::Node* node, const std::vector<char>& jsonData) {
     if (!node) return std::string_view();
     switch (node->nodeType) {

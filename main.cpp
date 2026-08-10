@@ -38,25 +38,31 @@ int main() {
     //Happy path coverage: wildcard, nesting, missing fields, array indexing
     std::cout << "--- Test 1: Employees dataset (wildcard) ---" << std::endl;
     runTest("test_data_employees.json", "Google.employees[*].name");
+    // Expects: ["John Doe", "Jane Doe", DNE] -- the third employee has no "name" field
  
     std::cout << "\n--- Test 2: School dataset (deep nesting) ---" << std::endl;
     runTest("test_data_school.json", "school.classroom.students[*].studentName");
+    // Expects: ["Alice", "Bob"]
  
     std::cout << "\n--- Test 3: Inventory dataset (wildcard + missing field) ---" << std::endl;
     runTest("test_data_inventory.json", "items[*].inStock");
+    // Expects: [true, false]
     runTest("test_data_inventory.json", "items[*].missingField"); // [CHANGED] field absent on every element -> DNEs now, not "nulls" -- see the DNE-vs-real-null change (Test 45+ below)
  
     std::cout << "\n--- Test 4: array indexing ---" << std::endl;
     runTest("test_data_inventory.json", "items[0].sku");
+    // Expects: ["A1"]
     runTest("test_data_inventory.json", "items[1].inStock");
+    // Expects: [false]
     runTest("test_data_inventory.json", "items[99].sku"); // [CHANGED] out of range -> DNE now, not "null"
  
     std::cout << "\n--- Test 5: malformed query -> should throw, not crash ---" << std::endl;
     runTest("test_data_inventory.json", "items[abc]");
+    // Expects: PARSE ERROR: error: missing array index or * in brackets.
 
     //Structural edge cases: empty containers, missing/null paths, deep nesting
     std::cout << "\n--- Test 6: empty object -> null, not crash ---" << std::endl;
-    // [FLAGGED, not changed] if empty_obj actually exists in test_data_edge.json as {}, this should print "{}" via nodeToString's object case -- not "null" and not "DNE" -- since the query resolves to a real (empty) object node, not a missing/failed lookup. Worth checking this label against the actual data: if it's testing "querying an empty object works", the expected output is "{}", and the old "-> null" wording may have already been informal/stale before this change. Left the test itself untouched since I don't have test_data_edge.json's actual contents to confirm either way.
+    // [FLAGGED, not changed] if empty_obj actually exists in test_data_edge.json as {}, this should print "{}" via nodeToString's object case, not "null" and not "DNE"
     runTest("test_data_edge.json", "empty_obj");
 
     std::cout << "\n--- Test 7: empty array with wildcard -> [] ---" << std::endl;
@@ -64,16 +70,19 @@ int main() {
 
     std::cout << "\n--- Test 8: nonexistent top-level key -> DNE ---" << std::endl; // [CHANGED] was "-> null"
     runTest("test_data_edge.json", "foo.bar");
+    // Expects: [DNE]
 
     std::cout << "\n--- Test 9: path continues past a null value -> DNE, not throw ---" << std::endl; // [CHANGED] was "-> null"
-    // [CHANGED] if a.b is a real JSON null in the data, querying "a.b" alone would correctly print "null" (the real value). But this query goes one step further, past the null, to ".c" -- executeStep's Key case requires the current node to be an object to descend into it, and a null-type node isn't one, so this fails to resolve and now prints DNE, not null. That's the actual point of this test: DNE means "the query couldn't resolve", null means "the query resolved to a real null value" -- this case demonstrates the former even though a null is technically present partway through the path.
+    // [CHANGED] if a.b is a real JSON null in the data, querying "a.b" alone would correctly print "null" (the real value). But this query goes one step further, past the null, to ".c" ,executeStep's Key case requires the current node to be an object to descend into it, and a null-type node isn't one, so this fails to resolve and now prints DNE, not null.
     runTest("test_data_edge.json", "a.b.c");
 
     std::cout << "\n--- Test 10: deep nesting (5 levels) ---" << std::endl;
     runTest("test_data_edge.json", "nested.x");
+    // Expects: [{"y":{"z":{"w":"deep_value"}}}] -- resolves to a nested object, not a leaf value
 
     std::cout << "\n--- Test 11: query resolves to non-leaf object ---" << std::endl;
     runTest("test_data_edge.json", "items[0]");
+    // Expects: [{"sku":"A1","tags":["red","small"]}]
 
     std::cout << "\n--- Test 12: negative index ---" << std::endl;
     runTest("test_data_edge.json", "items[-1].sku"); // rejected by design; expects "negative array indices not supported"
@@ -83,32 +92,37 @@ int main() {
 
     std::cout << "\n--- Test 14: empty query string ---" << std::endl;
     runTest("test_data_edge.json", "");
+    // Expects: PARSE ERROR: Query is empty.
 
     std::cout << "\n--- Test 15: trailing dot ---" << std::endl;
     runTest("test_data_edge.json", "a.b.");
+    // Expects: PARSE ERROR: Error: Query is ending with a dot
 
     std::cout << "\n--- Test 16: double dots ---" << std::endl;
     runTest("test_data_edge.json", "a..b");
+    // Expects: PARSE ERROR: Expected key at position 2
 
     std::cout << "\n--- Test 17: just star and no sub query ---" << std::endl;
     runTest("test_data_employees.json", "Google.employees[*]");
-
-    std::cout << "\n--- Test 17: just star and no sub query ---" << std::endl;
-    runTest("test_data_sample.json", "a");
+    // Expects: [{"employeeId":1000,"name":"John Doe","salary":100000}, {"employeeId":1001,"name":"Jane Doe","salary":90000}, {"employeeId":3}]
 
     // Tier 5: Filter Query Tests (GET / FROM / WHERE) Uses test_data_filter.json (a new dataset, a store with a nested products array) plus test_data_inventory.json where existing fields (items, sku, inStock) already support a filter test without needing new data.
 
     std::cout << "\n--- Test 18: filter query, numeric > ---" << std::endl;
     runTest("test_data_filter.json", "GET name FROM store.products WHERE price > 300");
+    // Expects: ["Laptop", "Mouse", "Wireless Mouse", "Desk", "Chair", "Monitor"] -- with the current prices, all 6 products are > 300
 
    std::cout << "\n--- Test 19: filter query, boolean equality ---" << std::endl;
     runTest("test_data_filter.json", "GET name FROM store.products WHERE inStock = true");
+    // Expects: ["Laptop", "Mouse", "Wireless Mouse", "Chair"]
 
     std::cout << "\n--- Test 20: filter query, string equality, GET differs from WHERE field ---" << std::endl;
     runTest("test_data_filter.json", "GET price FROM store.products WHERE category = electronics");
+    // Expects: [1200, 1000, 4500, 400]
 
     std::cout << "\n--- Test 21: filter query, exact numeric match ---" << std::endl;
     runTest("test_data_filter.json", "GET name FROM store.products WHERE price = 300");
+    // Expects: [] -- no product's price is exactly 300 with the current data
 
     std::cout << "\n--- Test 22: filter query, no rows match ---" << std::endl;
     runTest("test_data_filter.json", "GET name FROM store.products WHERE price > 9999");
@@ -116,6 +130,7 @@ int main() {
 
     std::cout << "\n--- Test 23: filter query, quoted string value with a space ---" << std::endl;
     runTest("test_data_filter.json", "GET price FROM store.products WHERE name = 'Wireless Mouse'");
+    // Expects: [4500]
 
     std::cout << "\n--- Test 24: filter query, FROM path does not exist ---" << std::endl;
     runTest("test_data_filter.json", "GET name FROM store.nonexistentList WHERE price > 0");
@@ -123,9 +138,11 @@ int main() {
 
     std::cout << "\n--- Test 25: filter query, <= operator ---" << std::endl;
     runTest("test_data_filter.json", "GET name FROM store.products WHERE price <= 300");
+    // Expects: [] -- the lowest price in the current data is 400, nothing is <= 300
 
     std::cout << "\n--- Test 26: filter query against existing Sprint-1 inventory data ---" << std::endl;
     runTest("test_data_inventory.json", "GET sku FROM items WHERE inStock = true");
+    // Expects: ["A1"]
 
     std::cout << "\n--- Test 27: Bug 1 regression - leading whitespace on filter query ---" << std::endl;
     runTest("test_data_filter.json", "   GET name FROM store.products WHERE price > 300");
@@ -133,6 +150,7 @@ int main() {
 
     std::cout << "\n--- Test 28: Bug 1 regression - trailing whitespace on dot-path query ---" << std::endl;
     runTest("test_data_employees.json", "Google.employees[*].name   ");
+    // Expects: ["John Doe", "Jane Doe", DNE] -- same as Test 1, despite trailing spaces
 
     std::cout << "\n--- Test 29: Bug 2 regression - negative array index ---" << std::endl;
     runTest("test_data_filter.json", "store.products[-1].name");
@@ -154,9 +172,11 @@ int main() {
 
     std::cout << "\n--- Test 33: GET + FROM, no WHERE ---" << std::endl;
     runTest("test_data_filter.json", "GET name FROM store.products");
+    // Expects: ["Laptop", "Mouse", "Wireless Mouse", "Desk", "Chair", "Monitor"]
 
     std::cout << "\n--- Test 34: GET + FROM, no WHERE, different field ---" << std::endl;
     runTest("test_data_filter.json", "GET price FROM store.products");
+    // Expects: [1200, 1000, 4500, 30000, 15000, 400]
 
     std::cout << "\n--- Test 35: GET + FROM, no WHERE, trailing whitespace ---" << std::endl;
     runTest("test_data_filter.json", "GET name FROM store.products   ");
@@ -168,12 +188,15 @@ int main() {
 
     std::cout << "\n--- Test 37: GET + FROM + WHERE, boolean equality (regression check) ---" << std::endl;
     runTest("test_data_filter.json", "GET name FROM store.products WHERE inStock = true");
+    // Expects: ["Laptop", "Mouse", "Wireless Mouse", "Chair"] -- same as Test 19
 
     std::cout << "\n--- Test 38: GET + FROM + WHERE, numeric > (regression check) ---" << std::endl;
     runTest("test_data_filter.json", "GET name FROM store.products WHERE price > 300");
+    // Expects: ["Laptop", "Mouse", "Wireless Mouse", "Desk", "Chair", "Monitor"] -- same as Test 18
 
     std::cout << "\n--- Test 39: GET + FROM + WHERE, quoted string value (regression check) ---" << std::endl;
     runTest("test_data_filter.json", "GET price FROM store.products WHERE name = 'Wireless Mouse'");
+    // Expects: [4500] -- same as Test 23
 
     std::cout << "\n--- Test 40: WHEREX typo, confirms it's rejected not silently entered ---" << std::endl;
     runTest("test_data_filter.json", "GET name FROM store.products WHEREX price > 0");
@@ -183,9 +206,11 @@ int main() {
 
     std::cout << "\n--- Test 41: AND with two conditions ---" << std::endl;
     runTest("test_data_filter.json", "GET name FROM store.products WHERE category = electronics AND inStock = true");
+    // Expects: ["Laptop", "Mouse", "Wireless Mouse"] -- Monitor is electronics but inStock is false, so it's excluded
 
     std::cout << "\n--- Test 42: AND with three conditions ---" << std::endl;
     runTest("test_data_filter.json", "GET name FROM store.products WHERE category = electronics AND inStock = true AND price < 100");
+    // Expects: [] -- with the current prices (Mouse=1000, Wireless Mouse=4500), nothing satisfies price < 100 anymore
 
     std::cout << "\n--- Test 43: AND typo (ANDX) should not be treated as AND ---" << std::endl;
     runTest("test_data_filter.json", "GET name FROM store.products WHERE price > 300 ANDX inStock = true");
@@ -217,7 +242,7 @@ int main() {
     runTest("test_data_dne.json", "user.name");
     // Expects: ["Alice"] : confirms ordinary lookups are unaffected by the DNE change 
 
-    /*std::cout << "\n--- Test 50: array indexing at start of large file (500KB) ---" << std::endl;
+    std::cout << "\n--- Test 50: array indexing at start of large file (500KB) ---" << std::endl;
     runTest("test_data_large.json", "store.products[0].name");
     // Expects: ["Classic Desk 0"]
 
@@ -241,9 +266,9 @@ int main() {
     runTest("test_data_large.json", "store.products[-1].name");
     // Expects: PARSE ERROR: negative array indices not supported
 
-    std::cout << "\n--- Test 56: wildcard across all 5654 products ---" << std::endl;
-    runTest("test_data_large.json", "store.products[*].name");
-    // Expects: 5654 results -- good for eyeballing wildcard fan-out cost at scale
+    // std::cout << "\n--- Test 56: wildcard across all 5654 products ---" << std::endl;
+    // runTest("test_data_large.json", "store.products[*].name");
+    // // Expects: 5654 results -- good for eyeballing wildcard fan-out cost at scale
 
     std::cout << "\n--- Test 57: filter query with AND on large file ---" << std::endl;
     runTest("test_data_large.json", "GET name FROM store.products WHERE category = electronics AND inStock = true");
@@ -267,7 +292,7 @@ int main() {
 
     std::cout << "\n--- Test 62: GET field that doesn't exist on any row ---" << std::endl;
     runTest("test_data_large.json", "GET count FROM store.products WHERE category = electronics");
-    // Expects: 948 results, every one of them DNE (products don't have a "count" field), it confirms DNE handling holds up at scale, not just on small hand-built data */
+    // Expects: 948 results, every one of them DNE (products don't have a "count" field), it confirms DNE handling holds up at scale, not just on small hand-built data 
 
     return 0;
 }
