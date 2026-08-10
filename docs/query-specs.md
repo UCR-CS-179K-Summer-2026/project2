@@ -49,9 +49,12 @@ Examples:
 - `GET name FROMX School.students`
 - `GET name FROM School.students WHEREY grade < 70 AND`
 
+Implemented features:
+
+- case insensitive
+
 ## Current Limitations
 
 - we don't support NOT and OR filters yet
 - We can't do something like `WHERE (name = '...' AND '...') OR ...`, so no paranthesis. this would go with OR condition when implemented
 - we don't have a way for the user to order their results, if they want multiple
-- case sensitivity
