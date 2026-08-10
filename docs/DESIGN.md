@@ -42,7 +42,7 @@ This separation means parsing the JSON and parsing the query are decoupled, so w
 
 #### Query Parser
 
-**Responsibility:** Parse the two supported query forms (dot-path with `[*]`, and `GET...FROM...WHERE`) into a simple AST the executor can walk.
+**Responsibility:** Parse the supported query forms. Supports dot-path with `[*]` (wildcard), and Filter queries with `GET...FROM...WHERE`, as well as `AND` into a simple AST the executor can walk.
 
 #### Query Executor
 
