@@ -2,8 +2,8 @@
   "school": {
     "classroom": {
       "students": [
-        { "studentName": "Alice", "grade": 95 },
-        { "studentName": "Bob", "grade": 87 }
+        { "studentName": "Alice", "grade": 95, "year": 2 },
+        { "studentName": "Bob", "grade": 87, "year": 4 }
       ]
     }
   }
