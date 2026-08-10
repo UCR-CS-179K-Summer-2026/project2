@@ -75,48 +75,4 @@ As a user, I want to know when my queries are structured wrong.
 As a user, I want to know where to fix my queries to get what I want.
 
 
-## Test Cases for Demo
-
-| Feature | Input | Expected Result |
-|---|---|---|
-| SIMD optimization |---|---|
-| Invalid query | ... | ... |
-| Filter | ... | ... |
-| AND | ... | ... |
-
-## Design / Implementation Changes
-
-
-
-## Team Contributions/Commits
-
-### Tasnim
-- Query parser
-- AND condition
-- OR condition (?)
-- Parser benchmark
-- Parser unit tests
-- Docs
-
-### Aaron
-- SIMDE & optimization ...
-
-### Poojan
-- Fix of errors/edge cases in query parser
-- edge case handling
-- optimization
-...
-
-## Challenges
-...
-
-## Performance / Optimization
-
-Our performance improved from
-...
-to
-...
-
-## Sprint 3 Plan:
-
 In sprint 3, we plan to work further on optimization and 
