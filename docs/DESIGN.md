@@ -8,7 +8,7 @@
 
 ### JSON Parser Architecture
 
-![JSON Parser Architecture](docs/JsonArchitecture.png)
+![JSON Parser Architecture](JsonArchitecture.png)
 
 </div>
 
