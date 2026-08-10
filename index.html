@@ -144,20 +144,6 @@ Query Parser</code></pre>
     <li>Users cannot currently choose the ordering of results.</li>
   </ul>
 
-  <h2>Sprint 2</h2>
-  <p>
-    Sprint 2 focused on performance, additional query features,
-    testing, and error handling.
-  </p>
-
-  <ul>
-    <li>Added <code>AND</code> conditions to filter queries.</li>
-    <li>Improved performance for larger JSON files.</li>
-    <li>Added query benchmarking.</li>
-    <li>Improved error and edge-case handling.</li>
-    <li>Added more parser and executor tests.</li>
-  </ul>
-
   <h2>Testing</h2>
 
   <p>Query Parser tests cover:</p>
@@ -206,11 +192,69 @@ Query Parser</code></pre>
     <li>Invalid syntax</li>
   </ul>
 
-  <h2>Running the Query Parser Tests</h2>
+  <h2>Sprint 1</h2>
+  <p>
+    Determine the parsing and query algorithms and create the first working versions of dot-path and filter queries using a small dataset.
+  <p>
 
-  <pre><code>g++ -std=c++17 TasnimQueryParser/QueryParser.cpp TasnimQueryParser/QParserTests.cpp -o qparser_tests
+  </ul>
+      <li>Design the Query AST structure.
+      <li>Implement the first version of the Query Parser.
+      <li>Determine how JSON input will be represented.
+      <li>Implement the first version of the JSON Parser.
+      <li>Design the first version of the Indexer.
+      <li>Define and implement the query search algorithm.
+      <li>Implement dot-path lookup.
+      <li>Create a small JSON dataset for testing.
+  </ul>
+  
+  
+  <h2>Sprint 2</h2>
+  <p>
+    Sprint 2 focused on performance, additional query features,
+    testing, and error handling.
+  </p>
 
-./qparser_tests</code></pre>
+  <ul>
+    <li>Added <code>AND</code> conditions to filter queries.</li>
+    <li>Improved performance for larger JSON files.</li>
+    <li>Added query benchmarking.</li>
+    <li>Improved error and edge-case handling.</li>
+    <li>Added more parser and executor tests.</li>
+  </ul>
+
+    <h2>Sprint 3</h2>
+  <p>
+    Merge parsing, indexing, and query searching into one working program and obtain a larger dataset for testing.
+  <p>
+
+  </ul>
+  <li>Connect the Query Parser to the Query Executor.
+  <li>Connect the JSON Parser to the Indexer.
+  <li>Connect the Indexer to the query search algorithm.
+  <li>Create the main program that coordinates all modules.
+  <li>Resolve any integration errors.
+  <li>find or create a larger JSON dataset.
+  <li>Add integration tests for both query formats.
+  <li>Verify output formatting and error messages.
+  </ul>
+  
+
+    <h2>Sprint 4</h2>
+  <p>
+    Add a user interface, fully test the final system, fix remaining issues, and prepare the project for the demo.
+  <p>
+
+  </ul>
+  <li>Add a command-line or user interface if applicable.
+  <li>Test valid and invalid JSON input.
+  <li>Test valid and invalid query syntax.
+  <li>Test query accuracy and edge cases.
+  <li>Run performance tests using the larger dataset.
+  <li>Fix remaining issues and integration problems.
+  <li>Finalize documentation and setup instructions.
+  <li>Prepare for the final demo.
+  </ul>
 
 </body>
 </html>
