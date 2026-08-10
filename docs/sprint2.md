@@ -14,7 +14,7 @@ In this sprint, we focused mostly on optimizing our JSON parser and adding more 
 
 ### JSON Parser / Indexer
 - Optimization for bigger JSON files
-- brought down the time from (...) to (...)
+- brought down the time
 - ...
 
 ### Query Executor
@@ -72,7 +72,6 @@ Example:
 
 As a user, I want to know when my queries are structured wrong.
 
+As a user, I want to know when there's no value in the location that I want.
+
 As a user, I want to know where to fix my queries to get what I want.
-
-
-In sprint 3, we plan to work further on optimization and 
