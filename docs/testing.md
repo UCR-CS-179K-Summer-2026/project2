@@ -97,3 +97,10 @@ Expected Outputs:
 - Negative array indexes are rejected, and return `Error`
 - Invalid query syntax produces a parse error instead of crashing
 - Invalid keywords are rejected
+
+
+### Running
+
+`g++ -std=c++17 TasnimQueryParser/QueryParser.cpp TasnimQueryParser/QParserTests.cpp -o qparser_tests`
+
+`./qparser_tests`
