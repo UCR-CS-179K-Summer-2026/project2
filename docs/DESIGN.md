@@ -6,7 +6,9 @@
 
 <img width="1718" height="1078" alt="image" src="https://github.com/user-attachments/assets/6a625e2e-3237-423e-9d1e-8a309d140e8b" />
 
+### JSON Parser Architecture
 
+![JSON Parser Architecture](docs/JsonArchitecture.png)
 
 </div>
 
