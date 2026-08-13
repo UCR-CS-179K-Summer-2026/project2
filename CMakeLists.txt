@@ -4,7 +4,7 @@ project(JsonAnalyticsEngine LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# [CHANGED] Engine code now builds as a library so it can be linked by both the CLI executable below and (later) a test executable, without either one dragging in the other's main().
+# Engine code now builds as a library so it can be linked by both the CLI executable below and (later) a test executable, without either one dragging in the other's main().
 add_library(json_engine
     AaronJsonParser/parser.cpp
     TasnimQueryParser/QueryParser.cpp
@@ -23,3 +23,8 @@ target_compile_options(json_engine PRIVATE -Wall -Wextra)
 add_executable(test_executor main.cpp)
 target_link_libraries(test_executor PRIVATE json_engine)
 target_compile_options(test_executor PRIVATE -Wall -Wextra)
+
+#NEW: test scaffolding.
+# enable_testing() turns on CTest support for this whole project, letting `ctest` discover and run any tests registered below (via add_subdirectory).
+enable_testing()
+add_subdirectory(tests)
