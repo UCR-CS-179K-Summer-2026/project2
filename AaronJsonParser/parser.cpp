@@ -16,7 +16,7 @@ bool parser::loadFile(const std::string& s) {
     file.seekg(0, std::ios::beg);
 
     size_t actualSize = static_cast<size_t>(size);
-    size_t adjustSize = ((actualSinze + 31) / 32) * 32;
+    size_t adjustSize = ((actualSize + 31) / 32) * 32;
 
     jsonData.resize(adjustSize, ' ');
     file.read(jsonData.data(), size);
