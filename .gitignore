@@ -6,3 +6,4 @@ AaronSimd/a.exe
 AaronJsonParser/a.exe
 project
 TasnimQueryParser/parser_tests
+build/
