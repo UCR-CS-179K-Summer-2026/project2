@@ -29,11 +29,11 @@ This is the rule most likely to trip you up. A bracket segment (index, wildcard,
 
 | Query | Valid? | Why |
 |---|---|---|
-| `items[0].sku` | ✅ | Array index directly after a bare key — the one exception |
-| `items[0].["product name"]` | ✅ | Quoted key after an array index — needs the dot |
-| `items[0]["product name"]` | ❌ | **Missing dot** — throws `Expected '.' at position N` |
-| `["."]` | ✅ | Quoted key as the very first segment — no dot needed since there's nothing before it |
-| `data.["."]` | ✅ | Quoted key after a bare key — needs the dot |
+| `items[0].sku` | ✔︎ | Array index directly after a bare key — the one exception |
+| `items[0].["product name"]` | ✔︎ | Quoted key after an array index — needs the dot |
+| `items[0]["product name"]` | ⨯| **Missing dot** — throws `Expected '.' at position N` |
+| `["."]` | ✔︎ | Quoted key as the very first segment — no dot needed since there's nothing before it |
+| `data.["."]` | ✔︎ | Quoted key after a bare key — needs the dot |
 
 **In short: if you're not sure, add the dot.** The only place you can skip it is a bare key immediately followed by `[N]` or `[*]`.
 
