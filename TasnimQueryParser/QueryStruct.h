@@ -51,6 +51,8 @@ struct Condition {
     
     std::string value;
     WordOperators wordOperator = WordOperators::And;
+    
+    bool negative = false; //to check if NOT is asked for, we negate the condition
 };
 
 struct FilterQuery {

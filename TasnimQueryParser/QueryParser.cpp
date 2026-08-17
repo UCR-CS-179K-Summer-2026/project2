@@ -135,6 +135,13 @@ FilterQuery QueryParser::parseFilterQuery(const std::string& input) const { //GE
 
             //left-hand parsing
             skipWhitespace(input, i);
+
+            if (matchKeyword(input, i, "NOT")) { //check whether to make condition a negative one
+                whereCond.negative = true;
+                i += 3; //skip not
+
+                skipWhitespace(input, i);
+            }
             
             whereCond.field = parsePath(input, i);
             
