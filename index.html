@@ -88,6 +88,56 @@ Query Parser</code></pre>
     The file is parsed once and reused for multiple queries.
   </p>
 
+  <h5>JSON Parser Pseudocode</h5>
+
+
+  <h6>indexStructure()</h6>
+
+  <pre><code>For every 32 characters in the JSON file:
+
+    Load the 32 characters using AVX2.
+
+    Use the high and low nibbles of each character
+    to identify structural characters.
+
+    Find all quote and backslash characters.
+
+    Remove quotes that are escaped by backslashes.
+
+    Find which characters are inside strings.
+
+    Ignore structural characters that are inside strings.
+
+    Add the remaining structural characters
+    and their positions to the structure vector.
+
+Store the completed structure vector.</code></pre>
+
+
+  <h6>findOddBackSlash()</h6>
+
+  <pre><code>Take the backslash bitmask.
+
+Find the beginning of each sequence of backslashes.
+
+Determine which backslash sequences have an odd length.
+
+Mark the positions where an odd-length sequence ends.
+
+Return those positions as a bitmask.</code></pre>
+
+
+  <h6>findString()</h6>
+
+  <pre><code>Take the bitmask containing the valid quote positions.
+
+Use repeated XOR and bit shifts to fill the bits
+between each opening and closing quote.
+
+This creates a mask showing which characters
+are inside strings.
+
+Return the string mask.</code></pre>
   <h4>Indexer</h4>
   <p>
     Builds lookup structures so the entire JSON document does not need
