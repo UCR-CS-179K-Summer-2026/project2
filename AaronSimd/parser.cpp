@@ -119,9 +119,29 @@ void parser::indexStructure() {
         SV &= ~stringM;
 
         uint32_t collapseResult = SV;
-        //while(collapseResult != 0) {
+        while (collapseResult != 0) {
+            uint32_t j = _tzcnt_u32(collapseResult);
+            int pos = i + j;
+            char c = jsonData[pos];
 
-        //}
+            switch (c) {
+                case '{': typeIndex.push_back({Type::objectStart, pos, pos}); 
+                    break;
+                case '}': typeIndex.push_back({Type::objectEnd, pos, pos}); 
+                    break;
+                case '[': typeIndex.push_back({Type::arrayStart, pos, pos}); 
+                    break;
+                case ']': typeIndex.push_back({Type::arrayEnd, pos, pos}); 
+                    break;
+                case ':': typeIndex.push_back({Type::colon, pos, pos}); 
+                    break;
+                case ',': typeIndex.push_back({Type::comma, pos, pos}); 
+                    break;
+                default:
+                    break;
+            }
+            collapseResult &= collapseResult - 1;
+        }
     } 
 }
 
