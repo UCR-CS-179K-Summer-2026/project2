@@ -13,9 +13,15 @@
 
 </div>
 
+
 ### Query Parser Architecture
 
 <img width="1302" height="1038" alt="image" src="https://github.com/user-attachments/assets/b5115f94-d6c8-496a-b903-df919401acf3" />
+
+
+filter parser diagram:
+
+<img width="554" height="1080" alt="image" src="https://github.com/user-attachments/assets/774d716a-f3f1-4b5e-af89-0310bb4e7d66" />
 
 
 ## 2. Inferences of Modules
