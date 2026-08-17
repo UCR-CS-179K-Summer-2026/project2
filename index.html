@@ -138,6 +138,30 @@ This creates a mask showing which characters
 are inside strings.
 
 Return the string mask.</code></pre>
+
+<h5>Lookup Tables in indexStructure()</h5>
+<p>
+  The <code>indexStructure()</code> function uses two 16-entry lookup tables
+  called <code>lowTable</code> and <code>highTable</code>. Each input byte is
+  split into two parts: the low nibble (lower 4 bits) and the high nibble
+  (upper 4 bits).
+</p>
+
+<p>
+  The low nibble is used to index <code>lowTable</code>, and the high nibble is
+  used to index <code>highTable</code>. The results from these two lookups are
+  then combined with a bitwise AND operation. This allows the parser to quickly
+  classify whether a character is a JSON structural character such as
+  <code>{</code>, <code>}</code>, <code>[</code>, <code>]</code>,
+  <code>:</code>, or <code>,</code>.
+</p>
+
+<p>
+  Using these two lookup tables avoids checking every character one by one.
+  Instead, the parser can process 32 bytes at a time with AVX2 SIMD
+  instructions, making structural indexing much faster.
+</p>
+  
   <h4>Indexer</h4>
   <p>
     Builds lookup structures so the entire JSON document does not need
