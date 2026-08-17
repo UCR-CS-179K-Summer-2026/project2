@@ -296,5 +296,54 @@ TEST(FilterQuery, AndWithTwoConditionsReturnsMatchingNames) {
     EXPECT_EQ(results[1], "\"Mouse\"");
     EXPECT_EQ(results[2], "\"Wireless Mouse\"");
 }
+// TEMPORARY -- escape decoding verification 
+//Will delete this block once verified
+TEST(EscapeDecoding, BasicUnicodeEscape) {
+    auto results = runQuery("test_data_escapes.json", "basicUnicode");
+    ASSERT_EQ(results.size(), 1u);
+    EXPECT_EQ(results[0], "\"testa\"");  // \u0061 -> 'a'
+}
+
+// Decoded output intentionally contains literal (unescaped) quote characters : nodeToString is a human-readable display function, not a strict JSON re-serializer, so this is expected behavior, not a bug.
+TEST(EscapeDecoding, EscapedQuote) {
+    auto results = runQuery("test_data_escapes.json", "quoteEscape");
+    ASSERT_EQ(results.size(), 1u);
+    std::cout << "Actual output: " << results[0] << std::endl;
+}
+ 
+TEST(EscapeDecoding, EscapedBackslash) {
+    auto results = runQuery("test_data_escapes.json", "backslashEscape");
+    ASSERT_EQ(results.size(), 1u);
+    EXPECT_EQ(results[0], "\"C:\\Users\\bob\"");
+}
+ 
+TEST(EscapeDecoding, WhitespaceEscapes) {
+    auto results = runQuery("test_data_escapes.json", "whitespaceEscape");
+    ASSERT_EQ(results.size(), 1u);
+    std::cout << "Actual output: " << results[0] << std::endl;
+}
+
+// U+1F600 (grinning face emoji) via a UTF-16 surrogate pair (\uD83D\uDE00) decodes to UTF-8 bytes F0 9F 98 80. 
+TEST(EscapeDecoding, EmojiSurrogatePair) {
+    auto results = runQuery("test_data_escapes.json", "emojiSurrogatePair");
+    ASSERT_EQ(results.size(), 1u);
+    std::cout << "Actual output: " << results[0] << std::endl;
+}
+
+// WHERE comparisons against an escaped source value.
+TEST(EscapeDecoding, WhereMatchesEscapedSourceValue) {
+    // items[0].name is stored as "test\u0061" in the source JSON the query's plain-text "testa" must match the decoded value, not the raw escaped bytes.
+    auto results = runQuery("test_data_escapes.json", "GET sku FROM items WHERE name = testa");
+    ASSERT_EQ(results.size(), 1u);
+    EXPECT_EQ(results[0], "\"A1\"");
+}
+ 
+TEST(EscapeDecoding, WhereFastPathStillWorksForPlainValues) {
+    // Sanity check: the no-escape fast path (zero-copy string_view compare) still works correctly after the making new changes.
+    auto results = runQuery("test_data_escapes.json", "GET sku FROM items WHERE name = plain");
+    ASSERT_EQ(results.size(), 1u);
+    EXPECT_EQ(results[0], "\"B2\"");
+}
+ 
 
 }  // namespace
