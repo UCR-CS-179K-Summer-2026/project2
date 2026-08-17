@@ -113,8 +113,10 @@ inline std::vector<const parser::Node*> executeQuery(const parser::Node& root, c
     }
     return executeQuery(root, query.dotPath);
 }
-
-// [NEW] Encodes a single Unicode codepoint as UTF-8 bytes, appended to out. Used by decodeJsonString() below to turn \uXXXX escapes (and surrogate pairs) into their real character bytes.
+ 
+// [NEW] Encodes a single Unicode codepoint as UTF-8 bytes, appended to out.
+// Used by decodeJsonString() below to turn \uXXXX escapes (and surrogate
+// pairs) into their real character bytes.
 inline void appendUtf8(std::string& out, unsigned int codepoint) {
     if (codepoint <= 0x7F) {
         out += static_cast<char>(codepoint);
@@ -133,7 +135,8 @@ inline void appendUtf8(std::string& out, unsigned int codepoint) {
     }
 }
 
-// [NEW] Parses exactly 4 hex digits starting at s[i]. Returns -1 if there aren't 4 characters left, or any of them isn't a valid hex digit.
+// [NEW] Parses exactly 4 hex digits starting at s[i]. Returns -1 if there
+// aren't 4 characters left, or any of them isn't a valid hex digit.
 inline long parseHex4(std::string_view s, size_t i) {
     if (i + 4 > s.size()) return -1;
     long value = 0;
@@ -148,17 +151,17 @@ inline long parseHex4(std::string_view s, size_t i) {
     return value;
 }
 
-// [NEW] Decodes JSON string escapes (\", \\, \/, \b, \f, \n, \r, \t, and  \uXXXX -- including UTF-16 surrogate pairs like \uD83D\uDE00 for characters outside the Basic Multilingual Plane, e.g. emoji) into their real UTF-8 bytes.
-// Fast path: if raw contains no backslash at all (the common case for most real-world data), this just copies it as-is with no per-character processing.
+// [NEW] Decodes JSON string escapes (\", \\, \/, \b, \f, \n, \r, \t, and \uXXXX -- including UTF-16 surrogate pairs like \uD83D\uDE00 for characters outside the Basic Multilingual Plane, e.g. emoji) into their real UTF-8 bytes.
+// Fast path: if raw contains no backslash at all (the common case for most real-world data), this just copies it as-is with no per-character processing
 // Malformed escapes (invalid hex digits, unmatched surrogates, an unknown escape letter) are handled defensively rather than thrown: unmatched surrogates become the U+FFFD replacement character, and other malformed sequences are emitted as-is. This keeps display robust for slightly invalid input rather than aborting the whole query.
 inline std::string decodeJsonString(std::string_view raw) {
     if (raw.find('\\') == std::string_view::npos) {
-        return std::string(raw); // fast path, no escapes present
+        return std::string(raw); // fast path -- no escapes present
     }
- 
+
     std::string out;
     out.reserve(raw.size());
- 
+
     for (size_t i = 0; i < raw.size(); ++i) {
         char c = raw[i];
         if (c != '\\' || i + 1 >= raw.size()) {
@@ -178,14 +181,14 @@ inline std::string decodeJsonString(std::string_view raw) {
             case 'u': {
                 long hi = parseHex4(raw, i + 2);
                 if (hi < 0) {
-                    // malformed \u escape : emit the backslash as-is and let the next loop iteration process 'u' and the following characters as plain text.
+                    // malformed \u escape emit the backslash as-is and let the next loop iteration process 'u' and the following characters as plain text.
                     out += c;
                     break;
                 }
                 i += 5; // consumed \uXXXX (backslash + 'u' + 4 hex digits)
- 
+
                 if (hi >= 0xD800 && hi <= 0xDBFF) {
-                    // High surrogate : a valid character requires an immediate following low surrogate \uXXXX.
+                    // High surrogate: a valid character requires an immediately following low surrogate \uXXXX.
                     if (i + 2 < raw.size() && raw[i + 1] == '\\' && raw[i + 2] == 'u') {
                         long lo = parseHex4(raw, i + 3);
                         if (lo >= 0xDC00 && lo <= 0xDFFF) {
@@ -209,7 +212,7 @@ inline std::string decodeJsonString(std::string_view raw) {
                 break;
             }
             default:
-                // Unrecognized escape letter : emit both characters as-is
+                // Unrecognized escape letter -- emit both characters as-is
                 // rather than throwing.
                 out += c;
                 out += next;
@@ -226,14 +229,16 @@ inline std::string nodeToString(const parser::Node* node, const std::vector<char
     if (!node) return "DNE";
     switch (node->nodeType) {
         case parser::NodeType::string: {
-            std::string_view raw(jsonData.data() + node->position + 1, static_cast<size_t>(node->ePosition - node->position - 1));
+            // [CHANGED] previously returned the raw byte slice unmodified, so an escaped source value like "\u0061" printed the six literal escape characters instead of the character it represents ('a'). Now decodes standard JSON escapes (including \uXXXX / surrogate pairs) via decodeJsonString() before wrapping in display quotes.
+            std::string_view raw(jsonData.data() + node->position + 1,
+                                  static_cast<size_t>(node->ePosition - node->position - 1));
             return "\"" + decodeJsonString(raw) + "\"";
         }
         case parser::NodeType::number:
         case parser::NodeType::boolean:
             return std::string(jsonData.data() + node->position, jsonData.data() + node->ePosition + 1);
         case parser::NodeType::null:
-            // [NEW] this is the real thing -- an actual `null` literal present in the source JSON, distinct from the !node "DNE" case above.
+            // [NEW] this is the real thing, an actual `null` literal present in the source JSON, distinct from the !node "DNE" case above.
             return "null";
         case parser::NodeType::object: {
             std::string result = "{";
@@ -258,7 +263,7 @@ inline std::string nodeToString(const parser::Node* node, const std::vector<char
             return result;
         }
         default:
-            // [CHANGED] unreachable in practice (every NodeType is handled above) but kept as a defensive fallback -- labeled DNE rather than null since an unrecognized/corrupted node isn't a valid parsed null value either.
+            // [CHANGED] unreachable in practice (every NodeType is handled above) but kept as a defensive fallback, labeled DNE rather than null since an unrecognized/corrupted node isn't a valid parsed null value either.
             return "DNE";
     }
 }
@@ -308,16 +313,22 @@ inline bool compareValues(const parser::Node* node, const std::vector<char>& jso
 
         // string / boolean: lexical compare. <, <=, >, >= still work
     // (alphabetical ordering) but are mainly meant for Equal/NotEqual here.
-    // [CHANGED] lhs is now a string_view straight from nodeRawValue() -- compares directly against conditionValue with zero allocation, unlike before where nodeRawValue() always built a std::string first.
+    // [CHANGED]: previously compared the raw, possibly-escaped bytes directly against conditionValue (an already-plain-text query literal) - so WHERE name = "a" would silently fail to match a source value stored as "\u0061". Now checks for a backslash first and only pays for decoding + an allocation on the rare row that actually needs it.
     std::string_view lhs = nodeRawValue(node, jsonData);
+    std::string lhsDecoded;
+    std::string_view lhsCompare = lhs;
+    if (lhs.find('\\') != std::string_view::npos) {
+        lhsDecoded = decodeJsonString(lhs);
+        lhsCompare = lhsDecoded;
+    }
 
     switch (op) {
-        case FilterOperators::Equal:              return lhs == conditionValue;
-        case FilterOperators::NotEqual:           return lhs != conditionValue;
-        case FilterOperators::LessThan:           return lhs <  conditionValue;
-        case FilterOperators::LessThanOrEqual:    return lhs <= conditionValue;
-        case FilterOperators::GreaterThan:        return lhs >  conditionValue;
-        case FilterOperators::GreaterThanOrEqual: return lhs >= conditionValue;
+        case FilterOperators::Equal:              return lhsCompare == conditionValue;
+        case FilterOperators::NotEqual:           return lhsCompare != conditionValue;
+        case FilterOperators::LessThan:           return lhsCompare <  conditionValue;
+        case FilterOperators::LessThanOrEqual:    return lhsCompare <= conditionValue;
+        case FilterOperators::GreaterThan:        return lhsCompare >  conditionValue;
+        case FilterOperators::GreaterThanOrEqual: return lhsCompare >= conditionValue;
     }
     return false;
 }
