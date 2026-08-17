@@ -103,12 +103,20 @@ Query Parser</code></pre>
 <img
   src="Diagram.png"
   alt="indexStructure Control Flow Diagram"
-  style="max-width: 100%; height: auto;"
+  style="max-width: 70%; height: auto;"
 >
+
+  <h5>Algorithm References</h5>
+
+  <p>
+    The SIMD based structural scanning methods I used in the JSON Parser were
+    developed with reference to the techniques described by Geoff Langdale
+    and Daniel Lemire in <em>Parsing Gigabytes of JSON per Second</em>.
+  </p>
 
   <h5>JSON Parser Pseudocode</h5>
 
-
+  
   <h5>indexStructure()</h5>
 
   <pre><code>For every 32 characters in the JSON file:
