@@ -2,7 +2,7 @@
 
 tests include query parser unit tests, integration tests, edge cases and regression tests, and large-dataset tests
 
-## Filter Query Test design
+## Filter Query Testing
 
 | Test | Query | Expected Result | Purpose |
 |---|---|---|---|
