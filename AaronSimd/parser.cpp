@@ -45,140 +45,102 @@ parser::Type parser::detectType(char c) {
 
 }
 
+uint32_t parser::findOddBackSlash(uint32_t B) {
+    uint32_t E = 0x55555555;
+    uint32_t O = 0xAAAAAAAA;
+
+    uint32_t S = B & ~(B << 1);
+    uint32_t ES = S & E;
+    uint32_t EC = B + ES;
+    uint32_t ECE = EC & ~B;
+    uint32_t OD1 = ECE & ~E;
+
+    uint32_t OS = S & O;
+    uint32_t OC = B + OS;
+    uint32_t OCE = OC & ~B;
+    uint32_t OD2 = OCE & E;
+
+    uint32_t OD = OD1 | OD2;
+
+    return OD;
+}  
+
+uint32_t parser::findString(uint32_t Q) {
+    uint32_t S0 = Q ^ (Q << 1);
+    uint32_t S1 = S0 ^ (S0 << 2);
+    uint32_t S2 = S1 ^ (S1 << 4);
+    uint32_t S3 = S2 ^ (S2 << 8);
+    uint32_t S4 = S3 ^ (S3 << 16);
+
+    
+    return S4;
+}
+
 void parser::indexStructure() {
+
+    __m256i quote = _mm256_set1_epi8('"');
+    __m256i BSlash = _mm256_set1_epi8('\\');
+    __m256i space = _mm256_set1_epi8(' ');
+
+    __m128i hTables = _mm_setr_epi8(hTable[0], hTable[1], hTable[2], hTable[3], hTable[4], hTable[5], hTable[6], hTable[7], hTable[8], hTable[9], hTable[10], hTable[11], hTable[12], hTable[13], hTable[14], hTable[15]);
+    __m256i dupHTable = _mm256_broadcastsi128_si256(hTables);
+    __m128i lTables = _mm_setr_epi8(lTable[0], lTable[1], lTable[2], lTable[3], lTable[4], lTable[5], lTable[6], lTable[7], lTable[8], lTable[9], lTable[10], lTable[11], lTable[12], lTable[13], lTable[14], lTable[15]);
+    __m256i dupLTable = _mm256_broadcastsi128_si256(lTables);
+
+    __m256i lowMask = _mm256_set1_epi8(0x0F);
+    __m256i highMask = _mm256_set1_epi8(0x0F);
+
+
     for(size_t i  = 0; i < jsonData.size(); i+=32) {
+
         __m256i data = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(jsonData.data() + i));
 
-        __m256i LCB = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(LBracket.data()));
-        __m256i RCB = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(RBracket.data()));
-        __m256i LSB= _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(LBrace.data()));
-        __m256i RSB = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(RBrace.data()));
-        __m256i QUO = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(Quote.data()));
-        __m256i COL = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(Colon.data()));
-        __m256i COM = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(Comma.data()));
-        __m256i BAC = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(backSlash.data()));
-        __m256i NUM = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(zero.data()));
-        __m256i NUMTWO = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(nine.data()));
-        __m256i TCHAR = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(tChar.data()));
-        __m256i FCHAR = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(fChar.data()));
-        __m256i NCHAR = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(nChar.data()));
+        __m256i LN = _mm256_and_si256(data, lowMask);
+        __m256i HN = _mm256_and_si256(_mm256_srli_epi16(data, 4), highMask);
 
-        __m256i Space = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(space.data()));
-        __m256i NewLine = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(newline.data()));
-        __m256i Carriage = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(carriage.data()));
-        __m256i Tab = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(tab.data()));
+        __m256i LOW = _mm256_shuffle_epi8(dupLTable, LN);
+        __m256i HIGH = _mm256_shuffle_epi8(dupHTable, HN);
+
+        __m256i result = _mm256_and_si256(LOW, HIGH);
         
+        __m256i ZM = _mm256_setzero_si256();
+        __m256i ZERO = _mm256_cmpeq_epi8(result, ZM);
+        uint32_t SV = ~static_cast<uint32_t>(_mm256_movemask_epi8(ZERO));
 
-        __m256i compareLCB = _mm256_cmpeq_epi8 (data, LCB); //{
-        __m256i compareRCB = _mm256_cmpeq_epi8 (data, RCB); //}
-        __m256i compareLSB = _mm256_cmpeq_epi8 (data, LSB); //[
-        __m256i compareRSB = _mm256_cmpeq_epi8 (data, RSB); //]
-        __m256i compareQuote = _mm256_cmpeq_epi8 (data, QUO); //"
-        __m256i compareColon = _mm256_cmpeq_epi8 (data, COL); //:
-        __m256i compareComma = _mm256_cmpeq_epi8 (data, COM); //,
-        __m256i compareBackSlash = _mm256_cmpeq_epi8 (data, BAC);
-        __m256i compareT = _mm256_cmpeq_epi8(data, TCHAR);
-        __m256i compareF = _mm256_cmpeq_epi8(data, FCHAR);
-        __m256i compareN = _mm256_cmpeq_epi8(data, NCHAR);
-        
+        __m256i compareQuote = _mm256_cmpeq_epi8(data, quote);
+        __m256i compareBackSlash = _mm256_cmpeq_epi8(data, BSlash);
+        uint32_t resultQ = static_cast<uint32_t>(_mm256_movemask_epi8(compareQuote));
+        uint32_t resultBac = static_cast<uint32_t>(_mm256_movemask_epi8(compareBackSlash));
 
-        __m256i compareSpace = _mm256_cmpeq_epi8 (data, Space); // 
-        __m256i compareNewline = _mm256_cmpeq_epi8 (data, NewLine); //\n
-        __m256i compareCarriage = _mm256_cmpeq_epi8 (data, Carriage); //\r
-        __m256i compareTab = _mm256_cmpeq_epi8 (data, Tab); //\t
+        uint32_t oddNumberBSlash = findOddBackSlash(resultBac);
+        uint32_t Q = resultQ & ~oddNumberBSlash;
 
-        __m256i greaterThanZero = _mm256_cmpgt_epi8(data, NUM);
-        __m256i greaterThanNine = _mm256_cmpgt_epi8(data, NUMTWO);
-        
-        int resultLCB = _mm256_movemask_epi8(compareLCB); 
-        int resultRCB = _mm256_movemask_epi8(compareRCB); 
-        int resultLSB = _mm256_movemask_epi8(compareLSB); 
-        int resultRSB = _mm256_movemask_epi8(compareRSB); 
-        int resultQ = _mm256_movemask_epi8(compareQuote); 
-        int resultCol = _mm256_movemask_epi8(compareColon);  
-        int resultCom = _mm256_movemask_epi8(compareComma); 
-        int resultBac = _mm256_movemask_epi8(compareBackSlash); 
-        int resultT = _mm256_movemask_epi8(compareT);
-        int resultF = _mm256_movemask_epi8(compareF);
-        int resultN = _mm256_movemask_epi8(compareN);
+        uint32_t stringM = findString(Q);
+        SV &= ~stringM;
 
-        int resultSpace = _mm256_movemask_epi8(compareSpace); 
-        int resultNewline = _mm256_movemask_epi8(compareNewline); 
-        int resultCarriage = _mm256_movemask_epi8(compareCarriage); 
-        int resultTab = _mm256_movemask_epi8(compareTab); 
+        uint32_t collapseResult = SV;
+        while (collapseResult != 0) {
+            uint32_t j = _tzcnt_u32(collapseResult);
+            int pos = i + j;
+            char c = jsonData[pos];
 
-        int resultZero = _mm256_movemask_epi8(greaterThanZero);
-        int resultNine = _mm256_movemask_epi8(greaterThanNine);
-
-
-        for(size_t j = 0; j < 32; j++) {
-
-            if(resultLCB & (1 << j) && !inString && !inValue) {
-                typeIndex.push_back({Type::objectStart, i + j});
+            switch (c) {
+                case '{': typeIndex.push_back({Type::objectStart, pos, pos}); 
+                    break;
+                case '}': typeIndex.push_back({Type::objectEnd, pos, pos}); 
+                    break;
+                case '[': typeIndex.push_back({Type::arrayStart, pos, pos}); 
+                    break;
+                case ']': typeIndex.push_back({Type::arrayEnd, pos, pos}); 
+                    break;
+                case ':': typeIndex.push_back({Type::colon, pos, pos}); 
+                    break;
+                case ',': typeIndex.push_back({Type::comma, pos, pos}); 
+                    break;
+                default:
+                    break;
             }
-            else if(resultRCB & (1 << j) && !inString && !inValue) {
-                typeIndex.push_back({Type::objectEnd, i + j});
-            }
-            else if(resultLSB & (1 << j) && !inString && !inValue) {
-                typeIndex.push_back({Type::arrayStart, i + j});
-            }
-            else if(resultRSB & (1 << j) && !inString && !inValue) {
-                typeIndex.push_back({Type::arrayEnd, i + j});
-            }
-            else if((resultQ & (1 << j)) && !inValue) {
-                if(inString == false) {
-                    inString = true;
-                    typeIndex.push_back({Type::quoteStart, i + j});
-                }
-                else {
-                    if(backSlashCounter % 2 == 0) {
-                        typeIndex.back().ePosition = i + j;
-                        typeIndex.back().type = Type::string;
-                        inString = false;
-                    } 
-                    else {
-                        backSlashCounter = 0;
-                    } 
-                }
-            }
-            else if(resultCol & (1 << j) && !inString && !inValue) {
-                typeIndex.push_back({Type::colon, i + j});
-            }
-            else if(resultCom & (1 << j) && !inString && !inValue) {
-                typeIndex.push_back({Type::comma, i + j});
-            }
-            else if((resultBac & (1 << j)) && !inValue) {
-                backSlashCounter++;
-            }
-            else if((resultZero & (1 << j)) && !(resultNine & (1 << j)) && !inString && !inValue) {
-                inValue = true;
-                typeIndex.push_back({Type::number, i + j});
-            }
-            else if(((resultSpace & (1 << j)) || (resultNewline & (1 << j)) || (resultCarriage & (1 << j)) || (resultTab & (1 << j)) || (resultCom & (1 << j)) || (resultCol & (1 << j)) || (resultRCB & (1 << j)) || (resultRSB & (1 << j))) && inValue) {
-                inValue = false;
-                typeIndex.back().ePosition = i + j - 1;
-            }
-            else if((resultT & (1 << j)) && !inString && !inValue) {
-                if(i + j + 1 < jsonData.size() && jsonData.at(i + j + 1) == 'r') {
-                    inValue = true;
-                    typeIndex.push_back({Type::boolean, i + j});
-                }
-            }
-            else if((resultF & (1 << j)) && !inString && !inValue) {
-                if(i + j + 1 < jsonData.size() && jsonData.at(i + j + 1) == 'a') {
-                    inValue = true;
-                    typeIndex.push_back({Type::boolean, i + j});
-                }
-            }
-            else if((resultN & (1 << j)) && !inString && !inValue) {
-                if(i + j + 1 < jsonData.size() && jsonData.at(i + j + 1) == 'u') {
-                    inValue = true;
-                    typeIndex.push_back({Type::null, i + j});
-                }
-            }
-            else {
-                backSlashCounter = 0;
-            }
+            collapseResult &= collapseResult - 1;
         }
     } 
 }
