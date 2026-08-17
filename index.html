@@ -91,7 +91,7 @@ Query Parser</code></pre>
   <h5>JSON Parser Pseudocode</h5>
 
 
-  <h6>indexStructure()</h6>
+  <h5>indexStructure()</h5>
 
   <pre><code>For every 32 characters in the JSON file:
 
@@ -114,7 +114,7 @@ Query Parser</code></pre>
 Store the completed structure vector.</code></pre>
 
 
-  <h6>findOddBackSlash()</h6>
+  <h5>findOddBackSlash()</h5>
 
   <pre><code>Take the backslash bitmask.
 
@@ -127,7 +127,7 @@ Mark the positions where an odd-length sequence ends.
 Return those positions as a bitmask.</code></pre>
 
 
-  <h6>findString()</h6>
+  <h5>findString()</h5>
 
   <pre><code>Take the bitmask containing the valid quote positions.
 
