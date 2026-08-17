@@ -28,6 +28,16 @@ With WHERE:
 
 `GET name FROM School.students WHERE year > 2 AND grade >= 90`
 
+### implementation with NOT
+
+`GET name FROM School.students WHERE NOT grade < 70`
+
+`GET name FROM School.students WHERE year > 2 AND NOT grade < 70`
+
+### Implementation with OR
+
+`GET name FROM School.students WHERE year > 2 OR grade >= 90`
+
 ## Supported Comparison Operators
 
 - =
@@ -40,6 +50,9 @@ With WHERE:
 ## String Values in WHERE
 
 `GET name FROM School.students WHERE name = 'Alice'`
+
+`GET name FROM School.students WHERE name = "Alice"`
+
 
 ## Invalid Queries
 
