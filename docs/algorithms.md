@@ -3,7 +3,7 @@
 
 ### Query Parser Pseudocode:
 
-Main parser:
+the main parser:
 
 ```text
 ALGORITHM ParseQuery(input)
