@@ -204,8 +204,18 @@ FilterQuery QueryParser::parseFilterQuery(const std::string& input) const { //GE
                 continue;
             }
 
+            if (matchKeyword(input, i, "OR")) {
+                filterQuery.conditions.back().wordOperator =
+                    WordOperators::Or;
+
+                i += 2;
+                continue;
+            }
+
             //no and, break loop;
             break;
+
+
         }
     }
     skipWhitespace(input, i);
