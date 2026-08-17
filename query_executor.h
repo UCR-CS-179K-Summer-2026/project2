@@ -113,14 +113,122 @@ inline std::vector<const parser::Node*> executeQuery(const parser::Node& root, c
     }
     return executeQuery(root, query.dotPath);
 }
+
+// [NEW] Encodes a single Unicode codepoint as UTF-8 bytes, appended to out. Used by decodeJsonString() below to turn \uXXXX escapes (and surrogate pairs) into their real character bytes.
+inline void appendUtf8(std::string& out, unsigned int codepoint) {
+    if (codepoint <= 0x7F) {
+        out += static_cast<char>(codepoint);
+    } else if (codepoint <= 0x7FF) {
+        out += static_cast<char>(0xC0 | (codepoint >> 6));
+        out += static_cast<char>(0x80 | (codepoint & 0x3F));
+    } else if (codepoint <= 0xFFFF) {
+        out += static_cast<char>(0xE0 | (codepoint >> 12));
+        out += static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F));
+        out += static_cast<char>(0x80 | (codepoint & 0x3F));
+    } else {
+        out += static_cast<char>(0xF0 | (codepoint >> 18));
+        out += static_cast<char>(0x80 | ((codepoint >> 12) & 0x3F));
+        out += static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F));
+        out += static_cast<char>(0x80 | (codepoint & 0x3F));
+    }
+}
+
+// [NEW] Parses exactly 4 hex digits starting at s[i]. Returns -1 if there aren't 4 characters left, or any of them isn't a valid hex digit.
+inline long parseHex4(std::string_view s, size_t i) {
+    if (i + 4 > s.size()) return -1;
+    long value = 0;
+    for (size_t k = 0; k < 4; ++k) {
+        char c = s[i + k];
+        value <<= 4;
+        if (c >= '0' && c <= '9') value |= (c - '0');
+        else if (c >= 'a' && c <= 'f') value |= (c - 'a' + 10);
+        else if (c >= 'A' && c <= 'F') value |= (c - 'A' + 10);
+        else return -1;
+    }
+    return value;
+}
+
+// [NEW] Decodes JSON string escapes (\", \\, \/, \b, \f, \n, \r, \t, and  \uXXXX -- including UTF-16 surrogate pairs like \uD83D\uDE00 for characters outside the Basic Multilingual Plane, e.g. emoji) into their real UTF-8 bytes.
+// Fast path: if raw contains no backslash at all (the common case for most real-world data), this just copies it as-is with no per-character processing.
+// Malformed escapes (invalid hex digits, unmatched surrogates, an unknown escape letter) are handled defensively rather than thrown: unmatched surrogates become the U+FFFD replacement character, and other malformed sequences are emitted as-is. This keeps display robust for slightly invalid input rather than aborting the whole query.
+inline std::string decodeJsonString(std::string_view raw) {
+    if (raw.find('\\') == std::string_view::npos) {
+        return std::string(raw); // fast path, no escapes present
+    }
  
+    std::string out;
+    out.reserve(raw.size());
+ 
+    for (size_t i = 0; i < raw.size(); ++i) {
+        char c = raw[i];
+        if (c != '\\' || i + 1 >= raw.size()) {
+            out += c;
+            continue;
+        }
+        char next = raw[i + 1];
+        switch (next) {
+            case '"':  out += '"';  i += 1; break;
+            case '\\': out += '\\'; i += 1; break;
+            case '/':  out += '/';  i += 1; break;
+            case 'b':  out += '\b'; i += 1; break;
+            case 'f':  out += '\f'; i += 1; break;
+            case 'n':  out += '\n'; i += 1; break;
+            case 'r':  out += '\r'; i += 1; break;
+            case 't':  out += '\t'; i += 1; break;
+            case 'u': {
+                long hi = parseHex4(raw, i + 2);
+                if (hi < 0) {
+                    // malformed \u escape : emit the backslash as-is and let the next loop iteration process 'u' and the following characters as plain text.
+                    out += c;
+                    break;
+                }
+                i += 5; // consumed \uXXXX (backslash + 'u' + 4 hex digits)
+ 
+                if (hi >= 0xD800 && hi <= 0xDBFF) {
+                    // High surrogate : a valid character requires an immediate following low surrogate \uXXXX.
+                    if (i + 2 < raw.size() && raw[i + 1] == '\\' && raw[i + 2] == 'u') {
+                        long lo = parseHex4(raw, i + 3);
+                        if (lo >= 0xDC00 && lo <= 0xDFFF) {
+                            unsigned int codepoint =
+                                0x10000 + ((static_cast<unsigned int>(hi) - 0xD800) << 10) +
+                                (static_cast<unsigned int>(lo) - 0xDC00);
+                            appendUtf8(out, codepoint);
+                            i += 6; // consumed the low surrogate's \uXXXX too
+                            break;
+                        }
+                    }
+                    // Unmatched high surrogate : no valid low surrogate followed.
+                    appendUtf8(out, 0xFFFD);
+                } else if (hi >= 0xDC00 && hi <= 0xDFFF) {
+                    // Unmatched low surrogate (appeared without a preceding high).
+                    appendUtf8(out, 0xFFFD);
+                } else {
+                    // Ordinary Basic-Multilingual-Plane codepoint, no pairing needed.
+                    appendUtf8(out, static_cast<unsigned int>(hi));
+                }
+                break;
+            }
+            default:
+                // Unrecognized escape letter : emit both characters as-is
+                // rather than throwing.
+                out += c;
+                out += next;
+                i += 1;
+                break;
+        }
+    }
+    return out;
+}
+
 // Node leaves only store position/ePosition, so printing or reading a leaf's actual value requires the raw jsonData buffer too. For object/array nodes, this recursively rebuilds a JSON string from the children so that query results that resolve to a whole object/array print real data.
 // [CHANGED] per TA feedback: a null node pointer means the query itself resolved to nothing -- key not found, array index out of range, wildcard on a non-array, type mismatch, etc. That's not the same thing as the data actually containing a JSON `null` literal, so it now prints "DNE" instead of "null" here, keeping "null" reserved for the real thing (see the NodeType::null case below).
 inline std::string nodeToString(const parser::Node* node, const std::vector<char>& jsonData) {
     if (!node) return "DNE";
     switch (node->nodeType) {
-        case parser::NodeType::string:
-            return "\"" + std::string(jsonData.data() + node->position + 1, jsonData.data() + node->ePosition) + "\"";
+        case parser::NodeType::string: {
+            std::string_view raw(jsonData.data() + node->position + 1, static_cast<size_t>(node->ePosition - node->position - 1));
+            return "\"" + decodeJsonString(raw) + "\"";
+        }
         case parser::NodeType::number:
         case parser::NodeType::boolean:
             return std::string(jsonData.data() + node->position, jsonData.data() + node->ePosition + 1);

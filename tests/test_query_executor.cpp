@@ -296,5 +296,38 @@ TEST(FilterQuery, AndWithTwoConditionsReturnsMatchingNames) {
     EXPECT_EQ(results[1], "\"Mouse\"");
     EXPECT_EQ(results[2], "\"Wireless Mouse\"");
 }
+// TEMPORARY -- escape decoding verification 
+//Will delete this block once verified
+TEST(EscapeDecoding, BasicUnicodeEscape) {
+    auto results = runQuery("test_data_escapes.json", "basicUnicode");
+    ASSERT_EQ(results.size(), 1u);
+    EXPECT_EQ(results[0], "\"testa\"");  // \u0061 -> 'a'
+}
+ 
+TEST(EscapeDecoding, EscapedQuote) {
+    auto results = runQuery("test_data_escapes.json", "quoteEscape");
+    ASSERT_EQ(results.size(), 1u);
+    std::cout << "Actual output: " << results[0] << std::endl;
+    // Expect the decoded quote characters to appear in the output --
+    // see the design note about whether this should be re-escaped.
+}
+ 
+TEST(EscapeDecoding, EscapedBackslash) {
+    auto results = runQuery("test_data_escapes.json", "backslashEscape");
+    ASSERT_EQ(results.size(), 1u);
+    EXPECT_EQ(results[0], "\"C:\\Users\\bob\"");
+}
+ 
+TEST(EscapeDecoding, WhitespaceEscapes) {
+    auto results = runQuery("test_data_escapes.json", "whitespaceEscape");
+    ASSERT_EQ(results.size(), 1u);
+    std::cout << "Actual output: " << results[0] << std::endl;
+}
+ 
+TEST(EscapeDecoding, EmojiSurrogatePair) {
+    auto results = runQuery("test_data_escapes.json", "emojiSurrogatePair");
+    ASSERT_EQ(results.size(), 1u);
+    std::cout << "Actual output: " << results[0] << std::endl;
+}
 
 }  // namespace
