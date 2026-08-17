@@ -13,6 +13,11 @@
 
 </div>
 
+### Query Parser Architecture
+
+<img width="1302" height="1038" alt="image" src="https://github.com/user-attachments/assets/b5115f94-d6c8-496a-b903-df919401acf3" />
+
+
 ## 2. Inferences of Modules
 
 ### Module Relations
