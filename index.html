@@ -199,10 +199,9 @@ Return the string mask.</code></pre>
 
   <h2>Pseudocode</h2>
 
+    
   
 <h3>Query Parser Pseudocode</h3>
-
-<h4>Main Parser</h4>
 
 <pre><code>
 ALGORITHM ParseQuery(input)
@@ -231,7 +230,7 @@ ALGORITHM ParseQuery(input)
     RETURN Query
 </code></pre>
 
-<h4>Filter Query Parser</h4>
+<h5>Filter Query Parser</h5>
 
 <pre><code>
 ALGORITHM ParseFilterQuery(input)
@@ -333,7 +332,7 @@ ALGORITHM ParseFilterQuery(input)
     RETURN FilterQuery
 </code></pre>
 
-<h4>Path Parsing Pseudocode</h4>
+<h5>Path Parsing Pseudocode</h5>
 
 <pre><code>
 ALGORITHM ParsePath(input, position)
@@ -397,6 +396,7 @@ ALGORITHM ParsePath(input, position)
     <code>GET...FROM...WHERE</code> queries.
   </p>
 
+    
   <h4>Query Executor</h4>
   <p>
     Executes the parsed query against the JSON data and returns the result.
