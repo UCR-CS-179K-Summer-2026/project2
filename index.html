@@ -54,19 +54,8 @@
   <h2>System Design</h2>
 
   <h3>Architecture</h3>
-  <pre><code>JSON File
-    |
-    v
-JSON Parser
-    |
-    v
-Indexer
-    |
-    v
-Query Executor
-    ^
-    |
-Query Parser</code></pre>
+
+  <img width="1566" height="1038" alt="image" src="https://github.com/user-attachments/assets/64747a5c-01db-4c27-839a-93f32c1b1764" />
 
   <p>
     The JSON Parser reads the input file and creates an in-memory
@@ -79,6 +68,21 @@ Query Parser</code></pre>
     The Query Executor then uses that structure to find and return the
     requested data.
   </p>
+
+  <h3>JSON Parser Architecture</h3>
+
+  <img width="1252" height="1080" alt="image" src="https://github.com/user-attachments/assets/28768f70-5553-49c0-9757-82a5b72490b5" />
+
+
+  <h3>Query Parser Architecture</h3>
+
+  <img width="1302" height="1038" alt="image" src="https://github.com/user-attachments/assets/b5115f94-d6c8-496a-b903-df919401acf3" />
+
+  
+  filter parser diagram:
+
+  <img width="554" height="1080" alt="image" src="https://github.com/user-attachments/assets/774d716a-f3f1-4b5e-af89-0310bb4e7d66" />
+
 
   <h3>Modules</h3>
 
