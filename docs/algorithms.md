@@ -34,7 +34,6 @@ ALGORITHM ParseQuery(input)
 
 FILTER query Parser:
 
-
 ```text
 ALGORITHM ParseFilterQuery(input)
 
