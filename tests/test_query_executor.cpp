@@ -344,10 +344,8 @@ TEST(EscapeDecoding, WhereFastPathStillWorksForPlainValues) {
 }
 
 // --- Case 2: special keys ("." and "") --------------------------------
-// Verifies the bracket-quoted-key grammar added to parsePath() lets a query
-// address an object key that dot-notation itself can't express: a literal
-// "." key (which would collide with the path separator) and an empty-string
-// key (which has no bare-identifier form at all).
+// Verifies the bracket-quoted-key grammar added to parsePath() lets a query address an object key that dot-notation itself can't express: a literal
+// "." key (which would collide with the path separator) and an empty-string key (which has no bare-identifier form at all).
 // Uses test_data_special_keys.json: {"": "computer", ".": "bob", "normal": "value"}
 
 TEST(SpecialKeyQuery, DotKeyReturnsCorrectValue) {
@@ -362,18 +360,14 @@ TEST(SpecialKeyQuery, EmptyStringKeyReturnsCorrectValue) {
     EXPECT_EQ(results[0], "\"computer\"");
 }
 
-// Regression check: a normal bare-key query still works correctly on the
-// same file that also contains the special keys -- guards against the new
-// "a segment may start with '[' " branch breaking the ordinary bare-key path.
+// Regression check: a normal bare-key query still works correctly on the same file that also contains the special keys -- guards against the new "a segment may start with '[' " branch breaking the ordinary bare-key path.
 TEST(SpecialKeyQuery, NormalKeyStillWorksAlongsideSpecialKeys) {
     auto results = runQuery("test_data_special_keys.json", "normal");
     ASSERT_EQ(results.size(), 1u);
     EXPECT_EQ(results[0], "\"value\"");
 }
 
-// A quoted key that doesn't exist should resolve to DNE, the same convention
-// every other missing-key case in the engine already follows, not throw or
-// crash.
+// A quoted key that doesn't exist should resolve to DNE, the same convention every other missing-key case in the engine already follows, not throw or crash.
 TEST(SpecialKeyQuery, NonexistentQuotedKeyReturnsDNE) {
     auto results = runQuery("test_data_special_keys.json", "[\"doesNotExist\"]");
     ASSERT_EQ(results.size(), 1u);
