@@ -170,10 +170,11 @@ FilterQuery QueryParser::parseFilterQuery(const std::string& input) const { //GE
             
             // FIX 4: support quoted string values so they can contain spaces, 
             //e.g. WHERE name = 'John Doe'. Unquoted values (numbers, bare words) keeps the old behavior of stopping at the next whitespace.
-            if (input[i] == '\'') {
+            if (input[i] == '\'' || input[i] == '"') {
+                char quote = input[i];
                 ++i; // skip opening quote
     
-                while (i < input.size() && input[i] != '\'') {
+                while (i < input.size() && input[i] != quote) {
                     readVal += input[i];
                     ++i;
                 }
