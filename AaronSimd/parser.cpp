@@ -77,63 +77,51 @@ uint32_t parser::findString(uint32_t Q) {
 }
 
 void parser::indexStructure() {
+
     __m256i quote = _mm256_set1_epi8('"');
-    __m256i colon = _mm256_set1_epi8(':');
-    __m256i comma = _mm256_set1_epi8(',');
-    __m256i LCurly = _mm256_set1_epi8('{');
-    __m256i RCurly = _mm256_set1_epi8('}');
-    __m256i LSquare = _mm256_set1_epi8('[');
-    __m256i RSquare = _mm256_set1_epi8(']');
     __m256i BSlash = _mm256_set1_epi8('\\');
     __m256i space = _mm256_set1_epi8(' ');
-    
 
     __m128i hTables = _mm_setr_epi8(hTable[0], hTable[1], hTable[2], hTable[3], hTable[4], hTable[5], hTable[6], hTable[7], hTable[8], hTable[9], hTable[10], hTable[11], hTable[12], hTable[13], hTable[14], hTable[15]);
     __m256i dupHTable = _mm256_broadcastsi128_si256(hTables);
     __m128i lTables = _mm_setr_epi8(lTable[0], lTable[1], lTable[2], lTable[3], lTable[4], lTable[5], lTable[6], lTable[7], lTable[8], lTable[9], lTable[10], lTable[11], lTable[12], lTable[13], lTable[14], lTable[15]);
     __m256i dupLTable = _mm256_broadcastsi128_si256(lTables);
 
-    
+    __m256i lowMask = _mm256_set1_epi8(0x0F);
+    __m256i highMask = _mm256_set1_epi8(0x0F);
+
+
     for(size_t i  = 0; i < jsonData.size(); i+=32) {
 
         __m256i data = _mm256_loadu_si256 (reinterpret_cast<const __m256i*>(jsonData.data() + i));
-        
-        __m256i compareLCB = _mm256_cmpeq_epi8 (data, LCurly); //{
-        __m256i compareRCB = _mm256_cmpeq_epi8 (data, RCurly); //}
-        __m256i compareLSB = _mm256_cmpeq_epi8 (data, LSquare); //[
-        __m256i compareRSB = _mm256_cmpeq_epi8 (data, RSquare); //]
-        __m256i compareQuote = _mm256_cmpeq_epi8 (data, quote); //"
-        __m256i compareColon = _mm256_cmpeq_epi8 (data, colon); //:
-        __m256i compareComma = _mm256_cmpeq_epi8 (data, comma); //,
-        __m256i compareBackSlash = _mm256_cmpeq_epi8 (data, BSlash); // '\'
-        __m256i compareSpace = _mm256_cmpeq_epi8 (data, space); // ' '
 
+        __m256i LN = _mm256_and_si256(data, lowMask);
+        __m256i HN = _mm256_and_si256(_mm256_srli_epi16(data, 4), highMask);
+
+        __m256i LOW = _mm256_shuffle_epi8(dupLTable, LN);
+        __m256i HIGH = _mm256_shuffle_epi8(dupHTable, HN);
+
+        __m256i result = _mm256_and_si256(LOW, HIGH);
         
-        uint32_t resultLCB = static_cast<uint32_t>(_mm256_movemask_epi8(compareLCB)); 
-        uint32_t resultRCB = static_cast<uint32_t>(_mm256_movemask_epi8(compareRCB)); 
-        uint32_t resultLSB = static_cast<uint32_t>(_mm256_movemask_epi8(compareLSB)); 
-        uint32_t resultRSB = static_cast<uint32_t>(_mm256_movemask_epi8(compareRSB)); 
-        uint32_t resultQ = static_cast<uint32_t>(_mm256_movemask_epi8(compareQuote)); 
-        uint32_t resultCol = static_cast<uint32_t>(_mm256_movemask_epi8(compareColon));  
-        uint32_t resultCom = static_cast<uint32_t>(_mm256_movemask_epi8(compareComma)); 
-        uint32_t resultBac = static_cast<uint32_t>(_mm256_movemask_epi8(compareBackSlash)); 
-        uint32_t resultSpace = static_cast<uint32_t>(_mm256_movemask_epi8(compareSpace)); 
+        __m256i ZM = _mm256_setzero_si256();
+        __m256i ZERO = _mm256_cmpeq_epi8(result, ZM);
+        uint32_t SV = ~static_cast<uint32_t>(_mm256_movemask_epi8(ZERO));
+
+        __m256i compareQuote = _mm256_cmpeq_epi8(data, quote);
+        __m256i compareBackSlash = _mm256_cmpeq_epi8(data, BSlash);
+        uint32_t resultQ = static_cast<uint32_t>(_mm256_movemask_epi8(compareQuote));
+        uint32_t resultBac = static_cast<uint32_t>(_mm256_movemask_epi8(compareBackSlash));
 
         uint32_t oddNumberBSlash = findOddBackSlash(resultBac);
-        uint32_t Q = resultQ;
-        Q &= ~oddNumberBSlash; 
+        uint32_t Q = resultQ & ~oddNumberBSlash;
 
         uint32_t stringM = findString(Q);
-        resultLCB &= ~stringM;
-        resultRCB &= ~stringM;
-        resultLSB &= ~stringM;
-        resultRSB &= ~stringM;
-        resultCol &= ~stringM;
-        resultCom &= ~stringM;
+        SV &= ~stringM;
 
-        uint32_t collapseResult = resultLCB | resultRCB | resultLSB | resultRSB | resultCol | resultCom;
-        while(collapseResult != 0)
+        uint32_t collapseResult = SV;
+        //while(collapseResult != 0) {
 
+        //}
     } 
 }
 

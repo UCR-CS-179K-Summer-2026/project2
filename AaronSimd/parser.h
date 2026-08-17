@@ -6,6 +6,7 @@
 #include <map>
 #include <deque>
 #include <list>
+#include <cstdint>
 
 class parser {
 public:
@@ -59,6 +60,9 @@ public:
     const Node& getRoot() const;
     const std::vector<char>& getJsonData() const;
     void printTree() const;
+    uint32_t findOddBackSlash(uint32_t B);
+    uint32_t findString(uint32_t Q);
+
 
 private:
 
