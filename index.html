@@ -1,552 +1,683 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>JSON Parser Documentation</title>
-  <style>
-    body {
-      margin: 40px auto;
-      padding: 0 20px;
-      font-family: Arial, sans-serif;
-      line-height: 1.6;
-      color: #222;
-    }
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JSON Analytics Engine — Documentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F6F8;
+  --ink:#1A1D23;
+  --accent:#2F4FE0;
+  --accent-dim:#5C74E8;
+  --muted:#7B8794;
+  --panel:#E3E7EC;
+  --line:#D3D9DF;
+  --white:#FFFFFF;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+  --sans: 'Inter', -apple-system, sans-serif;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--sans);
+  line-height:1.65;
+  font-size:16px;
+}
+h1,h2,h3,h4{
+  font-family:var(--mono);
+  font-weight:600;
+  letter-spacing:-0.01em;
+  margin:0 0 0.6em;
+}
+h1{font-size:2.4rem;}
+h2{font-size:1.6rem; padding-top:0.4rem;}
+h3{font-size:1.2rem; color:var(--accent); margin-top:2rem;}
+h4{font-size:1rem; font-family:var(--mono); font-weight:500; color:var(--ink);}
+p{margin:0 0 1em; color:#3A3F47;}
+a{color:var(--accent); text-decoration:none;}
+a:hover{text-decoration:underline;}
+code{
+  font-family:var(--mono);
+  background:var(--panel);
+  padding:0.15em 0.4em;
+  border-radius:4px;
+  font-size:0.9em;
+}
+pre{
+  background:var(--ink);
+  color:#E8EAED;
+  padding:1.2rem 1.4rem;
+  border-radius:8px;
+  overflow-x:auto;
+  font-family:var(--mono);
+  font-size:0.85rem;
+  line-height:1.6;
+}
+pre code{background:none; padding:0; color:inherit;}
+table{width:100%; border-collapse:collapse; margin:1.2em 0; font-size:0.92rem;}
+th,td{border:0.5px solid var(--line); padding:0.6em 0.8em; text-align:left; vertical-align:top;}
+th{background:var(--panel); font-family:var(--mono); font-weight:500;}
+img{max-width:100%; border-radius:8px; border:0.5px solid var(--line);}
 
-    h1, h2, h3 {
-      margin-top: 32px;
-    }
+/* ---- Sticky nav ---- */
+nav.topnav{
+  position:sticky; top:0; z-index:50;
+  background:rgba(244,246,248,0.92);
+  backdrop-filter:blur(8px);
+  border-bottom:0.5px solid var(--line);
+  padding:0 2rem;
+}
+.nav-inner{
+  max-width:1100px; margin:0 auto;
+  display:flex; align-items:center; justify-content:space-between;
+  height:56px;
+}
+.nav-brand{
+  font-family:var(--mono); font-weight:600; font-size:0.95rem;
+}
+.nav-links{display:flex; gap:0.2rem; list-style:none; margin:0; padding:0;}
+.nav-links > li{position:relative;}
+.nav-links > li > a{
+  display:block; padding:0.5rem 0.8rem; border-radius:6px;
+  font-size:0.88rem; color:var(--ink); font-weight:500;
+}
+.nav-links > li > a:hover{background:var(--panel); text-decoration:none;}
+.dropdown{
+  display:none; position:absolute; top:100%; left:0;
+  background:var(--white); border:0.5px solid var(--line); border-radius:8px;
+  min-width:190px; padding:0.4rem; margin-top:4px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.08);
+}
+.nav-links > li:hover .dropdown{display:block;}
+.dropdown a{
+  display:block; padding:0.45rem 0.7rem; border-radius:5px;
+  font-size:0.85rem; color:var(--ink);
+}
+.dropdown a:hover{background:var(--panel); text-decoration:none;}
 
-    code {
-      background: #f2f2f2;
-      padding: 2px 5px;
-      border-radius: 3px;
-    }
+/* ---- Signature breadcrumb bar ---- */
+.breadcrumb-bar{
+  background:var(--ink); color:#B8C4E0;
+  font-family:var(--mono); font-size:0.82rem;
+  padding:0.5rem 2rem;
+  border-bottom:0.5px solid #2A2E38;
+}
+.breadcrumb-bar .path{max-width:1100px; margin:0 auto;}
+.bc-seg{color:#8FA3E8;}
+.bc-key{color:#E8EAED;}
+.bc-bracket{color:var(--accent-dim);}
 
-    pre {
-      background: #f2f2f2;
-      padding: 12px;
-      overflow-x: auto;
-    }
+/* ---- Hero ---- */
+.hero{max-width:1100px; margin:0 auto; padding:3.5rem 2rem 2.5rem;}
+.hero .eyebrow{
+  font-family:var(--mono); font-size:0.82rem; color:var(--muted);
+  text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.8rem;
+}
+.hero p.lead{font-size:1.15rem; color:#3A3F47; max-width:640px;}
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 16px 0;
-    }
+/* ---- Sections ---- */
+.section{max-width:1100px; margin:0 auto; padding:2.5rem 2rem; border-top:0.5px solid var(--line);}
+.section-tag{
+  display:inline-block; font-family:var(--mono); font-size:0.75rem;
+  color:var(--accent); background:#E9EDFC; padding:0.2em 0.6em;
+  border-radius:4px; margin-bottom:0.8rem;
+}
+.card{
+  background:var(--white); border:0.5px solid var(--line); border-radius:12px;
+  padding:1.5rem 1.7rem; margin:1.2rem 0;
+}
+.card h4{margin-top:0;}
+.grid-2{display:grid; grid-template-columns:1fr 1fr; gap:1.2rem;}
+.pill{
+  display:inline-block; font-family:var(--mono); font-size:0.75rem;
+  padding:0.2em 0.7em; border-radius:20px; margin-right:0.4em;
+}
+.pill-live{background:#E3F0E5; color:#2E6B3A;}
+.pill-pending{background:#FBEFE0; color:#8A5A1E;}
+.pill-cross{background:var(--panel); color:var(--muted);}
 
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: left;
-    }
-  </style>
+.func-block{
+  border-left:2px solid var(--accent); padding-left:1rem; margin:1.6rem 0;
+}
+
+@media(max-width:700px){
+  .grid-2{grid-template-columns:1fr;}
+  nav.topnav, .breadcrumb-bar{padding:0 1rem;}
+  .hero, .section{padding-left:1.2rem; padding-right:1.2rem;}
+}
+</style>
 </head>
 <body>
 
-  <h1>JSON Parser & Query Engine</h1>
-  <p>
-    This project parses JSON data and allows users to query it using
-    dot-path and filter queries.
-  </p>
-
-  <h2>System Design</h2>
-
-  <h3>Architecture</h3>
-
-  <div align="center">
-  <img width="1000" height="800" alt="image" src="https://github.com/user-attachments/assets/64747a5c-01db-4c27-839a-93f32c1b1764" />
-
-  <p>
-    The JSON Parser reads the input file and creates an in-memory
-    representation of the data. The Indexer builds lookup structures
-    to make repeated queries faster.
-  </p>
-
-  <p>
-    The Query Parser converts the user's query into an internal structure.
-    The Query Executor then uses that structure to find and return the
-    requested data.
-  </p>
-
-  <h3>Query Parser Architecture</h3>
-
-  <div align="center">
-  <img width="1000" height="700" alt="image" src="https://github.com/user-attachments/assets/b5115f94-d6c8-496a-b903-df919401acf3" />
-
-  
-  <h3>filter query parser diagram:</h3>
-
-  <div align="center">
-  <img width="554" height="1080" alt="image" src="https://github.com/user-attachments/assets/774d716a-f3f1-4b5e-af89-0310bb4e7d66" />
-
-
-
-  <h4>JSON Parser Architecture</h4>
-
-    <div align="center">
-  <img
-  src="JsonArchitecture.png"
-  alt="JSON Parser Architecture Diagram"
-  style="max-width: 100%; height: auto;">
-
-
-  <h4>JSON Parser</h4>
-  <p>
-    Converts JSON text into an internal data structure.
-    The file is parsed once and reused for multiple queries.
-  </p>
-
-  <h4>SIMD Structural Indexing Control Flow</h4>
-  <div align="center">
-  <img
-  src="Diagram.png"
-  alt="indexStructure Control Flow Diagram"
-  style="max-width: 70%; height: auto;"
-  >
-
-  <h5>Algorithm References</h5>
-
-  <p>
-    The SIMD based structural scanning methods I used in the JSON Parser were
-    developed with reference to the techniques described by Geoff Langdale
-    and Daniel Lemire in <em>Parsing Gigabytes of JSON per Second</em>.
-  </p>
-
-  <h5>JSON Parser Pseudocode</h5>
-
-  
-  <h5>indexStructure()</h5>
-
-  <pre><code>For every 32 characters in the JSON file:
-
-    Load the 32 characters using AVX2.
-
-    Use the high and low nibbles of each character
-    to identify structural characters.
-
-    Find all quote and backslash characters.
-
-    Remove quotes that are escaped by backslashes.
-
-    Find which characters are inside strings.
-
-    Ignore structural characters that are inside strings.
-
-    Add the remaining structural characters
-    and their positions to the structure vector.
-
-Store the completed structure vector.</code></pre>
-
-
-  <h5>findOddBackSlash()</h5>
-
-  <pre><code>Take the backslash bitmask.
-
-Find the beginning of each sequence of backslashes.
-
-Determine which backslash sequences have an odd length.
-
-Mark the positions where an odd-length sequence ends.
-
-Return those positions as a bitmask.</code></pre>
-
-
-  <h5>findString()</h5>
-
-  <pre><code>Take the bitmask containing the valid quote positions.
-
-Use repeated XOR and bit shifts to fill the bits
-between each opening and closing quote.
-
-This creates a mask showing which characters
-are inside strings.
-
-Return the string mask.</code></pre>
-
-<h5>Lookup Tables in indexStructure()</h5>
-<p>
-  The <code>indexStructure()</code> function uses two 16-entry lookup tables
-  called <code>lowTable</code> and <code>highTable</code>. Each input byte is
-  split into two parts: the low nibble (lower 4 bits) and the high nibble
-  (upper 4 bits).
-</p>
-
-<p>
-  The low nibble is used to index <code>lowTable</code>, and the high nibble is
-  used to index <code>highTable</code>. The results from these two lookups are
-  then combined with a bitwise AND operation. This allows the parser to quickly
-  classify whether a character is a JSON structural character such as
-  <code>{</code>, <code>}</code>, <code>[</code>, <code>]</code>,
-  <code>:</code>, or <code>,</code>.
-</p>
-
-<p>
-  Using these two lookup tables avoids checking every character one by one.
-  Instead, the parser can process 32 bytes at a time with AVX2 SIMD
-  instructions, making structural indexing much faster.
-</p>
-  
-  <h4>Indexer</h4>
-  <p>
-    Builds lookup structures so the entire JSON document does not need
-    to be searched again for every query.
-  </p>
-
-    
-  
-<h3>Query Parser Pseudocode</h3>
-
-<pre><code>
-ALGORITHM ParseQuery(input)
-
-    IF input is empty
-        THROW "Query is empty"
-
-    Find first non-whitespace character
-    Find last non-whitespace character
-
-    IF input contains only whitespace
-        THROW "Query is empty"
-
-    Remove leading and trailing whitespace
-
-    CREATE new Query
-
-    IF query begins with GET
-        SET query type to Filter
-        SET query filter to ParseFilterQuery(input)
-
-    ELSE
-        SET query type to DotPath
-        SET query dotPath to ParseDotPath(input)
-
-    RETURN Query
-</code></pre>
-
-<h5>Filter Query Parser</h5>
-
-<pre><code>
-ALGORITHM ParseFilterQuery(input)
-
-    SET position to beginning of input
-    CREATE empty FilterQuery
-
-    Skip whitespace
-
-    IF GET keyword is not found
-        THROW error
-
-    Move past GET
-    Skip whitespace
-
-    Parse path after GET
-    STORE as the selectField
-
-    IF selectField is empty
-        THROW error
-
-    Skip whitespace
-
-    IF FROM keyword is not found
-        THROW error
-
-    Move past FROM
-    Skip whitespace
-
-    Parse path after FROM
-    STORE as a sourcePath
-
-    IF sourcePath is empty
-        THROW error
-
-    Skip whitespace
-
-    IF WHERE keyword exists
-
-        Move past WHERE
-
-        REPEAT
-
-            CREATE new Condition
-            Skip whitespace
-
-            IF NOT keyword exists
-                SET condition.negative to true
-                Move past NOT
-                Skip whitespace
-
-            Parse condition field path
-
-            IF field is empty
-                THROW error
-
-            Skip whitespace
-
-            Read comparison operator
-            Convert operator text to FilterOperator
-
-            Skip whitespace
-
-            IF no value exists
-                THROW error
-
-            IF value begins with ' or "
-                Remember opening quote
-                Read until matching closing quote
-
-                IF closing quote is missing
-                    THROW error
-
-            ELSE
-                Read value until whitespace
-
-            STORE value in Condition
-            ADD Condition to FilterQuery
-
-            Skip whitespace
-
-            IF AND keyword exists
-                Move past AND
-                CONTINUE parsing another condition
-
-            ELSE IF OR keyword exists
-                Mark previous condition's word operator as OR
-                Move past OR
-                CONTINUE parsing another condition
-
-            ELSE
-                STOP condition loop
-
-    Skip remaining whitespace
-
-    IF unread characters remain
-        THROW error
-
-    RETURN FilterQuery
-</code></pre>
-
-<h5>Path Parsing Pseudocode</h5>
-
-<pre><code>
-ALGORITHM ParsePath(input, position)
-
-    CREATE empty list of PathParts
-
-    WHILE position has not reached end of input
-
-        IF current character is whitespace
-            STOP
-
-        IF current character cannot begin a key
-            THROW error
-
-        Read key name
-        ADD Key to path
-
-        IF next character is [
-
-            Move past [
-
-            IF end of input reached
-                THROW unclosed bracket error
-
-            IF next character is *
-                Move past *
-
-                REQUIRE closing ]
-                ADD AllElements to path
-
-            ELSE IF next value is an array index
-                Read index digits
-
-                IF index is negative
-                    THROW error
-
-                REQUIRE closing ]
-
-                ADD ArrayIndex to path
-
-            ELSE
-                THROW invalid array index error
-
-        IF whitespace is reached
-            STOP
-
-        IF more input remains
-
-            REQUIRE .
-
-            Move past .
-
-            IF input ends after .
-                THROW trailing dot error
-
-    RETURN path
-</code></pre>
-    
-  <p>
-    Parses dot-path, wildcard, array index, and
-    <code>GET...FROM...WHERE</code> queries.
-  </p>
-
-    
-  <h4>Query Executor</h4>
-  <p>
-    Executes the parsed query against the JSON data and returns the result.
-  </p>
-
-  <h2>Query Language</h2>
-
-  <h3>Dot-Path Queries</h3>
-  <p><code>School.students.name</code></p>
-
-  <p>Array index:</p>
-  <p><code>School.students[2].name</code></p>
-
-  <p>Wildcard:</p>
-  <p><code>School.students[*].name</code></p>
-
-  <h3>Filter Queries</h3>
-  <p><code>GET name FROM School.students</code></p>
-
-  <p>With a condition:</p>
-  <p><code>GET name FROM School.students WHERE year &gt; 2</code></p>
-
-  <p>Multiple conditions:</p>
-  <p>
-    <code>GET name FROM School.students WHERE year &gt; 2 AND grade &gt;= 90</code>
-  </p>
-
-  <h3>Supported Operators</h3>
-  <ul>
-    <li><code>=</code></li>
-    <li><code>!=</code></li>
-    <li><code>&lt;</code></li>
-    <li><code>&lt;=</code></li>
-    <li><code>&gt;</code></li>
-    <li><code>&gt;=</code></li>
-  </ul>
-
-  <h3>Current Limitations</h3>
-  <ul>
-    <li><code>OR</code> and <code>NOT</code> are not supported.</li>
-    <li>Parentheses in filter conditions are not supported.</li>
-    <li>Users cannot currently choose the ordering of results.</li>
-  </ul>
-
-  <h2>Testing</h2>
-
-  <p>Query Parser tests cover:</p>
-  <ul>
-    <li>Valid and invalid dot paths</li>
-    <li>Wildcards</li>
-    <li>Array indexes</li>
-    <li>Filter queries</li>
-    <li>AND conditions</li>
-    <li>Invalid keywords and syntax</li>
-    <li>Whitespace and malformed operators</li>
-  </ul>
-
-  <h3>Example Tests</h3>
+<nav class="topnav">
+  <div class="nav-inner">
+    <div class="nav-brand">JSON Analytics Engine</div>
+    <ul class="nav-links">
+      <li><a href="#architecture">System Architecture</a></li>
+      <li><a href="#json-parser">JSON Parser</a>
+        <div class="dropdown">
+          <a href="#json-parser-primary">AaronJsonParser</a>
+          <a href="#json-parser-simd">AaronSimd</a>
+        </div>
+      </li>
+      <li><a href="#query-parser">Query Parser</a>
+        <div class="dropdown">
+          <a href="#qp-path">parsePath</a>
+          <a href="#qp-filter">parseFilterQuery</a>
+        </div>
+      </li>
+      <li><a href="#query-executor">Query Executor</a></li>
+      <li><a href="#query-language">Query Language</a></li>
+      <li><a href="#diagrams-testing">Diagrams &amp; Testing</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="breadcrumb-bar">
+  <div class="path" id="bc-path">docs<span class="bc-bracket">[</span><span class="bc-key">"Overview"</span><span class="bc-bracket">]</span></div>
+</div>
+
+<header class="hero">
+  <div class="eyebrow">Documentation</div>
+  <h1>A JSON analytics engine, documented the way it's queried</h1>
+  <p class="lead">Dot-path and filter queries over large JSON files. Built across three modules — a JSON parser, a query parser, and a query executor — each documented here with real pseudocode, verified behavior, and diagrams matching the actual codebase.</p>
+</header>
+
+<section class="section" id="architecture">
+  <span class="section-tag">01 — system architecture</span>
+  <h2>How the pieces fit together</h2>
+  <p>The JSON Parser reads the input file once and produces an in-memory tree. The Query Parser independently turns a query string into a small structure describing what's being asked. The Query Executor takes that parsed query and walks the tree to produce a result. This separation means parsing the JSON and parsing the query are decoupled — each can be optimized independently, and many queries can run against one parsed file without re-parsing it each time.</p>
+
+  <img src="https://github.com/user-attachments/assets/64747a5c-01db-4c27-839a-93f32c1b1764" alt="System architecture overview">
+
+  <div class="grid-2">
+    <div class="card">
+      <h4>JSON Parser</h4>
+      <p>Converts raw JSON text into an internal tree representation. Parsed once, reused across every query against that file.</p>
+    </div>
+    <div class="card">
+      <h4>Query Parser</h4>
+      <p>Parses dot-path queries (with wildcard and array-index support) and <code>GET/FROM/WHERE</code> filter queries — including <code>AND</code>, <code>OR</code>, and <code>NOT</code> — into a small structure the executor can walk.</p>
+    </div>
+    <div class="card">
+      <h4>Query Executor</h4>
+      <p>Walks the parsed tree using the parsed query, resolving keys, array indices, and wildcards, and evaluating filter conditions row by row.</p>
+    </div>
+    <div class="card">
+      <h4>Indexer</h4>
+      <p>Builds lookup structures so repeated queries against the same file don't require re-scanning it from scratch each time.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="json-parser">
+  <span class="section-tag">02 — json parser</span>
+  <h2>Two implementations, two platforms</h2>
+  <p>There are currently two JSON parser implementations in this project, built for different goals. <strong>AaronJsonParser</strong> is the primary, cross-platform parser — a straightforward single-pass character loop that runs identically on macOS and Windows, and is what every query in this system actually runs against today. <strong>AaronSimd</strong> is a separate, in-progress SIMD-accelerated parser using AVX2 instructions — significantly faster, but x86-only, so it currently runs on Windows and not on Apple Silicon.</p>
+
+  <h3 id="json-parser-primary">AaronJsonParser <span class="pill pill-live">primary</span> <span class="pill pill-cross">macOS + Windows</span></h3>
+  <p>Builds the tree in two passes: <code>indexStructure()</code> walks the raw buffer once, character by character, producing a flat list of tokens (structural characters, string spans, value spans). <code>constructTree()</code> then walks that token list once more, using a stack of node pointers to build the actual nested tree.</p>
+
+  <div class="func-block">
+    <h4>loadFile(filename)</h4>
+    <pre><code>open file in binary mode
+IF file failed to open:
+    print error, RETURN false
+
+seek to end, record file size
+seek back to beginning
+
+adjustedSize = round size up to the next multiple of 32
+resize buffer to adjustedSize, padded with spaces
+
+read the file into the buffer
+
+IF read failed:
+    print error, RETURN false
+
+RETURN true</code></pre>
+  </div>
+
+  <div class="func-block">
+    <h4>indexStructure()</h4>
+    <p>Single linear pass over the buffer. Tracks two pieces of state as it goes: whether it's currently inside a string, and whether it's currently in the middle of reading a bare value (a number, boolean, or null).</p>
+    <pre><code>FOR each character c at position i in the buffer:
+
+    IF currently inside a string:
+        result = detectString(c)
+        IF result is not "none":
+            close the current string token at position i, mark it type "string"
+        CONTINUE to next character
+
+    IF currently reading a bare value:
+        IF c is whitespace or a structural character:
+            close the current value token at position i-1
+
+    IF c is a quote:      push new token, enter/exit string mode via detectString(c)
+    ELSE IF c is [ ] { } , or : push the matching structural token
+    ELSE IF c is whitespace:  skip
+    ELSE IF not currently reading a value:
+        push a new token, classify its type via detectType(c)
+        mark that a bare value is now being read</code></pre>
+  </div>
+
+  <div class="func-block">
+    <h4>constructTree()</h4>
+    <p>Consumes the token list from <code>indexStructure()</code> in order, using a stack of pointers into the tree being built.</p>
+    <pre><code>nodes = empty stack of node pointers
+currentKey = ""
+
+FOR each token in the token list:
+
+    IF token is an object-start or array-start:
+        create the matching container node
+        IF stack is empty:      this becomes the root
+        ELSE IF top of stack is an object:  attach it under currentKey
+        ELSE IF top of stack is an array:   append it
+        push the new node onto the stack
+
+    ELSE IF token is a string:
+        IF the NEXT token is a colon:
+            this string is a KEY -- save its text as currentKey
+        ELSE:
+            this string is a VALUE -- create a leaf node storing its
+            source start/end position, attach/append it the same way
+
+    ELSE IF token is a number, boolean, or null:
+        create the matching leaf node, attach/append it the same way
+
+    ELSE IF token is an object-end or array-end:
+        pop the current container off the stack</code></pre>
+  </div>
+
+  <div class="func-block">
+    <h4>Leaf values store positions, not copies</h4>
+    <p>Every leaf node (string, number, boolean) stores only its start and end byte position in the original buffer — never a copy of the text. Reading a value's actual text (for display, or for a WHERE comparison) means slicing that range out of the buffer at the moment it's needed. This is why the buffer itself has to stay alive for as long as the tree does.</p>
+  </div>
+
+  <hr style="border:none; border-top:0.5px solid var(--line); margin:2.5rem 0;">
+
+  <h3 id="json-parser-simd">AaronSimd <span class="pill pill-pending">in progress</span> <span class="pill pill-cross">x86 / Windows only</span></h3>
+  <p>A separate, SIMD-accelerated parser using AVX2 instructions to scan 32 bytes of the input at a time, rather than one character at a time. Built for raw throughput on large files; not yet integrated as the default parser, and doesn't run on Apple Silicon since AVX2 is an x86-only instruction set.</p>
+
+  <img src="JsonArchitecture.png" alt="AaronSimd architecture diagram">
+
+  <div class="func-block">
+    <h4>indexStructure() — SIMD variant</h4>
+    <pre><code>prepare SIMD lookup tables for JSON structural characters
+
+FOR each 32-byte block of the buffer:
+
+    load 32 bytes into a SIMD register
+    split each byte into a low nibble and a high nibble
+    use lookup tables on both nibbles to identify structural characters
+    combine the lookup results into a structural-character mask
+
+    compare all 32 bytes in parallel against the quote character
+    compare all 32 bytes in parallel against the backslash character
+
+    find escaped quotes (odd-length backslash runs) and remove them
+    from the quote mask
+
+    find which byte positions fall inside a string, using the
+    corrected quote mask, and remove any structural characters that
+    fall inside a string from the structural mask
+
+    WHILE the structural mask still has bits set:
+        find the next set bit's position and the character there
+        record the matching token (object/array start or end, colon,
+        comma) at that position
+        clear that bit from the mask</code></pre>
+    <p style="color:var(--muted); font-size:0.88em;">Reference: the structural-scanning technique here follows the approach described by Geoff Langdale and Daniel Lemire in <em>Parsing Gigabytes of JSON per Second</em>.</p>
+  </div>
+
+  <div class="card" style="border-style:dashed;">
+    <h4>More detail coming</h4>
+    <p>This section will be filled in further once Aaron's current <code>AaronSimd</code> source files are available — this pseudocode reflects the design as documented so far, not yet verified line-by-line against the real implementation the way <code>AaronJsonParser</code> has been.</p>
+  </div>
+</section>
+
+<section class="section" id="query-parser">
+  <span class="section-tag">03 — query parser</span>
+  <h2>Turning a query string into structure</h2>
+  <p>Two query forms are supported: plain dot-path queries, and <code>GET/FROM/WHERE</code> filter queries. Both are parsed by <code>QueryParser::parse()</code>, which checks for a leading <code>GET</code> and routes to the matching parser. Both parsers share one function for reading a path expression — <code>parsePath()</code> — since a path is needed in every clause of both query forms.</p>
+
+  <div class="func-block">
+    <h4 id="qp-path">parsePath(input, i)</h4>
+    <p>Converts a raw path expression into a list of steps — a plain key, an array index, a wildcard, or a bracket-quoted key. A bracket-quoted key exists specifically to address object keys that dot-notation itself can't express: a literal <code>"."</code> key would collide with the path separator, and an empty-string key has no bare-identifier form at all.</p>
+    <pre><code>path = empty list of steps
+
+WHILE i has not reached the end of input:
+
+    IF current character is whitespace: STOP
+
+    IF current character isn't '[' and can't start a bare key:
+        THROW "expected key"
+
+    IF current character is not '[':
+        read a bare identifier (letters, digits, underscore)
+        add it as a Key step
+
+    IF current character is '[':
+        move past '['
+        IF end of input: THROW "unclosed bracket"
+
+        IF next is '*':          add an AllElements (wildcard) step
+        ELSE IF next is a digit or '-':
+            read the index digits
+            IF negative: THROW "negative indices not supported"
+            add an ArrayIndex step
+        ELSE IF next is '"':
+            read characters until the closing '"'
+            add a Key step using that exact text
+        ELSE: THROW "invalid bracket contents"
+
+    IF whitespace reached: STOP
+
+    IF more input remains:
+        REQUIRE the next character to be '.'
+        move past it
+        IF input ends right after the dot: THROW "trailing dot"
+
+RETURN path</code></pre>
+    <p style="color:var(--muted); font-size:0.88em;">A bracket segment always needs a <code>.</code> before it, with one exception: an array index or wildcard directly attached to a bare key (<code>items[0]</code>) doesn't need one, kept for backward compatibility. A quoted key does need the dot (<code>items[0].["key"]</code>) — see the Query Language Reference for the full rule.</p>
+  </div>
+
+  <div class="func-block">
+    <h4 id="qp-filter">parseFilterQuery(input)</h4>
+    <p>Parses the <code>GET ... FROM ... WHERE ...</code> form. <code>WHERE</code> is optional; when present, it reads one or more conditions, each of which may be negated with <code>NOT</code> and chained to the next with <code>AND</code> or <code>OR</code>.</p>
+    <pre><code>REQUIRE "GET" keyword
+selectField = parsePath(...)
+IF empty: THROW "expected field after GET"
+
+REQUIRE "FROM" keyword
+sourcePath = parsePath(...)
+IF empty: THROW "missing source path"
+
+IF "WHERE" keyword present:
+    REPEAT:
+        condition = new Condition
+
+        IF "NOT" keyword present:
+            condition.negative = true
+            move past NOT
+
+        condition.field = parsePath(...)
+        IF empty: THROW "expected field after WHERE"
+
+        read the comparison operator (=, !=, &lt;, &lt;=, &gt;, &gt;=)
+
+        IF value starts with ' or ":
+            remember which quote character opened it
+            read until the matching closing quote
+            IF no closing quote found: THROW "unterminated value"
+        ELSE:
+            read the value until the next whitespace
+
+        condition.value = the value read
+        add condition to the filter query
+
+        IF "AND" keyword follows:
+            move past it, CONTINUE to next condition
+        ELSE IF "OR" keyword follows:
+            mark THIS condition's word-operator as Or
+            move past it, CONTINUE to next condition
+        ELSE:
+            STOP reading conditions
+
+IF unread characters remain: THROW "unexpected trailing input"
+
+RETURN the filter query</code></pre>
+    <p style="color:var(--muted); font-size:0.88em;">The word-operator is stored on the condition that PRECEDES the connector — <code>conditions[i].wordOperator</code> is the operator joining condition <code>i</code> to condition <code>i+1</code>. The executor uses this to group conditions so that <code>AND</code> binds tighter than <code>OR</code> — see the Query Executor section for how that grouping and short-circuiting actually works.</p>
+  </div>
+
+  <div class="card">
+    <h4>Supported today</h4>
+    <p><code>=</code> <code>!=</code> <code>&lt;</code> <code>&lt;=</code> <code>&gt;</code> <code>&gt;=</code> comparison operators &middot; <code>AND</code> / <code>OR</code> chaining &middot; <code>NOT</code> negation &middot; single- and double-quoted values &middot; bracket-quoted keys for special object keys</p>
+  </div>
+</section>
+
+<section class="section" id="query-executor">
+  <span class="section-tag">04 — query executor</span>
+  <h2>Walking the tree with a parsed query</h2>
+  <p>Two traversal algorithms cover every query: <code>executeStep</code> for dot-path queries (returns a list, since a wildcard can produce many results), and <code>resolveSingle</code> for anywhere only one result is possible or needed, like a WHERE condition's field lookup — it skips the heap allocation a list would need.</p>
+
+  <div class="func-block">
+    <h4>executeStep(node, path, stepIndex, results)</h4>
+    <pre><code>IF node is null:
+    append null to results   -- prints as "DNE"
+    RETURN
+
+IF stepIndex has reached the end of path:
+    append node to results   -- full path consumed, this is the answer
+    RETURN
+
+step = path[stepIndex]
+
+SWITCH step.type:
+    Key:
+        IF node is an object AND it has this key:
+            executeStep(that child, path, stepIndex+1, results)
+        ELSE:
+            append null to results
+
+    AllElements (wildcard):
+        IF node is an array:
+            FOR EACH element in the array:
+                executeStep(element, path, stepIndex+1, results)
+        ELSE:
+            append null to results
+
+    ArrayIndex:
+        IF node is an array AND the index is in range:
+            executeStep(that element, path, stepIndex+1, results)
+        ELSE:
+            append null to results</code></pre>
+  </div>
+
+  <div class="func-block">
+    <h4>resolveSingle(node, path, stepIndex) → node or null</h4>
+    <p>Same shape as <code>executeStep</code>, but returns one pointer instead of appending to a list — and a wildcard step can't be represented as a single result, so it always resolves to null.</p>
+  </div>
+
+  <div class="func-block">
+    <h4>evaluateCondition(row, condition) → true/false <span class="pill pill-live">NOT support</span></h4>
+    <pre><code>fieldNode = resolveSingle(row, condition.field)
+
+IF fieldNode is null:
+    RETURN false   -- missing field never matches, negated or not
+
+result = compareValues(fieldNode, condition.operator, condition.value)
+RETURN condition.negative ? NOT result : result</code></pre>
+    <p style="color:var(--muted); font-size:0.88em;">Design decision: a missing field is its own category, not a comparison outcome — the same principle behind the DNE/null distinction elsewhere in this system. <code>NOT</code> never turns "the field isn't there" into a match.</p>
+  </div>
+
+  <div class="func-block">
+    <h4>evaluateWhere(row, conditions) → true/false <span class="pill pill-live">AND/OR support</span></h4>
+    <p>The word-operator connecting two conditions is stored on the first one — <code>conditions[i].wordOperator</code> joins condition <code>i</code> to condition <code>i+1</code>. <code>AND</code> binds tighter than <code>OR</code> (same convention as most languages), so the condition list is treated as OR-separated groups of AND-connected conditions: <code>a AND b OR c AND d</code> groups as <code>(a AND b) OR (c AND d)</code>.</p>
+    <pre><code>IF conditions is empty: RETURN true   -- no WHERE clause, everything matches
+
+anyGroupMatched = false
+currentGroupFailed = false
+
+FOR i from 0 to conditions.size - 1:
+
+    IF NOT currentGroupFailed:
+        IF NOT evaluateCondition(row, conditions[i]):
+            currentGroupFailed = true   -- short-circuit rest of this AND-group
+
+    isLast = (i is the last condition)
+    groupEndsHere = isLast OR conditions[i].wordOperator is Or
+
+    IF groupEndsHere:
+        IF NOT currentGroupFailed:
+            anyGroupMatched = true
+            BREAK   -- short-circuit: whole WHERE is true, stop checking further groups
+        currentGroupFailed = false   -- reset for the next OR-group
+
+RETURN anyGroupMatched</code></pre>
+    <p style="color:var(--muted); font-size:0.88em;">Short-circuits at both levels: stops evaluating an AND-group the moment one condition fails, and stops checking further OR-groups the moment one group fully matches. A conditions list with no <code>OR</code> at all collapses to exactly one group — identical performance to a plain AND-only chain.</p>
+  </div>
+
+  <div class="func-block">
+    <h4>executeFilterQuery(root, filter) — GET / FROM / WHERE</h4>
+    <pre><code>sources = executeStep(root, filter.sourcePath)
+
+FOR EACH source in sources:
+    IF source is null OR not an array:
+        CONTINUE          -- FROM must resolve to an array
+
+    FOR EACH row in the array:
+        IF NOT evaluateWhere(row, filter.conditions):
+            CONTINUE      -- row excluded
+
+        selected = executeStep(row, filter.selectField)
+        append all of selected to results
+
+RETURN results</code></pre>
+  </div>
+
+  <h3>Exposed API</h3>
   <table>
-    <tr>
-      <th>Query</th>
-      <th>Expected Result</th>
-    </tr>
-    <tr>
-      <td><code>School.students[*].name</code></td>
-      <td>Parses successfully</td>
-    </tr>
-    <tr>
-      <td><code>School..students</code></td>
-      <td>Parse error</td>
-    </tr>
-    <tr>
-      <td><code>School.students[-1].name</code></td>
-      <td>Parse error</td>
-    </tr>
-    <tr>
-      <td><code>GET name FROM School.students WHERE year &gt; 2</code></td>
-      <td>Parses successfully</td>
-    </tr>
+    <tr><th>Function</th><th>Purpose</th></tr>
+    <tr><td><code>QueryParser::parse(input)</code></td><td>Parses a raw query string into a <code>Query</code> struct</td></tr>
+    <tr><td><code>executeQuery(root, query, jsonData)</code></td><td>Full entry point — handles both dot-path and filter queries</td></tr>
+    <tr><td><code>executeFilterQuery(root, filter, jsonData)</code></td><td>The GET/FROM/WHERE algorithm directly</td></tr>
+    <tr><td><code>nodeToString(node, jsonData)</code></td><td>Human-readable result string — decodes escapes, "DNE" for missing, "null" for real null</td></tr>
+    <tr><td><code>decodeJsonString(raw)</code></td><td>Decodes <code>\n</code>, <code>\"</code>, <code>\uXXXX</code> escapes (including surrogate pairs) into real UTF-8</td></tr>
   </table>
 
-  <h3>Edge Cases</h3>
+  <h3>Usage</h3>
+  <pre><code>parser p;
+p.loadFile("data.json");
+p.indexStructure();
+p.constructTree();
+
+QueryParser qp;
+Query q = qp.parse("GET name FROM store.products WHERE category = electronics AND inStock = true OR category = furniture");
+
+auto results = executeQuery(p.getRoot(), q, p.getJsonData());
+for (const auto* node : results) {
+    std::cout &lt;&lt; nodeToString(node, p.getJsonData()) &lt;&lt; std::endl;
+}</code></pre>
+</section>
+
+<section class="section" id="query-language">
+  <span class="section-tag">05 — query language reference</span>
+  <h2>How to actually write a query</h2>
+  <p>There are two query forms: <strong>dot-path</strong> (retrieve a value at a location) and <strong>filter</strong> (<code>GET/FROM/WHERE</code> — scan an array, select matching rows).</p>
+
+  <h3>Dot-path segments</h3>
+  <table>
+    <tr><th>Segment</th><th>Syntax</th><th>Example</th><th>Meaning</th></tr>
+    <tr><td>Bare key</td><td><code>identifier</code></td><td><code>name</code></td><td>Look up an object key by plain name</td></tr>
+    <tr><td>Array index</td><td><code>[N]</code></td><td><code>[0]</code></td><td>The Nth element of an array (0-indexed)</td></tr>
+    <tr><td>Wildcard</td><td><code>[*]</code></td><td><code>[*]</code></td><td>Every element of an array</td></tr>
+    <tr><td>Quoted key</td><td><code>["text"]</code></td><td><code>["product name"]</code></td><td>Look up a key with a space, empty string, or lone dot</td></tr>
+  </table>
+
+  <div class="card">
+    <h4>The one rule most likely to trip you up</h4>
+    <p>Every segment needs a <code>.</code> before it — including bracket segments — <strong>except</strong> an array index or wildcard attached directly to a bare key (<code>items[0]</code>, kept for backward compatibility). A quoted key still needs the dot: <code>items[0].["product name"]</code> is valid, <code>items[0]["product name"]</code> throws <code>Expected '.'</code>.</p>
+  </div>
+
+  <h3>Filter queries</h3>
+  <pre><code>GET &lt;path&gt; FROM &lt;path&gt; [WHERE &lt;condition&gt; [AND|OR &lt;condition&gt; ...]]</code></pre>
   <ul>
-    <li>Missing keys</li>
-    <li>Empty arrays and objects</li>
-    <li>Null values</li>
-    <li>Out-of-range indexes</li>
-    <li>Negative indexes</li>
-    <li>Deep nesting</li>
-    <li>Invalid syntax</li>
+    <li><strong>FROM</strong> must resolve to a JSON array — anything else returns an empty result, not an error.</li>
+    <li><strong>WHERE</strong> is optional — omitted entirely means every row is returned.</li>
+    <li>Conditions may be prefixed with <strong>NOT</strong>, and chained with <strong>AND</strong> or <strong>OR</strong>. AND binds tighter than OR: <code>a AND b OR c</code> means <code>(a AND b) OR c</code>, not left-to-right.</li>
+    <li>Values with spaces need quotes — either <code>'single'</code> or <code>"double"</code> both work.</li>
   </ul>
 
-  <h2>Sprint 1</h2>
-  <p>
-    Determine the parsing and query algorithms and create the first working versions of dot-path and filter queries using a small dataset.
-  <p>
+  <h3>What happens when things go wrong</h3>
+  <table>
+    <tr><th>Situation</th><th>Behavior</th></tr>
+    <tr><td>Malformed syntax (typo, unclosed bracket, trailing dot)</td><td>Throws an exception with a message</td></tr>
+    <tr><td>A key doesn't exist</td><td>Returns <code>"DNE"</code> — not an error</td></tr>
+    <tr><td>Array index out of range</td><td>Returns <code>"DNE"</code></td></tr>
+    <tr><td>Wildcard on a non-array</td><td>Returns <code>"DNE"</code></td></tr>
+    <tr><td>Wildcard on an empty array</td><td>Returns zero results — not an error, not DNE</td></tr>
+    <tr><td>A real JSON <code>null</code> value</td><td>Returns the string <code>"null"</code> — deliberately distinct from DNE</td></tr>
+    <tr><td>FROM resolves to a non-array</td><td>Returns zero results — does not throw</td></tr>
+    <tr><td>Negative array index (<code>[-1]</code>)</td><td>Throws at parse time</td></tr>
+    <tr><td>Unquoted WHERE value with a space</td><td>Throws — quote it instead</td></tr>
+    <tr><td><code>NOT</code> on a field that doesn't exist</td><td>Never matches — missing stays its own category, not flipped into a match</td></tr>
+  </table>
 
-  <ul>
-    <li>Design the Query AST structure.</li>
-    <li>Implement the first version of the Query Parser.</li>
-    <li>Determine how JSON input will be represented.</li>
-    <li>Implement the first version of the JSON Parser.</li>
-    <li>Design the first version of the Indexer.</li>
-    <li>Define and implement the query search algorithm.</li>
-    <li>Implement dot-path lookup.</li>
-    <li>Create a small JSON dataset for testing.</li>
-  </ul>
-  
-  
-  <h2>Sprint 2</h2>
-  <p>
-    Sprint 2 focused on performance, additional query features,
-    testing, and error handling.
-  </p>
+  <h3>Complete examples</h3>
+  <pre><code># Quoted key on a wildcarded array
+store.products[*].["product name"]
 
-  <ul>
-    <li>Added <code>AND</code> conditions to filter queries.</li>
-    <li>Improved performance for larger JSON files.</li>
-    <li>Added query benchmarking.</li>
-    <li>Improved error and edge-case handling.</li>
-    <li>Added more parser and executor tests.</li>
-  </ul>
+# Filter query, no WHERE at all
+GET name FROM store.products
 
-    <h2>Sprint 3</h2>
-  <p>
-    Merge parsing, indexing, and query searching into one working program and obtain a larger dataset for testing.
-  <p>
+# AND / OR together — binds as (a AND b) OR c
+GET name FROM store.products WHERE category = electronics AND inStock = true OR category = furniture
 
-  <ul>
-    <li>Connect the Query Parser to the Query Executor.</li>
-    <li>Connect the JSON Parser to the Indexer.</li>
-    <li>Connect the Indexer to the query search algorithm.</li>
-    <li>Create the main program that coordinates all modules.</li>
-    <li>Resolve any integration errors.</li>
-    <li>find or create a larger JSON dataset.</li>
-    <li>Add integration tests for both query formats.</li>
-    <li>Verify output formatting and error messages.</li>
-  </ul>
-  
+# NOT
+GET name FROM store.products WHERE NOT inStock = true
 
-    <h2>Sprint 4</h2>
-  <p>
-    Add a user interface, fully test the final system, fix remaining issues, and prepare the project for the demo.
-  <p>
+# Double-quoted value
+GET price FROM store.products WHERE name = "Wireless Mouse"</code></pre>
+</section>
 
-  <ul>
-    <li>Add a command-line or user interface if applicable.</li>
-    <li>Test valid and invalid JSON input.</li>
-    <li>Test valid and invalid query syntax.</li>
-    <li>Test query accuracy and edge cases.</li>
-    <li>Run performance tests using the larger dataset.</li>
-    <li>Fix remaining issues and integration problems.</li>
-    <li>Finalize documentation and setup instructions.</li>
-    <li>Prepare for the final demo.</li>
-  </ul>
+<section class="section" id="diagrams-testing">
+  <span class="section-tag">06 — diagrams &amp; testing</span>
+  <h2>Build structure and verified behavior</h2>
 
-  
+  <h3>CMake structure</h3>
+  <div class="card">
+    <p><strong>Top-level CMakeLists.txt</strong> builds <code>json_engine</code> (the library — <code>parser.cpp</code> + <code>QueryParser.cpp</code>) and <code>test_executor</code> (the CLI, links against <code>json_engine</code>), then includes <code>tests/</code> via <code>add_subdirectory</code>.</p>
+    <p><strong>tests/CMakeLists.txt</strong> builds <code>engine_tests</code> (currently just <code>test_query_executor.cpp</code>), linking <code>json_engine</code> and <code>GTest::gtest_main</code> — GoogleTest itself is pulled in via <code>FetchContent</code>, not vendored. <code>gtest_discover_tests</code> sets its working directory to the repo root, so relative paths to <code>test_data_*.json</code> resolve the same way whether run through <code>ctest</code> or the built binary directly.</p>
+  </div>
+
+  <h3>Control flow</h3>
+  <div class="card">
+    <p>The program's control flow has four real decision points: did the file load, did the query parse, which query type is it (dot-path vs. filter), and are there more queries to process. The first two both funnel failures into a caught, printed error rather than a crash — malformed input never takes the program down. The third is the one true fork in execution; the fourth is what turns the program into a loop rather than a one-shot run.</p>
+  </div>
+
+  <h3>Verified test coverage</h3>
+  <table>
+    <tr><th>Category</th><th>Covers</th></tr>
+    <tr><td>Dot-path traversal</td><td>Wildcards, array indexing, deep nesting, missing keys, out-of-range indices, empty arrays</td></tr>
+    <tr><td>Filter queries</td><td>Numeric/boolean/string comparisons, multiple AND conditions, quoted values, FROM resolving to a non-array</td></tr>
+    <tr><td>OR / NOT</td><td>Plain OR, plain NOT, NOT on a missing field, mixed AND/OR grouping</td></tr>
+    <tr><td>Parse errors</td><td>Empty query, trailing/double dots, keyword typo boundaries (<code>WHEREX</code>, <code>ANDX</code>), unquoted values with spaces</td></tr>
+    <tr><td>Escape decoding</td><td>Unicode escapes, surrogate pairs (emoji), WHERE comparisons against escaped source values</td></tr>
+    <tr><td>Special keys</td><td>Empty-string key, lone-dot key, quoted keys inside GET/FROM/WHERE, quoted keys with spaces</td></tr>
+  </table>
+  <p style="color:var(--muted); font-size:0.9em;">Every behavior documented in this site is backed by a passing test in <code>test_query_executor.cpp</code> — not just reasoning about the code.</p>
+</section>
+
+<script>
+const sections = document.querySelectorAll('.section, .hero');
+const bc = document.getElementById('bc-path');
+const names = {
+  'architecture':'System Architecture',
+  'json-parser':'JSON Parser',
+  'query-parser':'Query Parser',
+  'query-executor':'Query Executor',
+  'query-language':'Query Language',
+  'diagrams-testing':'Diagrams and Testing'
+};
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if(e.isIntersecting){
+      const id = e.target.id;
+      const label = names[id] || 'Overview';
+      bc.innerHTML = 'docs<span class="bc-bracket">[</span><span class="bc-key">"' + label + '"</span><span class="bc-bracket">]</span>';
+    }
+  });
+}, {rootMargin:'-40% 0px -55% 0px'});
+sections.forEach(s => { if(s.id) observer.observe(s); });
+</script>
+
 </body>
 </html>
