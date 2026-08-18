@@ -194,7 +194,62 @@ nav.topnav{
   <h2>How the pieces fit together</h2>
   <p>The JSON Parser reads the input file once and produces an in-memory tree. The Query Parser independently turns a query string into a small structure describing what's being asked. The Query Executor takes that parsed query and walks the tree to produce a result. This separation means parsing the JSON and parsing the query are decoupled — each can be optimized independently, and many queries can run against one parsed file without re-parsing it each time.</p>
 
-  <img src="https://github.com/user-attachments/assets/64747a5c-01db-4c27-839a-93f32c1b1764" alt="System architecture overview">
+  <svg width="100%" viewBox="0 0 900 460" style="margin:1.5rem 0; background:var(--white); border:0.5px solid var(--line); border-radius:12px;">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="#7B8794" stroke-width="1.5"/>
+      </marker>
+    </defs>
+    <!-- inputs -->
+    <rect x="90" y="30" width="180" height="48" rx="8" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
+    <text x="180" y="59" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#2C2C2A">JSON file</text>
+
+    <rect x="630" y="30" width="180" height="48" rx="8" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
+    <text x="720" y="59" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#2C2C2A">Query string</text>
+
+    <!-- json parser (primary) -->
+    <rect x="60" y="130" width="220" height="60" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+    <text x="170" y="154" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600" fill="#0C447C">AaronJsonParser</text>
+    <text x="170" y="174" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#185FA5">primary, cross-platform</text>
+
+    <!-- json parser (simd, secondary/dashed) -->
+    <rect x="300" y="130" width="200" height="60" rx="8" fill="none" stroke="#B4B2A9" stroke-width="1" stroke-dasharray="4 3"/>
+    <text x="400" y="154" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#5F5E5A">AaronSimd</text>
+    <text x="400" y="174" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#888780">in progress, x86 only</text>
+
+    <!-- query parser -->
+    <rect x="600" y="130" width="240" height="60" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+    <text x="720" y="154" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600" fill="#712B13">QueryParser</text>
+    <text x="720" y="174" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#993C1D">dot-path or GET/FROM/WHERE</text>
+
+    <!-- parsed data stores -->
+    <rect x="60" y="250" width="220" height="56" rx="4" fill="none" stroke="#0F6E56" stroke-width="1" stroke-dasharray="4 3"/>
+    <text x="170" y="278" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#085041">Parsed JSON tree</text>
+
+    <rect x="600" y="250" width="240" height="56" rx="4" fill="none" stroke="#0F6E56" stroke-width="1" stroke-dasharray="4 3"/>
+    <text x="720" y="270" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#085041">Parsed query</text>
+    <text x="720" y="288" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#0F6E56">DotPathQuery or FilterQuery</text>
+
+    <!-- executor -->
+    <rect x="330" y="350" width="240" height="60" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+    <text x="450" y="374" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600" fill="#3C3489">Query executor</text>
+    <text x="450" y="394" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#534AB7">walks the tree, evaluates WHERE</text>
+
+    <!-- results -->
+    <rect x="360" y="430" width="180" height="26" rx="4" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
+    <text x="450" y="447" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#2C2C2A">results</text>
+
+    <!-- arrows -->
+    <line x1="170" y1="78" x2="170" y2="130" stroke="#7B8794" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <line x1="720" y1="78" x2="720" y2="130" stroke="#7B8794" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <line x1="220" y1="78" x2="380" y2="130" stroke="#B4B2A9" stroke-width="1" stroke-dasharray="3 3" marker-end="url(#arrow)"/>
+    <line x1="170" y1="190" x2="170" y2="250" stroke="#7B8794" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <line x1="720" y1="190" x2="720" y2="250" stroke="#7B8794" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <path d="M170 306 L170 330 L400 330 L400 350" fill="none" stroke="#7B8794" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <path d="M720 306 L720 330 L500 330 L500 350" fill="none" stroke="#7B8794" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <line x1="450" y1="410" x2="450" y2="430" stroke="#7B8794" stroke-width="1.2" marker-end="url(#arrow)"/>
+  </svg>
+  <p style="color:var(--muted); font-size:0.88em;">Dashed boxes are either in-progress (<code>AaronSimd</code>) or intermediate data, not a running process (<code>Parsed JSON tree</code>, <code>Parsed query</code>). The dashed arrow from the JSON file into <code>AaronSimd</code> marks that path as not yet wired into the default build.</p>
 
   <div class="grid-2">
     <div class="card">
