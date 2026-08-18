@@ -1,6 +1,4 @@
-//first real ported test cases, using the actual parser/query executor API from query_executor.h and main.cpp (confirmed 2026-08-13, Each TEST() below mirrors an existing case from main.cpp's runTest() calls,
-
-// these tests load the same test_data_*.json files main.cpp uses, via relative paths from the repo root. See tests/CMakeLists.txt, gtest_discover_tests() is configured with WORKING_DIRECTORY set to the repo root specifically so these relative paths resolve the same way they do when you run: ./build/test_executor manually from repo root.
+//first real ported test cases, using the actual parser/query executor API from query_executor.h and main.cpp these tests load the same test_data_*.json files main.cpp uses, via relative paths from the repo root. See tests/CMakeLists.txt, gtest_discover_tests() is configured with WORKING_DIRECTORY set to the repo root specifically so these relative paths resolve the same way they do when you run: ./build/test_executor manually from repo root.
 
 #include <gtest/gtest.h>
 #include "AaronJsonParser/parser.h"
@@ -344,6 +342,36 @@ TEST(EscapeDecoding, WhereFastPathStillWorksForPlainValues) {
     ASSERT_EQ(results.size(), 1u);
     EXPECT_EQ(results[0], "\"B2\"");
 }
- 
+
+// --- Case 2: special keys ("." and "") --------------------------------
+// Verifies the bracket-quoted-key grammar added to parsePath() lets a query address an object key that dot-notation itself can't express: a literal
+// "." key (which would collide with the path separator) and an empty-string key (which has no bare-identifier form at all).
+// Uses test_data_special_keys.json: {"": "computer", ".": "bob", "normal": "value"}
+
+TEST(SpecialKeyQuery, DotKeyReturnsCorrectValue) {
+    auto results = runQuery("test_data_special_keys.json", "[\".\"]");
+    ASSERT_EQ(results.size(), 1u);
+    EXPECT_EQ(results[0], "\"bob\"");
+}
+
+TEST(SpecialKeyQuery, EmptyStringKeyReturnsCorrectValue) {
+    auto results = runQuery("test_data_special_keys.json", "[\"\"]");
+    ASSERT_EQ(results.size(), 1u);
+    EXPECT_EQ(results[0], "\"computer\"");
+}
+
+// Regression check: a normal bare-key query still works correctly on the same file that also contains the special keys -- guards against the new "a segment may start with '[' " branch breaking the ordinary bare-key path.
+TEST(SpecialKeyQuery, NormalKeyStillWorksAlongsideSpecialKeys) {
+    auto results = runQuery("test_data_special_keys.json", "normal");
+    ASSERT_EQ(results.size(), 1u);
+    EXPECT_EQ(results[0], "\"value\"");
+}
+
+// A quoted key that doesn't exist should resolve to DNE, the same convention every other missing-key case in the engine already follows, not throw or crash.
+TEST(SpecialKeyQuery, NonexistentQuotedKeyReturnsDNE) {
+    auto results = runQuery("test_data_special_keys.json", "[\"doesNotExist\"]");
+    ASSERT_EQ(results.size(), 1u);
+    EXPECT_EQ(results[0], "DNE");
+}
 
 }  // namespace

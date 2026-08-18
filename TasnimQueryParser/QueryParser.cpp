@@ -245,27 +245,32 @@ std::vector<PathPart> QueryParser::parsePath(const std::string& input, std::size
             break;
         }
 
-        if (!isalpha(static_cast<unsigned char>(input[i])) &&
+        // [CHANGED] a segment may now start directly with '[' (no bare key first), needed for paths like ["."] or [""] that address a special key with no ordinary identifier in front of it -- e.g. querying {"." : "bob"}.
+        if (input[i] != '[' &&
+            !isalpha(static_cast<unsigned char>(input[i])) &&
             input[i] != '_') {
             throw runtime_error(
                 "Expected key at position " + to_string(i) //throw error for invalid position placement
             );
         }
 
-        string key;
+        // [CHANGED] only read a bare identifier key when the segment doesn't start with '[' -- a bracket-only segment (quoted key / index /wildcard) supplies its own PathPart below instead.
+        if (input[i] != '[') {
+            string key;
 
-        //reading key name:
-        while (i < input.size() && (isalnum(static_cast<unsigned char>(input[i])) || 
-			input[i] == '_')) {
-            key += input[i];
-            ++i;
+            //reading key name:
+            while (i < input.size() && (isalnum(static_cast<unsigned char>(input[i])) || 
+                input[i] == '_')) {
+                key += input[i];
+                ++i;
+            }
+
+            path.push_back({
+                PathPartType::Key,
+                key,
+                -1
+            });
         }
-
-        path.push_back({
-            PathPartType::Key,
-            key,
-            -1
-        });
 
         //arr handling after key
         if (i < input.size() && input[i] == '[') { //'[' opens correctly
@@ -337,9 +342,39 @@ std::vector<PathPart> QueryParser::parsePath(const std::string& input, std::size
                 });
             }
             /*------------------------------*/
+            // [NEW] quoted-key handling: ["."] or [""] -- lets a query address an object key that dot-notation can't express on its own (a literal "." key would collide with the path separator, and an empty key has no bare-identifier form at all).
+            else if (input[i] == '"') {
+                ++i; // skip opening quote
+
+                string keyContent;
+                while (i < input.size() && input[i] != '"') {
+                    keyContent += input[i];
+                    ++i;
+                }
+
+                if (i >= input.size()) {
+                    throw runtime_error(
+                        "Unterminated quoted key in brackets"
+                    );
+                }
+
+                ++i; // skip closing quote
+
+                if (i >= input.size() || input[i] != ']') {
+                    throw runtime_error(
+                        "Unclosed bracket after quoted key"
+                    );
+                }
+
+                ++i; // skip ']'
+
+                path.push_back({
+                    PathPartType::Key, keyContent, -1
+                });
+            }
             else {
                 throw runtime_error(
-                    "error: missing array index or * in brackets."
+                    "error: missing array index, *, or quoted key in brackets."
                 );
             }
         }
