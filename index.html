@@ -101,32 +101,20 @@ nav.topnav{
 }
 .dropdown a:hover{background:var(--panel); text-decoration:none;}
 
-/* ---- Signature breadcrumb bar ---- */
-.breadcrumb-bar{
-  background:var(--ink); color:#B8C4E0;
-  font-family:var(--mono); font-size:0.82rem;
-  padding:0.5rem 2rem;
-  border-bottom:0.5px solid #2A2E38;
-}
-.breadcrumb-bar .path{max-width:1100px; margin:0 auto;}
-.bc-seg{color:#8FA3E8;}
-.bc-key{color:#E8EAED;}
-.bc-bracket{color:var(--accent-dim);}
-
 /* ---- Hero ---- */
 .hero{max-width:1100px; margin:0 auto; padding:3.5rem 2rem 2.5rem;}
 .hero .eyebrow{
   font-family:var(--mono); font-size:0.82rem; color:var(--muted);
   text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.8rem;
 }
-.hero p.lead{font-size:1.15rem; color:#3A3F47; max-width:640px;}
+.hero p.lead{font-size:1.35rem; line-height:1.75; color:#3A3F47; max-width:none;}
 
 /* ---- Sections ---- */
 .section{max-width:1100px; margin:0 auto; padding:2.5rem 2rem; border-top:0.5px solid var(--line);}
 .section-tag{
-  display:inline-block; font-family:var(--mono); font-size:0.75rem;
-  color:var(--accent); background:#E9EDFC; padding:0.2em 0.6em;
-  border-radius:4px; margin-bottom:0.8rem;
+  display:inline-block; font-family:var(--mono); font-size:1.15rem;
+  font-weight:600; color:var(--accent); background:#E9EDFC; padding:0.35em 0.9em;
+  border-radius:6px; margin-bottom:1.1rem;
 }
 .card{
   background:var(--white); border:0.5px solid var(--line); border-radius:12px;
@@ -148,7 +136,7 @@ nav.topnav{
 
 @media(max-width:700px){
   .grid-2{grid-template-columns:1fr;}
-  nav.topnav, .breadcrumb-bar{padding:0 1rem;}
+  nav.topnav{padding:0 1rem;}
   .hero, .section{padding-left:1.2rem; padding-right:1.2rem;}
 }
 </style>
@@ -179,13 +167,9 @@ nav.topnav{
   </div>
 </nav>
 
-<div class="breadcrumb-bar">
-  <div class="path" id="bc-path">docs<span class="bc-bracket">[</span><span class="bc-key">"Overview"</span><span class="bc-bracket">]</span></div>
-</div>
-
 <header class="hero">
   <div class="eyebrow">Documentation</div>
-  <h1>A JSON analytics engine, documented the way it's queried</h1>
+  <h1>JSON data analytic Engine</h1>
   <p class="lead">Dot-path and filter queries over large JSON files. Built across three modules — a JSON parser, a query parser, and a query executor — each documented here with real pseudocode, verified behavior, and diagrams matching the actual codebase.</p>
 </header>
 
@@ -885,29 +869,6 @@ GET price FROM store.products WHERE name = "Wireless Mouse"</code></pre>
   </table>
   <p style="color:var(--muted); font-size:0.9em;">Every behavior documented in this site is backed by a passing test in <code>test_query_executor.cpp</code> — not just reasoning about the code.</p>
 </section>
-
-<script>
-const sections = document.querySelectorAll('.section, .hero');
-const bc = document.getElementById('bc-path');
-const names = {
-  'architecture':'System Architecture',
-  'json-parser':'JSON Parser',
-  'query-parser':'Query Parser',
-  'query-executor':'Query Executor',
-  'query-language':'Query Language',
-  'diagrams-testing':'Diagrams and Testing'
-};
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(e => {
-    if(e.isIntersecting){
-      const id = e.target.id;
-      const label = names[id] || 'Overview';
-      bc.innerHTML = 'docs<span class="bc-bracket">[</span><span class="bc-key">"' + label + '"</span><span class="bc-bracket">]</span>';
-    }
-  });
-}, {rootMargin:'-40% 0px -55% 0px'});
-sections.forEach(s => { if(s.id) observer.observe(s); });
-</script>
 
 </body>
 </html>
