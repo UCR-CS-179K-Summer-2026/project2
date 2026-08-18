@@ -61,7 +61,6 @@ inline void executeStep(const parser::Node* node, const std::vector<PathPart>& p
     }
 }
 
-// [NEW] Sprint 2 optimization: a non-allocating version of executeStep() for paths that only ever need to resolve to one node, which is exactly what a WHERE field is (no wildcards expected there). executeStep() heap-allocates a std::vector on every call, even when there's only ever going to be a single result — for a WHERE with N conditions scanning M rows, that's up to N*M allocations doing work a single pointer return could do instead. If the path hits a wildcard mid-traversal, that's ambiguous for a single-result resolve, so this returns nullptr (same effective behavior as the old fieldResults.empty() check — a WHERE condition against a wildcarded field simply doesn't match).
 inline const parser::Node* resolveSingle(const parser::Node* node, const std::vector<PathPart>& path, size_t stepIndex) {
     if (!node) return nullptr;
     if (stepIndex == path.size()) return node;
@@ -91,7 +90,6 @@ inline const parser::Node* resolveSingle(const parser::Node* node, const std::ve
         }
 
         case PathPartType::AllElements:
-            // wildcard can produce multiple nodes -- not representable as a single result, so WHERE fields with a wildcard fall back to "no match" here.
             return nullptr;
     }
     return nullptr;
@@ -103,8 +101,6 @@ inline std::vector<const parser::Node*> executeQuery(const parser::Node& root, c
     return results;
 }
  
-// Convenience overload: takes the full Query (as returned by QueryParser::parse()) and pulls out the dot-path automatically.
-/* [CHANGED] previously this just unwrapped query.dotPath unconditionally, with no awareness that Query could also represent a filter query. It now checks query.type first and throws a clear error if it's a filter query. Callers running a filter query must use the new 3-arg executeQuery(root, query, jsonData) overload defined near the bottom of this file instead.*/
 inline std::vector<const parser::Node*> executeQuery(const parser::Node& root, const Query& query) {
     if (query.type == QueryType::Filter) {
         throw std::runtime_error(
@@ -114,9 +110,6 @@ inline std::vector<const parser::Node*> executeQuery(const parser::Node& root, c
     return executeQuery(root, query.dotPath);
 }
  
-// [NEW] Encodes a single Unicode codepoint as UTF-8 bytes, appended to out.
-// Used by decodeJsonString() below to turn \uXXXX escapes (and surrogate
-// pairs) into their real character bytes.
 inline void appendUtf8(std::string& out, unsigned int codepoint) {
     if (codepoint <= 0x7F) {
         out += static_cast<char>(codepoint);
@@ -135,8 +128,6 @@ inline void appendUtf8(std::string& out, unsigned int codepoint) {
     }
 }
 
-// [NEW] Parses exactly 4 hex digits starting at s[i]. Returns -1 if there
-// aren't 4 characters left, or any of them isn't a valid hex digit.
 inline long parseHex4(std::string_view s, size_t i) {
     if (i + 4 > s.size()) return -1;
     long value = 0;
@@ -151,12 +142,9 @@ inline long parseHex4(std::string_view s, size_t i) {
     return value;
 }
 
-// [NEW] Decodes JSON string escapes (\", \\, \/, \b, \f, \n, \r, \t, and \uXXXX -- including UTF-16 surrogate pairs like \uD83D\uDE00 for characters outside the Basic Multilingual Plane, e.g. emoji) into their real UTF-8 bytes.
-// Fast path: if raw contains no backslash at all (the common case for most real-world data), this just copies it as-is with no per-character processing
-// Malformed escapes (invalid hex digits, unmatched surrogates, an unknown escape letter) are handled defensively rather than thrown: unmatched surrogates become the U+FFFD replacement character, and other malformed sequences are emitted as-is. This keeps display robust for slightly invalid input rather than aborting the whole query.
 inline std::string decodeJsonString(std::string_view raw) {
     if (raw.find('\\') == std::string_view::npos) {
-        return std::string(raw); // fast path -- no escapes present
+        return std::string(raw);
     }
 
     std::string out;
@@ -181,14 +169,12 @@ inline std::string decodeJsonString(std::string_view raw) {
             case 'u': {
                 long hi = parseHex4(raw, i + 2);
                 if (hi < 0) {
-                    // malformed \u escape emit the backslash as-is and let the next loop iteration process 'u' and the following characters as plain text.
                     out += c;
                     break;
                 }
-                i += 5; // consumed \uXXXX (backslash + 'u' + 4 hex digits)
+                i += 5;
 
                 if (hi >= 0xD800 && hi <= 0xDBFF) {
-                    // High surrogate: a valid character requires an immediately following low surrogate \uXXXX.
                     if (i + 2 < raw.size() && raw[i + 1] == '\\' && raw[i + 2] == 'u') {
                         long lo = parseHex4(raw, i + 3);
                         if (lo >= 0xDC00 && lo <= 0xDFFF) {
@@ -196,24 +182,19 @@ inline std::string decodeJsonString(std::string_view raw) {
                                 0x10000 + ((static_cast<unsigned int>(hi) - 0xD800) << 10) +
                                 (static_cast<unsigned int>(lo) - 0xDC00);
                             appendUtf8(out, codepoint);
-                            i += 6; // consumed the low surrogate's \uXXXX too
+                            i += 6;
                             break;
                         }
                     }
-                    // Unmatched high surrogate : no valid low surrogate followed.
                     appendUtf8(out, 0xFFFD);
                 } else if (hi >= 0xDC00 && hi <= 0xDFFF) {
-                    // Unmatched low surrogate (appeared without a preceding high).
                     appendUtf8(out, 0xFFFD);
                 } else {
-                    // Ordinary Basic-Multilingual-Plane codepoint, no pairing needed.
                     appendUtf8(out, static_cast<unsigned int>(hi));
                 }
                 break;
             }
             default:
-                // Unrecognized escape letter -- emit both characters as-is
-                // rather than throwing.
                 out += c;
                 out += next;
                 i += 1;
@@ -223,13 +204,10 @@ inline std::string decodeJsonString(std::string_view raw) {
     return out;
 }
 
-// Node leaves only store position/ePosition, so printing or reading a leaf's actual value requires the raw jsonData buffer too. For object/array nodes, this recursively rebuilds a JSON string from the children so that query results that resolve to a whole object/array print real data.
-// [CHANGED] per TA feedback: a null node pointer means the query itself resolved to nothing -- key not found, array index out of range, wildcard on a non-array, type mismatch, etc. That's not the same thing as the data actually containing a JSON `null` literal, so it now prints "DNE" instead of "null" here, keeping "null" reserved for the real thing (see the NodeType::null case below).
 inline std::string nodeToString(const parser::Node* node, const std::vector<char>& jsonData) {
     if (!node) return "DNE";
     switch (node->nodeType) {
         case parser::NodeType::string: {
-            // [CHANGED] previously returned the raw byte slice unmodified, so an escaped source value like "\u0061" printed the six literal escape characters instead of the character it represents ('a'). Now decodes standard JSON escapes (including \uXXXX / surrogate pairs) via decodeJsonString() before wrapping in display quotes.
             std::string_view raw(jsonData.data() + node->position + 1,
                                   static_cast<size_t>(node->ePosition - node->position - 1));
             return "\"" + decodeJsonString(raw) + "\"";
@@ -238,7 +216,6 @@ inline std::string nodeToString(const parser::Node* node, const std::vector<char
         case parser::NodeType::boolean:
             return std::string(jsonData.data() + node->position, jsonData.data() + node->ePosition + 1);
         case parser::NodeType::null:
-            // [NEW] this is the real thing, an actual `null` literal present in the source JSON, distinct from the !node "DNE" case above.
             return "null";
         case parser::NodeType::object: {
             std::string result = "{";
@@ -263,13 +240,10 @@ inline std::string nodeToString(const parser::Node* node, const std::vector<char
             return result;
         }
         default:
-            // [CHANGED] unreachable in practice (every NodeType is handled above) but kept as a defensive fallback, labeled DNE rather than null since an unrecognized/corrupted node isn't a valid parsed null value either.
             return "DNE";
     }
 }
 
-// [NEW] its like nodeToString, but returns the bare value with no surrounding quotes, its needed here because we are comparing values (WHERE age > 30), not just displaying them for the user. Only string/number/boolean leaves have a comparable raw value; object, array, and null nodes return "" (so a WHERE condition against one of those always fails to match, rather than crashing).
-// [CHANGED] Sprint 2 optimization: returns std::string_view instead of std::string now a view into the existing jsonData buffer, no copy. compareValues()'s string/boolean branch compares directly against this view with zero allocations, instead of always building a new std::string first even for a plain equality check.
 inline std::string_view nodeRawValue(const parser::Node* node, const std::vector<char>& jsonData) {
     if (!node) return std::string_view();
     switch (node->nodeType) {
@@ -285,7 +259,6 @@ inline std::string_view nodeRawValue(const parser::Node* node, const std::vector
     }
 }
 
-// [NEW] Applies a single WHERE comparison: numeric compare for number nodes (parses both sides as double), lexical/string compare otherwise (covers string and boolean values, e.g. WHERE active = true). If the numeric parse fails on either side (e.g. WHERE age > "abc"), the comparison is treated as a non-match instead of throwing and aborting the whole query.
 inline bool compareValues(const parser::Node* node, const std::vector<char>& jsonData,
                            FilterOperators op, const std::string& conditionValue) {
     if (!node) return false;
@@ -293,11 +266,10 @@ inline bool compareValues(const parser::Node* node, const std::vector<char>& jso
     if (node->nodeType == parser::NodeType::number) {
         double lhs, rhs;
         try {
-            // [CHANGED] nodeRawValue() now returns a string_view, so it's wrapped in std::string(...) here since std::stod needs a null-terminated string -- numeric literals are short enough that this hits small-string-optimization and doesn't actually heap-allocate on any mainstream standard library.
             lhs = std::stod(std::string(nodeRawValue(node, jsonData)));
             rhs = std::stod(conditionValue);
         } catch (const std::exception&) {
-            return false; // non-numeric value on either side: no match
+            return false;
         }
 
         switch (op) {
@@ -311,9 +283,6 @@ inline bool compareValues(const parser::Node* node, const std::vector<char>& jso
         return false;
     }
 
-        // string / boolean: lexical compare. <, <=, >, >= still work
-    // (alphabetical ordering) but are mainly meant for Equal/NotEqual here.
-    // [CHANGED]: previously compared the raw, possibly-escaped bytes directly against conditionValue (an already-plain-text query literal) - so WHERE name = "a" would silently fail to match a source value stored as "\u0061". Now checks for a backslash first and only pays for decoding + an allocation on the rare row that actually needs it.
     std::string_view lhs = nodeRawValue(node, jsonData);
     std::string lhsDecoded;
     std::string_view lhsCompare = lhs;
@@ -333,47 +302,88 @@ inline bool compareValues(const parser::Node* node, const std::vector<char>& jso
     return false;
 }
 
-/* [NEW] The actual filter algorithm. Three steps, matching GET/FROM/WHERE:
-   1. Resolve FROM (filter.sourcePath) via the existing executeStep(), reused unchanged to find the array to scan.
-   2. For every element (row) in that array, evaluate every WHERE condition against it using executeStep() + compareValues(). A row must pass ALL conditions to be included (AND semantics).
-   3. For rows that pass, resolve GET (filter.selectField) relative to that row via executeStep() again, and collect the result(s). */
-/* [CHANGED] Sprint 2 optimization: step 2 now uses resolveSingle() instead of executeStep() for the per-condition field lookup, since a WHERE field only ever needs one node, not a vector -- this removes one heap allocation per condition per row. Also added a results.reserve() before the row loop so appending matched rows doesn't repeatedly reallocate as the source array is scanned. */
+// [NEW] Evaluates a single WHERE condition against one row, honoring the
+// `negative` flag (NOT). Design decision: a missing field NEVER matches,
+// negated or not -- "missing" is its own category (same principle as the
+// DNE-vs-null distinction elsewhere in this file), not something NOT can
+// flip into a match. This keeps "missing" meaning the same thing whether
+// or not the condition is wrapped in NOT.
+inline bool evaluateCondition(const parser::Node* row, const Condition& cond,
+                               const std::vector<char>& jsonData) {
+    const parser::Node* fieldNode = resolveSingle(row, cond.field, 0);
+    if (!fieldNode) {
+        return false; // missing field: never matches, regardless of NOT
+    }
+    bool result = compareValues(fieldNode, jsonData, cond.comparisonOp, cond.value);
+    return cond.negative ? !result : result;
+}
+
+// [NEW] Evaluates the full WHERE clause for one row, supporting AND/OR.
+// wordOperator is stored on the PRECEDING condition (set by the parser when
+// it sees AND/OR after a condition), so conditions[i].wordOperator is the
+// operator connecting conditions[i] and conditions[i+1].
+//
+// Semantics: AND binds tighter than OR (same convention as most languages,
+// and the only sensible default given no parentheses support), so the
+// condition list is treated as OR-separated groups of AND-connected
+// conditions -- e.g. "a AND b OR c AND d" groups as (a AND b) OR (c AND d).
+//
+// Short-circuits at both levels: stops evaluating a group the moment one of
+// its conditions fails (no point checking the rest of an AND-group that's
+// already false), and stops evaluating further groups the moment one group
+// fully matches (no point checking further OR-groups once the row is
+// already included). A conditions list with no OR at all collapses to
+// exactly one group, which reproduces the original AND-only short-circuit
+// behavior unchanged.
+inline bool evaluateWhere(const parser::Node* row, const std::vector<Condition>& conditions,
+                          const std::vector<char>& jsonData) {
+    if (conditions.empty()) return true; // no WHERE clause: every row matches
+
+    bool anyGroupMatched = false;
+    bool currentGroupFailed = false;
+
+    for (size_t i = 0; i < conditions.size(); ++i) {
+        if (!currentGroupFailed) {
+            if (!evaluateCondition(row, conditions[i], jsonData)) {
+                currentGroupFailed = true; // short-circuit: skip rest of this AND-group
+            }
+        }
+
+        bool isLast = (i + 1 == conditions.size());
+        bool groupEndsHere = isLast || conditions[i].wordOperator == WordOperators::Or;
+
+        if (groupEndsHere) {
+            if (!currentGroupFailed) {
+                anyGroupMatched = true;
+                break; // short-circuit: whole WHERE is true, stop checking further groups
+            }
+            currentGroupFailed = false; // reset for the next OR-group
+        }
+    }
+
+    return anyGroupMatched;
+}
 
 inline std::vector<const parser::Node*> executeFilterQuery(const parser::Node& root,
     const FilterQuery& filter, const std::vector<char>& jsonData) {
     std::vector<const parser::Node*> results;
 
-    // Step 1 (FROM): resolve the source array node(s).
     std::vector<const parser::Node*> sources;
     executeStep(&root, filter.sourcePath, 0, sources);
 
     for (const parser::Node* source : sources) {
         if (!source || source->nodeType != parser::NodeType::array) {
-            continue; // FROM must resolve to an array; skip null/non-array sources
+            continue;
         }
 
-        // [NEW] reserve up front so appending matched rows doesn't repeatedly reallocate results as the source array is scanned.
         results.reserve(results.size() + source->arrayChildNode.size());
 
-        // Step 2 (WHERE): scan every row in the source array.
         for (const auto& rowNode : source->arrayChildNode) {
-            bool include = true;
+            // [CHANGED] was an inline AND-only loop; now delegates to
+            // evaluateWhere(), which supports AND/OR/NOT with short-circuit
+            // preserved at both the AND-group and OR-group level.
+            if (!evaluateWhere(&rowNode, filter.conditions, jsonData)) continue;
 
-            for (const Condition& cond : filter.conditions) {
-                // [CHANGED] resolveSingle() instead of executeStep() -- no vector allocation for what's always a single-node lookup.
-                const parser::Node* fieldNode = resolveSingle(&rowNode, cond.field, 0);
-
-                // WHERE expects a single scalar field per row (no wildcards in the condition field) — if it resolved to nothing, or the comparison fails, the row is excluded.
-                if (!fieldNode ||
-                    !compareValues(fieldNode, jsonData, cond.comparisonOp, cond.value)) {
-                    include = false;
-                    break;
-                }
-            }
-
-            if (!include) continue;
-
-            // Step 3 (GET): resolve the select field relative to this row and collect it.
             std::vector<const parser::Node*> selected;
             executeStep(&rowNode, filter.selectField, 0, selected);
             for (const parser::Node* sel : selected) {
@@ -385,7 +395,6 @@ inline std::vector<const parser::Node*> executeFilterQuery(const parser::Node& r
     return results;
 }
 
-// [NEW] Entry point for filter queries. Unlike the dot-path executeQuery overloads above, this one takes jsonData, because WHERE comparisons need to read actual values out of the raw buffer, not just locate matching nodes. This is a new overload (3 arguments instead of 2), so it does not conflict with or replace the existing executeQuery(root, query) above callers (functions) pick whichever overload matches the query type they're running.
 inline std::vector<const parser::Node*> executeQuery(const parser::Node& root, const Query& query,
                                                         const std::vector<char>& jsonData) {
     if (query.type == QueryType::Filter) {
