@@ -135,6 +135,13 @@ FilterQuery QueryParser::parseFilterQuery(const std::string& input) const { //GE
 
             //left-hand parsing
             skipWhitespace(input, i);
+
+            if (matchKeyword(input, i, "NOT")) { //check whether to make condition a negative one
+                whereCond.negative = true;
+                i += 3; //skip not
+
+                skipWhitespace(input, i);
+            }
             
             whereCond.field = parsePath(input, i);
             
@@ -170,10 +177,11 @@ FilterQuery QueryParser::parseFilterQuery(const std::string& input) const { //GE
             
             // FIX 4: support quoted string values so they can contain spaces, 
             //e.g. WHERE name = 'John Doe'. Unquoted values (numbers, bare words) keeps the old behavior of stopping at the next whitespace.
-            if (input[i] == '\'') {
+            if (input[i] == '\'' || input[i] == '"') {
+                char quote = input[i];
                 ++i; // skip opening quote
     
-                while (i < input.size() && input[i] != '\'') {
+                while (i < input.size() && input[i] != quote) {
                     readVal += input[i];
                     ++i;
                 }
@@ -204,8 +212,18 @@ FilterQuery QueryParser::parseFilterQuery(const std::string& input) const { //GE
                 continue;
             }
 
+            if (matchKeyword(input, i, "OR")) {
+                filterQuery.conditions.back().wordOperator =
+                    WordOperators::Or;
+
+                i += 2;
+                continue;
+            }
+
             //no and, break loop;
             break;
+
+
         }
     }
     skipWhitespace(input, i);

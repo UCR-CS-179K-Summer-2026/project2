@@ -40,11 +40,19 @@ enum class FilterOperators {
     GreaterThanOrEqual
 };
 
+enum class WordOperators {
+    And,
+    Or
+};
+
 struct Condition {
     std::vector<PathPart> field;
     FilterOperators comparisonOp;
     
     std::string value;
+    WordOperators wordOperator = WordOperators::And;
+    
+    bool negative = false; //to check if NOT is asked for, we negate the condition
 };
 
 struct FilterQuery {
