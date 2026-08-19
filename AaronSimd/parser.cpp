@@ -81,6 +81,10 @@ void parser::indexStructure() {
     __m256i quote = _mm256_set1_epi8('"');
     __m256i BSlash = _mm256_set1_epi8('\\');
     __m256i space = _mm256_set1_epi8(' ');
+    __m256i NL = _mm256_set1_epi8('\n');
+    __m256i Tab = _mm256_set1_epi8('\t');
+    __m256i CR = _mm256_set1_epi8('\r');
+
 
     __m128i hTables = _mm_setr_epi8(hTable[0], hTable[1], hTable[2], hTable[3], hTable[4], hTable[5], hTable[6], hTable[7], hTable[8], hTable[9], hTable[10], hTable[11], hTable[12], hTable[13], hTable[14], hTable[15]);
     __m256i dupHTable = _mm256_broadcastsi128_si256(hTables);
@@ -109,8 +113,19 @@ void parser::indexStructure() {
 
         __m256i compareQuote = _mm256_cmpeq_epi8(data, quote);
         __m256i compareBackSlash = _mm256_cmpeq_epi8(data, BSlash);
+        __m256i compareSpace = _mm256_cmpeq_epi8(data, space);
+        __m256i compareNL = _mm256_cmpeq_epi8(data, NL);
+        __m256i compareTab = _mm256_cmpeq_epi8(data, Tab);
+        __m256i compareCR = _mm256_cmpeq_epi8(data, CR);
+
         uint32_t resultQ = static_cast<uint32_t>(_mm256_movemask_epi8(compareQuote));
         uint32_t resultBac = static_cast<uint32_t>(_mm256_movemask_epi8(compareBackSlash));
+        uint32_t resultSpace = static_cast<uint32_t>(_mm256_movemask_epi8(compareSpace));
+        uint32_t resultNL = static_cast<uint32_t>(_mm256_movemask_epi8(compareNL));
+        uint32_t resultTab = static_cast<uint32_t>(_mm256_movemask_epi8(compareTab));
+        uint32_t resultCR = static_cast<uint32_t>(_mm256_movemask_epi8(compareCR));
+
+        uint32_t resultWhitespace = resultSpace | resultNL | resultTab | resultCR;
 
         uint32_t oddNumberBSlash = findOddBackSlash(resultBac);
         uint32_t Q = resultQ & ~oddNumberBSlash;
@@ -118,27 +133,73 @@ void parser::indexStructure() {
         uint32_t stringM = findString(Q);
         SV &= ~stringM;
 
-        uint32_t collapseResult = SV;
+        //Find the starting position of numbers/boolean values/null
+        uint32_t S = SV;
+        S = S | Q;
+        uint32_t P = S | resultWhitespace;
+        P = P << 1;
+        P &= ~resultWhitespace & ~stringM;
+        S = S | P;
+        S = S & ~(Q & ~stringM);
+
+        uint32_t collapseResult = S | Q;
+        
+
         while (collapseResult != 0) {
             uint32_t j = _tzcnt_u32(collapseResult);
             int pos = i + j;
             char c = jsonData[pos];
 
-            switch (c) {
-                case '{': typeIndex.push_back({Type::objectStart, pos, pos}); 
-                    break;
-                case '}': typeIndex.push_back({Type::objectEnd, pos, pos}); 
-                    break;
-                case '[': typeIndex.push_back({Type::arrayStart, pos, pos}); 
-                    break;
-                case ']': typeIndex.push_back({Type::arrayEnd, pos, pos}); 
-                    break;
-                case ':': typeIndex.push_back({Type::colon, pos, pos}); 
-                    break;
-                case ',': typeIndex.push_back({Type::comma, pos, pos}); 
-                    break;
-                default:
-                    break;
+            if(SV & (1 << j)) {
+                switch (c) {
+                    case '{': typeIndex.push_back({Type::objectStart, pos, pos}); 
+                        break;
+                    case '}': typeIndex.push_back({Type::objectEnd, pos, pos}); 
+                        break;
+                    case '[': typeIndex.push_back({Type::arrayStart, pos, pos}); 
+                        break;
+                    case ']': typeIndex.push_back({Type::arrayEnd, pos, pos}); 
+                        break;
+                    case ':': typeIndex.push_back({Type::colon, pos, pos}); 
+                        break;
+                    case ',': typeIndex.push_back({Type::comma, pos, pos}); 
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else if(Q & (1 << j)) {
+                if(!inString) {
+                    stringStart = pos;
+                    inString = true;
+                }
+                else {
+                    typeIndex.push_back({Type::string, stringStart, pos});
+                    inString = false;
+                }
+            }
+            else {
+                if(((c >= '0') && (c <= '9')) || c == '-') {
+                    int endPos = pos;
+                    while(endPos + 1 < jsonData.size()) {
+                        char nVal = jsonData[endPos + 1];
+                        if(nVal == '{' || nVal == '}' || nVal == '[' || nVal == ']' || nVal == ',' || nVal == ':' || nVal == ' ' || nVal == '\t' || nVal == '\r' || nVal == '\n') {
+                            break;
+                        }
+                        endPos++;
+                    }
+                    typeIndex.push_back({Type::number, (size_t)pos, endPos});
+                }
+                switch(c) {
+                    case 't': typeIndex.push_back({Type::boolean, pos, pos + 3});
+                        break;
+                    case 'f': typeIndex.push_back({Type::boolean, pos, pos + 4});
+                        break;
+                    case  'n': typeIndex.push_back({Type::null, pos, pos + 3});
+                        break;
+                    default:
+                        break;
+                }
             }
             collapseResult &= collapseResult - 1;
         }
