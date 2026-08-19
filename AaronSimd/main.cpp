@@ -4,6 +4,7 @@
 #include <vector>
 #include <chrono>
 
+
 int main() {
     parser p;
     if(!p.loadFile("data_1gb.json")) {
@@ -14,8 +15,6 @@ int main() {
     auto end = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration<double>(end - start);
     std::cout << "indexStructure function took " << duration.count() << " seconds" << std::endl;
-
-
 
     //p.constructTree();
     //std::cout << "--- Parsed tree ---" << std::endl;

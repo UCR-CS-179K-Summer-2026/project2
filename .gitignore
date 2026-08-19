@@ -2,5 +2,11 @@ test_executor
 AaronJsonParser/Employee.json
 AaronJsonParser/test_tree
 json_value.h
+AaronSimd/a.exe
+AaronJsonParser/a.exe
 project
 TasnimQueryParser/parser_tests
+build/
+cmake_test_discovery_99bf1754ba.json
+build-coverage/
+build-coverage/

@@ -1,0 +1,11 @@
+{
+  "basicUnicode": "test\u0061",
+  "quoteEscape": "he said \"hi\"",
+  "backslashEscape": "C:\\Users\\bob",
+  "whitespaceEscape": "line1\nline2\ttabbed",
+  "emojiSurrogatePair": "smile\uD83D\uDE00face",
+  "items": [
+    { "sku": "A1", "name": "test\u0061" },
+    { "sku": "B2", "name": "plain" }
+  ]
+}
