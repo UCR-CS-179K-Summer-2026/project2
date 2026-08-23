@@ -1,0 +1,121 @@
+file,size_mb,build,phase,time_ms
+benchmark_data/bench_20mb.json,19.1065,optimized (current),loadFile,6.71735
+benchmark_data/bench_20mb.json,19.1065,optimized (current),indexStructure,28.0381
+benchmark_data/bench_20mb.json,19.1065,optimized (current),constructTree,22.4527
+benchmark_data/bench_20mb.json,19.1065,optimized (current),total_parse,57.2082
+benchmark_data/bench_20mb.json,19.1065,optimized (current),dot-path point lookup,5.8965e-05
+benchmark_data/bench_20mb.json,19.1065,optimized (current),wildcard fan-out,5.3356
+benchmark_data/bench_20mb.json,19.1065,optimized (current),filter: numeric WHERE,8.67266
+benchmark_data/bench_20mb.json,19.1065,optimized (current),filter: AND,5.61595
+benchmark_data/bench_20mb.json,19.1065,optimized (current),filter: OR,7.6603
+benchmark_data/bench_20mb.json,19.1065,optimized (current),filter: long-string WHERE,4.5509
+benchmark_data/bench_20mb.json,19.1065,naive (pre-Sprint-2),loadFile,3.39633
+benchmark_data/bench_20mb.json,19.1065,naive (pre-Sprint-2),indexStructure,24.7134
+benchmark_data/bench_20mb.json,19.1065,naive (pre-Sprint-2),constructTree,22.1847
+benchmark_data/bench_20mb.json,19.1065,naive (pre-Sprint-2),total_parse,50.2944
+benchmark_data/bench_20mb.json,19.1065,naive (pre-Sprint-2),dot-path point lookup,5.835e-05
+benchmark_data/bench_20mb.json,19.1065,naive (pre-Sprint-2),wildcard fan-out,5.25792
+benchmark_data/bench_20mb.json,19.1065,naive (pre-Sprint-2),filter: numeric WHERE,9.00006
+benchmark_data/bench_20mb.json,19.1065,naive (pre-Sprint-2),filter: AND,8.84658
+benchmark_data/bench_20mb.json,19.1065,naive (pre-Sprint-2),filter: OR,11.952
+benchmark_data/bench_20mb.json,19.1065,naive (pre-Sprint-2),filter: long-string WHERE,7.71731
+benchmark_data/bench_20mb.json,19.1065,optimized (current),loadFile,4.81567
+benchmark_data/bench_20mb.json,19.1065,optimized (current),indexStructure,27.7818
+benchmark_data/bench_20mb.json,19.1065,optimized (current),constructTree,23.0095
+benchmark_data/bench_20mb.json,19.1065,optimized (current),total_parse,55.607
+benchmark_data/bench_20mb.json,19.1065,optimized (current),dot-path point lookup,0.000124995
+benchmark_data/bench_20mb.json,19.1065,optimized (current),wildcard fan-out,4.63133
+benchmark_data/bench_20mb.json,19.1065,optimized (current),filter: numeric WHERE,8.46161
+benchmark_data/bench_20mb.json,19.1065,optimized (current),filter: AND,5.11242
+benchmark_data/bench_20mb.json,19.1065,optimized (current),filter: OR,8.40395
+benchmark_data/bench_20mb.json,19.1065,optimized (current),filter: long-string WHERE,3.9399
+benchmark_data/bench_50mb.json,48.0223,optimized (current),loadFile,9.41256
+benchmark_data/bench_50mb.json,48.0223,optimized (current),indexStructure,56.6738
+benchmark_data/bench_50mb.json,48.0223,optimized (current),constructTree,53.6647
+benchmark_data/bench_50mb.json,48.0223,optimized (current),total_parse,119.751
+benchmark_data/bench_50mb.json,48.0223,optimized (current),dot-path point lookup,6.9585e-05
+benchmark_data/bench_50mb.json,48.0223,optimized (current),wildcard fan-out,13.0162
+benchmark_data/bench_50mb.json,48.0223,optimized (current),filter: numeric WHERE,19.5678
+benchmark_data/bench_50mb.json,48.0223,optimized (current),filter: AND,12.6732
+benchmark_data/bench_50mb.json,48.0223,optimized (current),filter: OR,19.143
+benchmark_data/bench_50mb.json,48.0223,optimized (current),filter: long-string WHERE,10.5366
+benchmark_data/bench_50mb.json,48.0223,naive (pre-Sprint-2),loadFile,8.09333
+benchmark_data/bench_50mb.json,48.0223,naive (pre-Sprint-2),indexStructure,59.6389
+benchmark_data/bench_50mb.json,48.0223,naive (pre-Sprint-2),constructTree,53.9174
+benchmark_data/bench_50mb.json,48.0223,naive (pre-Sprint-2),total_parse,121.65
+benchmark_data/bench_50mb.json,48.0223,naive (pre-Sprint-2),dot-path point lookup,5.4385e-05
+benchmark_data/bench_50mb.json,48.0223,naive (pre-Sprint-2),wildcard fan-out,13.4621
+benchmark_data/bench_50mb.json,48.0223,naive (pre-Sprint-2),filter: numeric WHERE,22.8374
+benchmark_data/bench_50mb.json,48.0223,naive (pre-Sprint-2),filter: AND,22.461
+benchmark_data/bench_50mb.json,48.0223,naive (pre-Sprint-2),filter: OR,30.7809
+benchmark_data/bench_50mb.json,48.0223,naive (pre-Sprint-2),filter: long-string WHERE,19.82
+benchmark_data/bench_50mb.json,48.0223,optimized (current),loadFile,8.46879
+benchmark_data/bench_50mb.json,48.0223,optimized (current),indexStructure,59.0405
+benchmark_data/bench_50mb.json,48.0223,optimized (current),constructTree,54.2776
+benchmark_data/bench_50mb.json,48.0223,optimized (current),total_parse,121.787
+benchmark_data/bench_50mb.json,48.0223,optimized (current),dot-path point lookup,5.711e-05
+benchmark_data/bench_50mb.json,48.0223,optimized (current),wildcard fan-out,13.0184
+benchmark_data/bench_50mb.json,48.0223,optimized (current),filter: numeric WHERE,21.6528
+benchmark_data/bench_50mb.json,48.0223,optimized (current),filter: AND,12.8727
+benchmark_data/bench_50mb.json,48.0223,optimized (current),filter: OR,21.6515
+benchmark_data/bench_50mb.json,48.0223,optimized (current),filter: long-string WHERE,10.5403
+benchmark_data/bench_100mb.json,96.2246,optimized (current),loadFile,18.3205
+benchmark_data/bench_100mb.json,96.2246,optimized (current),indexStructure,116.446
+benchmark_data/bench_100mb.json,96.2246,optimized (current),constructTree,112.114
+benchmark_data/bench_100mb.json,96.2246,optimized (current),total_parse,246.881
+benchmark_data/bench_100mb.json,96.2246,optimized (current),dot-path point lookup,5.685e-05
+benchmark_data/bench_100mb.json,96.2246,optimized (current),wildcard fan-out,25.7769
+benchmark_data/bench_100mb.json,96.2246,optimized (current),filter: numeric WHERE,39.8977
+benchmark_data/bench_100mb.json,96.2246,optimized (current),filter: AND,25.6942
+benchmark_data/bench_100mb.json,96.2246,optimized (current),filter: OR,38.7703
+benchmark_data/bench_100mb.json,96.2246,optimized (current),filter: long-string WHERE,21.4702
+benchmark_data/bench_100mb.json,96.2246,naive (pre-Sprint-2),loadFile,17.194
+benchmark_data/bench_100mb.json,96.2246,naive (pre-Sprint-2),indexStructure,120.757
+benchmark_data/bench_100mb.json,96.2246,naive (pre-Sprint-2),constructTree,112.467
+benchmark_data/bench_100mb.json,96.2246,naive (pre-Sprint-2),total_parse,250.418
+benchmark_data/bench_100mb.json,96.2246,naive (pre-Sprint-2),dot-path point lookup,6.8555e-05
+benchmark_data/bench_100mb.json,96.2246,naive (pre-Sprint-2),wildcard fan-out,25.7484
+benchmark_data/bench_100mb.json,96.2246,naive (pre-Sprint-2),filter: numeric WHERE,46.7092
+benchmark_data/bench_100mb.json,96.2246,naive (pre-Sprint-2),filter: AND,44.6806
+benchmark_data/bench_100mb.json,96.2246,naive (pre-Sprint-2),filter: OR,54.0801
+benchmark_data/bench_100mb.json,96.2246,naive (pre-Sprint-2),filter: long-string WHERE,53.0721
+benchmark_data/bench_100mb.json,96.2246,optimized (current),loadFile,18.0252
+benchmark_data/bench_100mb.json,96.2246,optimized (current),indexStructure,121.767
+benchmark_data/bench_100mb.json,96.2246,optimized (current),constructTree,112.496
+benchmark_data/bench_100mb.json,96.2246,optimized (current),total_parse,252.289
+benchmark_data/bench_100mb.json,96.2246,optimized (current),dot-path point lookup,5.187e-05
+benchmark_data/bench_100mb.json,96.2246,optimized (current),wildcard fan-out,25.8137
+benchmark_data/bench_100mb.json,96.2246,optimized (current),filter: numeric WHERE,43.9386
+benchmark_data/bench_100mb.json,96.2246,optimized (current),filter: AND,26.0222
+benchmark_data/bench_100mb.json,96.2246,optimized (current),filter: OR,43.7763
+benchmark_data/bench_100mb.json,96.2246,optimized (current),filter: long-string WHERE,21.0161
+benchmark_data/bench_200mb.json,192.205,optimized (current),loadFile,33.1727
+benchmark_data/bench_200mb.json,192.205,optimized (current),indexStructure,246.989
+benchmark_data/bench_200mb.json,192.205,optimized (current),constructTree,236.495
+benchmark_data/bench_200mb.json,192.205,optimized (current),total_parse,516.657
+benchmark_data/bench_200mb.json,192.205,optimized (current),dot-path point lookup,6.103e-05
+benchmark_data/bench_200mb.json,192.205,optimized (current),wildcard fan-out,52.4796
+benchmark_data/bench_200mb.json,192.205,optimized (current),filter: numeric WHERE,80.8438
+benchmark_data/bench_200mb.json,192.205,optimized (current),filter: AND,51.8851
+benchmark_data/bench_200mb.json,192.205,optimized (current),filter: OR,78.2661
+benchmark_data/bench_200mb.json,192.205,optimized (current),filter: long-string WHERE,42.2523
+benchmark_data/bench_200mb.json,192.205,naive (pre-Sprint-2),loadFile,37.7822
+benchmark_data/bench_200mb.json,192.205,naive (pre-Sprint-2),indexStructure,255.857
+benchmark_data/bench_200mb.json,192.205,naive (pre-Sprint-2),constructTree,229.238
+benchmark_data/bench_200mb.json,192.205,naive (pre-Sprint-2),total_parse,522.877
+benchmark_data/bench_200mb.json,192.205,naive (pre-Sprint-2),dot-path point lookup,5.9145e-05
+benchmark_data/bench_200mb.json,192.205,naive (pre-Sprint-2),wildcard fan-out,53.263
+benchmark_data/bench_200mb.json,192.205,naive (pre-Sprint-2),filter: numeric WHERE,92.6196
+benchmark_data/bench_200mb.json,192.205,naive (pre-Sprint-2),filter: AND,94.3086
+benchmark_data/bench_200mb.json,192.205,naive (pre-Sprint-2),filter: OR,124.94
+benchmark_data/bench_200mb.json,192.205,naive (pre-Sprint-2),filter: long-string WHERE,80.0169
+benchmark_data/bench_200mb.json,192.205,optimized (current),loadFile,33.4806
+benchmark_data/bench_200mb.json,192.205,optimized (current),indexStructure,246.233
+benchmark_data/bench_200mb.json,192.205,optimized (current),constructTree,227.053
+benchmark_data/bench_200mb.json,192.205,optimized (current),total_parse,506.766
+benchmark_data/bench_200mb.json,192.205,optimized (current),dot-path point lookup,5.647e-05
+benchmark_data/bench_200mb.json,192.205,optimized (current),wildcard fan-out,51.2283
+benchmark_data/bench_200mb.json,192.205,optimized (current),filter: numeric WHERE,87.7304
+benchmark_data/bench_200mb.json,192.205,optimized (current),filter: AND,52.3141
+benchmark_data/bench_200mb.json,192.205,optimized (current),filter: OR,87.9676
+benchmark_data/bench_200mb.json,192.205,optimized (current),filter: long-string WHERE,42.1192

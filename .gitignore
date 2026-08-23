@@ -12,4 +12,6 @@ build-coverage/
 build-coverage/
 verify_check
 Tree_verifier.cpp
+benchmark_data/
 
+bench_*
