@@ -160,6 +160,7 @@ nav.topnav{
           <a href="#qp-filter">parseFilterQuery</a>
         </div>
       </li>
+      <li><a href="#tree-verification">Tree Verification</a></li>
       <li><a href="#query-executor">Query Executor</a></li>
       <li><a href="#query-language">Query Language</a></li>
       <li><a href="#diagrams-testing">Diagrams &amp; Testing</a></li>
@@ -382,8 +383,130 @@ FOR each 32-byte block of the buffer:
   </div>
 </section>
 
+<section class="section" id="tree-verification">
+  <span class="section-tag">03 — tree verification</span>
+  <h2>Proving the tree is correct, not just printing it</h2>
+  <p><code>parser::printTree()</code> reconstructs every value from <code>position</code>/<code>ePosition</code> and prints the tree for a human to compare against the source JSON by eye — useful for a one-off spot check, but it doesn't scale and produces no pass/fail verdict. <code>tree_verifier.h</code> does the same comparison programmatically: it walks the built tree and asserts, node by node, that what the tree claims is actually true of the raw buffer, then reports exactly which node failed and why if anything doesn't hold.</p>
+
+  <div class="card">
+    <h4>A real gap this surfaced</h4>
+    <p>Leaf nodes (<code>string</code>/<code>number</code>/<code>boolean</code>/<code>null</code>) get <code>position</code>/<code>ePosition</code> set correctly in <code>constructTree()</code> — but <strong>object and array nodes never do</strong>. Only the <code>nodeType</code> gets set on containers; their byte span is never recorded. This means a container's own range can't be verified the same way a leaf's can — there's nothing stored to check it against. The structural count check below exists specifically to give containers <em>some</em> automated coverage despite that gap.</p>
+  </div>
+
+  <h3>The pipeline, end to end</h3>
+  <svg width="100%" viewBox="0 0 900 470" style="margin:1.2rem 0; background:var(--white); border:0.5px solid var(--line); border-radius:12px;">
+    <defs>
+      <marker id="tva" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="#7B8794" stroke-width="1.5"/>
+      </marker>
+    </defs>
+
+    <rect x="340" y="20" width="220" height="48" rx="8" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
+    <text x="450" y="49" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#2C2C2A">Raw JSON buffer</text>
+
+    <rect x="310" y="110" width="280" height="56" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+    <text x="450" y="132" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600" fill="#0C447C">indexStructure()</text>
+    <text x="450" y="150" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#185FA5">produces typeIndex token list</text>
+
+    <rect x="310" y="206" width="280" height="56" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+    <text x="450" y="228" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600" fill="#0C447C">constructTree()</text>
+    <text x="450" y="246" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#185FA5">builds Node tree via node stack</text>
+
+    <rect x="80" y="318" width="260" height="56" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+    <text x="210" y="340" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600" fill="#085041">tree_verifier.h</text>
+    <text x="210" y="358" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#0F6E56">automated round-trip check</text>
+
+    <rect x="560" y="318" width="260" height="56" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+    <text x="690" y="340" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600" fill="#3C3489">Query executor</text>
+    <text x="690" y="358" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#534AB7">walks tree via executeStep</text>
+
+    <rect x="120" y="410" width="180" height="34" rx="17" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+    <text x="210" y="431" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#085041">6 passing tests</text>
+
+    <rect x="600" y="410" width="180" height="34" rx="17" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
+    <text x="690" y="431" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#2C2C2A">query results</text>
+
+    <line x1="450" y1="68" x2="450" y2="110" stroke="#7B8794" stroke-width="1.2" marker-end="url(#tva)"/>
+    <line x1="450" y1="166" x2="450" y2="206" stroke="#7B8794" stroke-width="1.2" marker-end="url(#tva)"/>
+    <line x1="400" y1="262" x2="230" y2="318" stroke="#7B8794" stroke-width="1.2" marker-end="url(#tva)"/>
+    <line x1="500" y1="262" x2="670" y2="318" stroke="#7B8794" stroke-width="1.2" marker-end="url(#tva)"/>
+    <line x1="210" y1="374" x2="210" y2="410" stroke="#7B8794" stroke-width="1.2" marker-end="url(#tva)"/>
+    <line x1="690" y1="374" x2="690" y2="410" stroke="#7B8794" stroke-width="1.2" marker-end="url(#tva)"/>
+  </svg>
+  <p style="color:var(--muted); font-size:0.88em;">The key point of this diagram: the verifier and the query executor both operate on the <em>same</em> tree, independently. The verifier isn't checking a mock or a separate code path — it's checking exactly what every real query runs against.</p>
+
+  <h3>Two checks, run together</h3>
+
+  <div class="func-block">
+    <h4>verifyLeafValues(node, jsonData, path) <span class="pill pill-live">leaf byte-range check</span></h4>
+    <p>Recurses through the tree; for every leaf, confirms <code>position</code>/<code>ePosition</code> are in-bounds and the raw bytes at that range are well-formed for the claimed type. Each type is checked differently:</p>
+    <pre><code>SWITCH node.type:
+
+    string:
+        CHECK position, ePosition are in-bounds and position &lt;= ePosition
+        CHECK byte at position is '"'   -- opens the string
+        CHECK byte at ePosition is '"'  -- closes the string
+
+    number:
+        CHECK first byte is a digit or '-'
+        CHECK every byte in range is a valid number character
+        (digit, '-', '+', '.', 'e', 'E')
+
+    boolean:
+        CHECK the exact substring is "true" or "false"
+
+    null:
+        CHECK the exact substring is "null"
+        -- stricter than indexStructure() itself: detectType() treats
+        -- ANY character that isn't a digit/'-'/'t'/'T'/'f'/'F' as null,
+        -- without confirming it actually spells "null"
+
+    object: RECURSE into every objectChildNode
+    array:  RECURSE into every arrayChildNode</code></pre>
+  </div>
+
+  <div class="func-block">
+    <h4>verifyStructuralCounts(root, typeIndex) <span class="pill pill-live">container coverage</span></h4>
+    <p>Containers have no <code>position</code>/<code>ePosition</code> to check, so this covers them a different way: comparing counts instead of byte ranges. If <code>indexStructure()</code>'s raw pass found 6 <code>{</code> tokens, the tree it produced had better contain exactly 6 object nodes — otherwise a node was silently dropped or duplicated somewhere in <code>constructTree()</code>.</p>
+    <pre><code>treeCounts  = count objects/arrays/strings by walking the TREE
+rawCounts   = count objectStart/arrayStart/string tokens in typeIndex
+
+-- a string token immediately followed by a colon was consumed as an
+-- object KEY, not a value node, so it must be excluded before comparing
+rawValueStrings = rawCounts.strings - rawCounts.keyTokens
+
+CHECK treeCounts.objects == rawCounts.objectStarts
+CHECK treeCounts.arrays  == rawCounts.arrayStarts
+CHECK treeCounts.strings == rawValueStrings</code></pre>
+  </div>
+
+  <table>
+    <tr><th>Check</th><th>Catches</th><th>Does NOT catch</th></tr>
+    <tr><td>Leaf byte-range</td><td>A leaf's stored range pointing at the wrong bytes, wrong type, or out of bounds</td><td>Anything about container nodes — they have no range to check</td></tr>
+    <tr><td>Structural counts</td><td>A container silently dropped or duplicated during tree construction</td><td>A container's own byte span — not tracked yet, see the gap noted above</td></tr>
+  </table>
+
+  <h3>Result</h3>
+  <p>Both checks run for every file, accumulating into one <code>VerificationResult</code>. It only reports <code>passed = true</code> if every leaf across the entire tree is byte-valid <em>and</em> every container count matches — a single bad node anywhere fails the whole result, with a message identifying exactly which node and why.</p>
+  <table>
+    <tr><th>Test file</th><th>What it covers</th></tr>
+    <tr><td><code>test_data_filter.json</code></td><td>Nested objects, arrays of objects</td></tr>
+    <tr><td><code>test_data_edge.json</code></td><td>Empty objects/arrays, deep nesting, real <code>null</code>, emoji strings</td></tr>
+    <tr><td><code>test_data_employees.json</code></td><td>A row missing fields that sibling rows have</td></tr>
+    <tr><td><code>test_data_escapes.json</code></td><td><code>\uXXXX</code> escapes, surrogate pairs, escaped quotes/backslashes/whitespace</td></tr>
+    <tr><td><code>test_data_inventory.json</code></td><td>Simple flat array of objects</td></tr>
+    <tr><td><code>test_data_special_keys.json</code></td><td>Empty-string and lone-dot object keys</td></tr>
+  </table>
+  <p style="color:var(--muted); font-size:0.9em;">All 6 pass on every real dataset the project uses — nothing hand-picked. Part of the same <code>test_query_executor.cpp</code> suite as every other test, run via <code>ctest</code>/<code>make test</code>.</p>
+
+  <div class="card">
+    <h4>Honest scope of what this proves</h4>
+    <p>This proves every leaf value round-trips correctly against the raw buffer, and every container's child <em>count</em> is correct. It does not prove a container's own byte <em>span</em> is correct, because that data isn't recorded on the node yet. Stated precisely rather than overclaimed.</p>
+  </div>
+</section>
+
 <section class="section" id="query-parser">
-  <span class="section-tag">03 — query parser</span>
+  <span class="section-tag">04 — query parser</span>
   <h2>Turning a query string into structure</h2>
   <p>Two query forms are supported: plain dot-path queries, and <code>GET/FROM/WHERE</code> filter queries. Both are parsed by <code>QueryParser::parse()</code>, which checks for a leading <code>GET</code> and routes to the matching parser. Both parsers share one function for reading a path expression — <code>parsePath()</code> — since a path is needed in every clause of both query forms.</p>
 
@@ -606,7 +729,7 @@ RETURN the filter query</code></pre>
 </section>
 
 <section class="section" id="query-executor">
-  <span class="section-tag">04 — query executor</span>
+  <span class="section-tag">05 — query executor</span>
   <h2>Walking the tree with a parsed query</h2>
   <p>Two traversal algorithms cover every query: <code>executeStep</code> for dot-path queries (returns a list, since a wildcard can produce many results), and <code>resolveSingle</code> for anywhere only one result is possible or needed, like a WHERE condition's field lookup — it skips the heap allocation a list would need.</p>
 
@@ -783,7 +906,7 @@ for (const auto* node : results) {
 </section>
 
 <section class="section" id="query-language">
-  <span class="section-tag">05 — query language reference</span>
+  <span class="section-tag">06 — query language reference</span>
   <h2>How to actually write a query</h2>
   <p>There are two query forms: <strong>dot-path</strong> (retrieve a value at a location) and <strong>filter</strong> (<code>GET/FROM/WHERE</code> — scan an array, select matching rows).</p>
 
@@ -843,7 +966,7 @@ GET price FROM store.products WHERE name = "Wireless Mouse"</code></pre>
 </section>
 
 <section class="section" id="diagrams-testing">
-  <span class="section-tag">06 — diagrams &amp; testing</span>
+  <span class="section-tag">07 — diagrams &amp; testing</span>
   <h2>Build structure and verified behavior</h2>
 
   <h3>CMake structure</h3>
@@ -866,6 +989,7 @@ GET price FROM store.products WHERE name = "Wireless Mouse"</code></pre>
     <tr><td>Parse errors</td><td>Empty query, trailing/double dots, keyword typo boundaries (<code>WHEREX</code>, <code>ANDX</code>), unquoted values with spaces</td></tr>
     <tr><td>Escape decoding</td><td>Unicode escapes, surrogate pairs (emoji), WHERE comparisons against escaped source values</td></tr>
     <tr><td>Special keys</td><td>Empty-string key, lone-dot key, quoted keys inside GET/FROM/WHERE, quoted keys with spaces</td></tr>
+    <tr><td>Tree round-trip (<a href="#tree-verification">detail</a>)</td><td>Every leaf's byte-range against the raw buffer, plus container node counts, across all 6 real datasets</td></tr>
   </table>
   <p style="color:var(--muted); font-size:0.9em;">Every behavior documented in this site is backed by a passing test in <code>test_query_executor.cpp</code> — not just reasoning about the code.</p>
 </section>
