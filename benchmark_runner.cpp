@@ -37,8 +37,13 @@ int main(int argc, char** argv) {
 
 #ifdef BENCH_NAIVE
     const std::string buildLabel = "naive (pre-Sprint-2)";
+#elif defined(BENCH_PRE_OPT)
+    // Provisional label -- rename this string (only this string, no code
+    // change needed) once this round of optimizations is considered
+    // final, e.g. to "pre-Sprint-4".
+    const std::string buildLabel = "pre-optimization (in progress)";
 #else
-    const std::string buildLabel = "optimized (current)";
+    const std::string buildLabel = "post-optimization (current)";
 #endif
 
     std::cout << "== Benchmark: " << filePath << " [" << buildLabel << "] ==\n";

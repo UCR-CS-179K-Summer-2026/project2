@@ -1,0 +1,81 @@
+file,size_mb,build,phase,time_ms
+benchmark_data/bench_20mb.json,19.1065,post-optimization (current),loadFile,4.62003
+benchmark_data/bench_20mb.json,19.1065,post-optimization (current),indexStructure,28.5823
+benchmark_data/bench_20mb.json,19.1065,post-optimization (current),constructTree,22.2228
+benchmark_data/bench_20mb.json,19.1065,post-optimization (current),total_parse,55.4251
+benchmark_data/bench_20mb.json,19.1065,post-optimization (current),dot-path point lookup,5.7715e-05
+benchmark_data/bench_20mb.json,19.1065,post-optimization (current),wildcard fan-out,5.17758
+benchmark_data/bench_20mb.json,19.1065,post-optimization (current),filter: numeric WHERE,7.08295
+benchmark_data/bench_20mb.json,19.1065,post-optimization (current),filter: AND,5.46489
+benchmark_data/bench_20mb.json,19.1065,post-optimization (current),filter: OR,6.64418
+benchmark_data/bench_20mb.json,19.1065,post-optimization (current),filter: long-string WHERE,4.62251
+benchmark_data/bench_20mb.json,19.1065,pre-optimization (in progress),loadFile,4.266
+benchmark_data/bench_20mb.json,19.1065,pre-optimization (in progress),indexStructure,27.4875
+benchmark_data/bench_20mb.json,19.1065,pre-optimization (in progress),constructTree,22.7579
+benchmark_data/bench_20mb.json,19.1065,pre-optimization (in progress),total_parse,54.5114
+benchmark_data/bench_20mb.json,19.1065,pre-optimization (in progress),dot-path point lookup,5.999e-05
+benchmark_data/bench_20mb.json,19.1065,pre-optimization (in progress),wildcard fan-out,5.26388
+benchmark_data/bench_20mb.json,19.1065,pre-optimization (in progress),filter: numeric WHERE,9.0979
+benchmark_data/bench_20mb.json,19.1065,pre-optimization (in progress),filter: AND,5.81077
+benchmark_data/bench_20mb.json,19.1065,pre-optimization (in progress),filter: OR,8.87784
+benchmark_data/bench_20mb.json,19.1065,pre-optimization (in progress),filter: long-string WHERE,4.60523
+benchmark_data/bench_50mb.json,48.0223,post-optimization (current),loadFile,9.47694
+benchmark_data/bench_50mb.json,48.0223,post-optimization (current),indexStructure,58.6302
+benchmark_data/bench_50mb.json,48.0223,post-optimization (current),constructTree,53.6328
+benchmark_data/bench_50mb.json,48.0223,post-optimization (current),total_parse,121.74
+benchmark_data/bench_50mb.json,48.0223,post-optimization (current),dot-path point lookup,5.778e-05
+benchmark_data/bench_50mb.json,48.0223,post-optimization (current),wildcard fan-out,13.1819
+benchmark_data/bench_50mb.json,48.0223,post-optimization (current),filter: numeric WHERE,15.5687
+benchmark_data/bench_50mb.json,48.0223,post-optimization (current),filter: AND,12.4146
+benchmark_data/bench_50mb.json,48.0223,post-optimization (current),filter: OR,16.5801
+benchmark_data/bench_50mb.json,48.0223,post-optimization (current),filter: long-string WHERE,10.3119
+benchmark_data/bench_50mb.json,48.0223,pre-optimization (in progress),loadFile,9.12622
+benchmark_data/bench_50mb.json,48.0223,pre-optimization (in progress),indexStructure,61.4586
+benchmark_data/bench_50mb.json,48.0223,pre-optimization (in progress),constructTree,57.7316
+benchmark_data/bench_50mb.json,48.0223,pre-optimization (in progress),total_parse,128.316
+benchmark_data/bench_50mb.json,48.0223,pre-optimization (in progress),dot-path point lookup,4.8545e-05
+benchmark_data/bench_50mb.json,48.0223,pre-optimization (in progress),wildcard fan-out,13.1196
+benchmark_data/bench_50mb.json,48.0223,pre-optimization (in progress),filter: numeric WHERE,21.9906
+benchmark_data/bench_50mb.json,48.0223,pre-optimization (in progress),filter: AND,12.8497
+benchmark_data/bench_50mb.json,48.0223,pre-optimization (in progress),filter: OR,22.1675
+benchmark_data/bench_50mb.json,48.0223,pre-optimization (in progress),filter: long-string WHERE,10.4604
+benchmark_data/bench_100mb.json,96.2246,post-optimization (current),loadFile,18.8708
+benchmark_data/bench_100mb.json,96.2246,post-optimization (current),indexStructure,121.899
+benchmark_data/bench_100mb.json,96.2246,post-optimization (current),constructTree,116.607
+benchmark_data/bench_100mb.json,96.2246,post-optimization (current),total_parse,257.376
+benchmark_data/bench_100mb.json,96.2246,post-optimization (current),dot-path point lookup,5.354e-05
+benchmark_data/bench_100mb.json,96.2246,post-optimization (current),wildcard fan-out,30.0664
+benchmark_data/bench_100mb.json,96.2246,post-optimization (current),filter: numeric WHERE,37.5972
+benchmark_data/bench_100mb.json,96.2246,post-optimization (current),filter: AND,26.6144
+benchmark_data/bench_100mb.json,96.2246,post-optimization (current),filter: OR,32.9791
+benchmark_data/bench_100mb.json,96.2246,post-optimization (current),filter: long-string WHERE,23.9401
+benchmark_data/bench_100mb.json,96.2246,pre-optimization (in progress),loadFile,17.8944
+benchmark_data/bench_100mb.json,96.2246,pre-optimization (in progress),indexStructure,122.454
+benchmark_data/bench_100mb.json,96.2246,pre-optimization (in progress),constructTree,110.779
+benchmark_data/bench_100mb.json,96.2246,pre-optimization (in progress),total_parse,251.127
+benchmark_data/bench_100mb.json,96.2246,pre-optimization (in progress),dot-path point lookup,6.4985e-05
+benchmark_data/bench_100mb.json,96.2246,pre-optimization (in progress),wildcard fan-out,41.5508
+benchmark_data/bench_100mb.json,96.2246,pre-optimization (in progress),filter: numeric WHERE,60.0416
+benchmark_data/bench_100mb.json,96.2246,pre-optimization (in progress),filter: AND,31.4196
+benchmark_data/bench_100mb.json,96.2246,pre-optimization (in progress),filter: OR,44.4234
+benchmark_data/bench_100mb.json,96.2246,pre-optimization (in progress),filter: long-string WHERE,31.097
+benchmark_data/bench_200mb.json,192.205,post-optimization (current),loadFile,38.4922
+benchmark_data/bench_200mb.json,192.205,post-optimization (current),indexStructure,254.361
+benchmark_data/bench_200mb.json,192.205,post-optimization (current),constructTree,240.088
+benchmark_data/bench_200mb.json,192.205,post-optimization (current),total_parse,532.941
+benchmark_data/bench_200mb.json,192.205,post-optimization (current),dot-path point lookup,4.9175e-05
+benchmark_data/bench_200mb.json,192.205,post-optimization (current),wildcard fan-out,52.0959
+benchmark_data/bench_200mb.json,192.205,post-optimization (current),filter: numeric WHERE,63.6412
+benchmark_data/bench_200mb.json,192.205,post-optimization (current),filter: AND,50.9267
+benchmark_data/bench_200mb.json,192.205,post-optimization (current),filter: OR,65.9521
+benchmark_data/bench_200mb.json,192.205,post-optimization (current),filter: long-string WHERE,42.7063
+benchmark_data/bench_200mb.json,192.205,pre-optimization (in progress),loadFile,38.6239
+benchmark_data/bench_200mb.json,192.205,pre-optimization (in progress),indexStructure,256
+benchmark_data/bench_200mb.json,192.205,pre-optimization (in progress),constructTree,228.763
+benchmark_data/bench_200mb.json,192.205,pre-optimization (in progress),total_parse,523.387
+benchmark_data/bench_200mb.json,192.205,pre-optimization (in progress),dot-path point lookup,5.8145e-05
+benchmark_data/bench_200mb.json,192.205,pre-optimization (in progress),wildcard fan-out,53.9616
+benchmark_data/bench_200mb.json,192.205,pre-optimization (in progress),filter: numeric WHERE,92.4591
+benchmark_data/bench_200mb.json,192.205,pre-optimization (in progress),filter: AND,56.3651
+benchmark_data/bench_200mb.json,192.205,pre-optimization (in progress),filter: OR,91.2241
+benchmark_data/bench_200mb.json,192.205,pre-optimization (in progress),filter: long-string WHERE,44.6142
