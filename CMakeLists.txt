@@ -3,6 +3,7 @@ project(JsonAnalyticsEngine LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 #now this is for test coverage check. Compiles with --coverage -O0 -g, which instruments the binary to emit .gcda/.gcno files when tests run the raw data gcovr reads to compute line/branch coverage percentages.
 # Usage: cmake -B build-coverage -DCMAKE_BUILD_TYPE=Coverage
