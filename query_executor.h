@@ -531,6 +531,17 @@ inline bool evaluateWhere(const parser::Node* row, const std::vector<Condition>&
     return anyGroupMatched;
 }
 
+// [NEW] Tier 1 #3 helper: does this path contain a wildcard (AllElements)
+// segment? A GET clause without one can only ever resolve to at most one
+// node -- same reasoning that already justified resolveSingle() for WHERE
+// clauses in Sprint 2, now applied to GET.
+inline bool pathHasWildcard(const std::vector<PathPart>& path) {
+    for (const auto& part : path) {
+        if (part.type == PathPartType::AllElements) return true;
+    }
+    return false;
+}
+
 inline std::vector<const parser::Node*> executeFilterQuery(const parser::Node& root,
     const FilterQuery& filter, const std::vector<char>& jsonData) {
     std::vector<const parser::Node*> results;
@@ -545,6 +556,12 @@ inline std::vector<const parser::Node*> executeFilterQuery(const parser::Node& r
     for (const auto& cond : filter.conditions) {
         parsedRhs.push_back(parseConditionValueNumeric(cond.value));
     }
+
+#ifndef BENCH_PRE_SPRINT4
+    // [NEW] Tier 1 #3: computed once per query, not once per row -- see
+    // pathHasWildcard() above.
+    bool selectIsWildcard = pathHasWildcard(filter.selectField);
+#endif
  
     for (const parser::Node* source : sources) {
         if (!source || source->nodeType != parser::NodeType::array) {
@@ -558,12 +575,33 @@ inline std::vector<const parser::Node*> executeFilterQuery(const parser::Node& r
             // evaluateWhere(), which supports AND/OR/NOT with short-circuit
             // preserved at both the AND-group and OR-group level.
             if (!evaluateWhere(&rowNode, filter.conditions, jsonData, parsedRhs)) continue;
- 
+
+#ifdef BENCH_PRE_SPRINT4
+            // [NEW] Tier 1 #3 baseline: always goes through executeStep(),
+            // even for a wildcard-free GET clause that could only ever
+            // resolve to one node -- reproduces the pre-Sprint-4 per-row
+            // vector allocation this optimization removes.
             std::vector<const parser::Node*> selected;
             executeStep(&rowNode, filter.selectField, 0, selected);
             for (const parser::Node* sel : selected) {
                 results.push_back(sel);
             }
+#else
+            if (selectIsWildcard) {
+                std::vector<const parser::Node*> selected;
+                executeStep(&rowNode, filter.selectField, 0, selected);
+                for (const parser::Node* sel : selected) {
+                    results.push_back(sel);
+                }
+            } else {
+                // [NEW] Tier 1 #3: no wildcard in the GET path means at
+                // most one result -- resolveSingle() returns it directly,
+                // no vector allocation needed. A null result (missing
+                // field) still gets pushed, same as executeStep would --
+                // nodeToString() turns it into "DNE" either way.
+                results.push_back(resolveSingle(&rowNode, filter.selectField, 0));
+            }
+#endif
         }
     }
  
