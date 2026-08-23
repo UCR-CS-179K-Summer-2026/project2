@@ -15,3 +15,4 @@ Tree_verifier.cpp
 benchmark_data/
 
 bench_*
+.vscode/

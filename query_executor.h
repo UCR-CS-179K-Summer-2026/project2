@@ -7,6 +7,7 @@
 #include<list>
 #include<iterator>
 #include<optional>
+#include<charconv>
  
 // query_executor.h — now consuming Tasnim's PathPart/DotPathQuery directly
 //New: PathPartType::ArrayIndex supportdescends into exactly one array element by position, rather than expanding every element (AllElements)
@@ -280,7 +281,7 @@ inline bool compareValues(const parser::Node* node, const std::vector<char>& jso
                            FilterOperators op, const std::string& conditionValue,
                            const std::optional<double>& rhsNumeric) {
     if (!node) return false;
-#ifdef BENCH_NO_HOIST
+#ifdef BENCH_PRE_SPRINT4
     (void)rhsNumeric; // unused on this path; see the ifdef below
 #endif
 
@@ -290,14 +291,16 @@ inline bool compareValues(const parser::Node* node, const std::vector<char>& jso
         // must be parsed per-row since the field's actual value legitimately
         // differs row to row; only the constant RHS parse was redundant.
         double rhs;
-#ifdef BENCH_NO_HOIST
-        // [NEW] Reproduces pre-Tier-1-#1 behavior: re-parse the RHS fresh
-        // on every row, ignoring the precomputed rhsNumeric, while keeping
-        // Sprint 2's resolveSingle/string_view fully intact (lhs still
-        // reads via nodeRawValue below, unchanged). This isolates Tier 1
-        // #1's own contribution: comparing the default build (hoisted)
-        // against a -DBENCH_NO_HOIST build holds Sprint 2 constant on both
-        // sides, so any measured gap is hoisting's effect alone.
+#ifdef BENCH_PRE_SPRINT4
+        // [NEW] Reproduces the pre-Sprint-4 state for this specific change
+        // (RHS hoisting): re-parse the RHS fresh on every row, ignoring the
+        // precomputed rhsNumeric, while keeping Sprint 2's
+        // resolveSingle/string_view fully intact (lhs still reads via
+        // nodeRawValue below, unchanged). BENCH_PRE_SPRINT4 is the ONE flag
+        // for the whole "pre-Sprint-4 vs. post-Sprint-4" comparison -- every
+        // Sprint 4 optimization's naive fallback goes under this same
+        // #ifdef, so flipping it reproduces the sprint's starting state as
+        // a whole, not just this one change in isolation.
         try {
             rhs = std::stod(conditionValue);
         } catch (const std::exception&) {
@@ -308,11 +311,32 @@ inline bool compareValues(const parser::Node* node, const std::vector<char>& jso
         rhs = *rhsNumeric;
 #endif
         double lhs;
+#ifdef BENCH_PRE_SPRINT4
+        // [NEW] Tier 1 #2 baseline: reproduces the old std::stod(std::string(...))
+        // approach, which builds a full heap-allocated copy of the field's raw
+        // bytes on every row just to satisfy std::stod's signature -- even
+        // though nodeRawValue() already returns a zero-copy string_view.
         try {
             lhs = std::stod(std::string(nodeRawValue(node, jsonData)));
         } catch (const std::exception&) {
             return false;
         }
+#else
+        // [NEW] Tier 1 #2: std::from_chars parses directly from the
+        // string_view's underlying pointer range -- no std::string
+        // construction, no heap allocation, on the per-row hot path.
+        // Not wrapped in try/catch: from_chars reports failure via its
+        // returned std::errc instead of throwing, matching std::stod's
+        // leniency on trailing non-numeric characters (only requires a
+        // valid numeric prefix, same as std::stod always allowed).
+        {
+            std::string_view raw = nodeRawValue(node, jsonData);
+            auto result = std::from_chars(raw.data(), raw.data() + raw.size(), lhs);
+            if (result.ec != std::errc()) {
+                return false;
+            }
+        }
+#endif
 
         switch (op) {
             case FilterOperators::Equal:              return lhs == rhs;
