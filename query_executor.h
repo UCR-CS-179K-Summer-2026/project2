@@ -302,12 +302,7 @@ inline bool compareValues(const parser::Node* node, const std::vector<char>& jso
     return false;
 }
 
-// [NEW] Evaluates a single WHERE condition against one row, honoring the
-// `negative` flag (NOT). Design decision: a missing field NEVER matches,
-// negated or not -- "missing" is its own category (same principle as the
-// DNE-vs-null distinction elsewhere in this file), not something NOT can
-// flip into a match. This keeps "missing" meaning the same thing whether
-// or not the condition is wrapped in NOT.
+// [NEW] Evaluates a single WHERE condition against one row, honoring the `negative` flag (NOT). Design decision: a missing field NEVER matches negated or not -- "missing" is its own category (same principle as the DNE-vs-null distinction )
 inline bool evaluateCondition(const parser::Node* row, const Condition& cond,
                                const std::vector<char>& jsonData) {
     const parser::Node* fieldNode = resolveSingle(row, cond.field, 0);
