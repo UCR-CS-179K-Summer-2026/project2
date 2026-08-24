@@ -65,6 +65,7 @@ th,td{border:0.5px solid var(--line); padding:0.6em 0.8em; text-align:left; vert
 th{background:var(--panel); font-family:var(--mono); font-weight:500;}
 img{max-width:100%; border-radius:8px; border:0.5px solid var(--line);}
 
+
 nav.topnav{
   position:sticky; top:0; z-index:50;
   background:rgba(244,246,248,0.92);
@@ -100,12 +101,14 @@ nav.topnav{
 }
 .dropdown a:hover{background:var(--panel); text-decoration:none;}
 
+
 .hero{max-width:1100px; margin:0 auto; padding:3.5rem 2rem 2.5rem;}
 .hero .eyebrow{
   font-family:var(--mono); font-size:0.82rem; color:var(--muted);
   text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.8rem;
 }
 .hero p.lead{font-size:1.35rem; line-height:1.75; color:#3A3F47; max-width:none;}
+
 
 .section{max-width:1100px; margin:0 auto; padding:2.5rem 2rem; border-top:0.5px solid var(--line);}
 .section-tag{
@@ -136,6 +139,7 @@ nav.topnav{
   nav.topnav{padding:0 1rem;}
   .hero, .section{padding-left:1.2rem; padding-right:1.2rem;}
 }
+
 
 .tree-trace{
   background:var(--white);
@@ -455,7 +459,7 @@ nav.topnav{
     <text x="720" y="154" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600" fill="#712B13">QueryParser</text>
     <text x="720" y="174" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#993C1D">dot-path or GET/FROM/WHERE</text>
 
-   
+    
     <rect x="60" y="250" width="220" height="56" rx="4" fill="none" stroke="#0F6E56" stroke-width="1" stroke-dasharray="4 3"/>
     <text x="170" y="278" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#085041">Parsed JSON tree</text>
 
@@ -468,7 +472,7 @@ nav.topnav{
     <text x="450" y="374" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600" fill="#3C3489">Query executor</text>
     <text x="450" y="394" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#534AB7">walks the tree, evaluates WHERE</text>
 
-   
+    
     <rect x="360" y="430" width="180" height="26" rx="4" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
     <text x="450" y="447" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#2C2C2A">results</text>
 
@@ -702,7 +706,6 @@ High Nibble(assigned index)  Bit Set (which chars share this nibble)       Binar
 0x7                          &#x27;{&#x27;(bit 2), &#x27;}&#x27;(bit 3)                        0000 1100    0x0C              12
 
 
-
 I already have two registers that contain the Low Nibble and High Nibble values:
 
 lTables register(16 bytes little endian):
@@ -739,9 +742,9 @@ Step 3: Use the _mm256_shuffle_epi8 instrinsic function to
 
 *Explanation* _mm256_shuffle_epi8(a, b): it uses that lane&#x27;s value(b) as an index, and looks up the byte sitting at that index within (a).
 
-_mm256_shuffle_epi8(lTable, LN)   ex. uses LN(b) as an index so if LN = 0B, lTable[0B] //This is index 11 which results in value 0x05
+_mm256_shuffle_epi8(lTable, LN)   ex. uses LN(b) as an index so if LN = 0B, lTable[0B]
 
-_mm256_shuffle_epi8(hTable, HN)   ex. uses HN(b) as an index so if HN = 07, hTable[07] //This is index 7 which results in value 0x0C
+_mm256_shuffle_epi8(hTable, HN)   ex. uses HN(b) as an index so if HN = 07, hTable[07]
 
 _mm256_shuffle_epi8(lTable, LN)
 Hex:           00    1A 00 00 00 50 00 00 00 00 00 00 00 00 00 00 05
@@ -793,7 +796,7 @@ Then we negate it: ~Result
 Hex:           00    FF 00 00 00 FF 00 00 00 00 00 00 00 00 00 00 FF
 Byte Position: 31-16 15 14 13 12 11 10 9  8  7  6  5  4  3  2  1  0  
 
-then we use _mm256_movemask_epi8(result) //this instrinsic function takes the most significant bit of each Byte index, ex if we have 1000 0000, our most significant bit is 1, and it converts it into a 32 bit unsigned integer.
+then we use _mm256_movemask_epi8(result)
 (32 bit unsigned int)
 Result = 
 
@@ -884,6 +887,104 @@ Result:
 findString() creates a mask covering the string so
 structural characters inside the string can be ignored.</code></pre>
   </div>
+
+  <hr style="border:none; border-top:0.5px solid var(--line); margin:2.5rem 0;">
+
+  <h3>indexStructure() Benchmarks</h3>
+  <p>Performance comparison between the original <code>AaronJsonParser</code> implementation and the AVX2-accelerated <code>AaronSimd</code> implementation. Each reported time is the average of three runs. Speedup is calculated as <code>AaronJsonParser / AaronSimd</code>.</p>
+
+  <div class="card">
+    <h4>Standard JSON Dataset</h4>
+    <table>
+      <tr>
+        <th>Dataset</th>
+        <th>AaronJsonParser Avg.</th>
+        <th>AaronSimd Avg.</th>
+        <th>Speedup</th>
+      </tr>
+      <tr>
+        <td>100 MB</td>
+        <td>1.9629 s</td>
+        <td>0.4173 s</td>
+        <td><strong>4.70×</strong></td>
+      </tr>
+      <tr>
+        <td>500 MB</td>
+        <td>10.0361 s</td>
+        <td>2.4334 s</td>
+        <td><strong>4.12×</strong></td>
+      </tr>
+      <tr>
+        <td>1 GB</td>
+        <td>20.5948 s</td>
+        <td>5.1272 s</td>
+        <td><strong>4.02×</strong></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h4>Low Structural Density / Large Strings</h4>
+    <p>JSON files containing relatively few structural characters and long string values.</p>
+    <table>
+      <tr>
+        <th>Dataset</th>
+        <th>AaronJsonParser Avg.</th>
+        <th>AaronSimd Avg.</th>
+        <th>Speedup</th>
+      </tr>
+      <tr>
+        <td>100 MB</td>
+        <td>2.0304 s</td>
+        <td>0.2042 s</td>
+        <td><strong>9.94×</strong></td>
+      </tr>
+      <tr>
+        <td>500 MB</td>
+        <td>10.1949 s</td>
+        <td>1.0178 s</td>
+        <td><strong>10.02×</strong></td>
+      </tr>
+      <tr>
+        <td>1 GB</td>
+        <td>20.9652 s</td>
+        <td>2.0861 s</td>
+        <td><strong>10.05×</strong></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h4>High Structural Density</h4>
+    <p>JSON files containing a large number of structural characters.</p>
+    <table>
+      <tr>
+        <th>Dataset</th>
+        <th>AaronJsonParser Avg.</th>
+        <th>AaronSimd Avg.</th>
+        <th>Speedup</th>
+      </tr>
+      <tr>
+        <td>100 MB</td>
+        <td>4.3958 s</td>
+        <td>1.7771 s</td>
+        <td><strong>2.47×</strong></td>
+      </tr>
+      <tr>
+        <td>500 MB</td>
+        <td>22.4339 s</td>
+        <td>9.1476 s</td>
+        <td><strong>2.45×</strong></td>
+      </tr>
+      <tr>
+        <td>1 GB</td>
+        <td>48.6064 s</td>
+        <td>20.2205 s</td>
+        <td><strong>2.40×</strong></td>
+      </tr>
+    </table>
+  </div>
+
 </section>
 
 <section class="section" id="tree-verification">
@@ -1620,7 +1721,6 @@ GET price FROM store.products WHERE name = "Wireless Mouse"</code></pre>
     const frame = document.createElement('div');
     frame.className = 'stack-frame';
 
-    
     [...stack].reverse().forEach((label, idx) => {
       const item = document.createElement('div');
       item.className = 'stack-node' + (idx === 0 ? ' top-item' : '');
