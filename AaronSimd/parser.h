@@ -68,6 +68,7 @@ private:
     int backSlashCounter = 0;
     bool inString = false;
     int stringStart = 0;
+    int backSlashCount = 0;
     bool inValue = false;
     std::vector<TypeStruct> typeIndex;
 

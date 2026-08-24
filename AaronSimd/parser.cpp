@@ -17,7 +17,10 @@ bool parser::loadFile(const std::string& s) {
     auto size = file.tellg();
     file.seekg(0, std::ios::beg);
 
-    jsonData.resize(size);
+    size_t actualSize = static_cast<size_t>(size);
+    size_t adjustSize = ((actualSize + 31) / 32) * 32;
+
+    jsonData.resize(adjustSize, ' ');
     file.read(jsonData.data(), size);
     if(!file) {
         std::cout << "Incomplete/Failed Read \n" << std::endl;
@@ -131,7 +134,17 @@ void parser::indexStructure() {
         uint32_t Q = resultQ & ~oddNumberBSlash;
 
         uint32_t stringM = findString(Q);
+        if(inString)  {
+            stringM = ~stringM;
+        }
         SV &= ~stringM;
+
+        //compute trailiing backslashes that carry over to the next 32 bytes of data
+        int j = 31;
+        while(j >= 0 && (resultBac & (1 << k))) {
+            backSlashCount++;
+            j--;
+        }
 
         //Find the starting position of numbers/boolean values/null
         uint32_t S = SV;
