@@ -6,6 +6,8 @@
 #include<string_view>
 #include<list>
 #include<iterator>
+#include<optional>
+#include<charconv>
  
 // query_executor.h — now consuming Tasnim's PathPart/DotPathQuery directly
 //New: PathPartType::ArrayIndex supportdescends into exactly one array element by position, rather than expanding every element (AllElements)
@@ -259,18 +261,85 @@ inline std::string_view nodeRawValue(const parser::Node* node, const std::vector
     }
 }
 
+// [NEW] TIER 1 OPTIMIZATION #1: precompute a WHERE condition's right-hand
+// value as a double ONCE per query, instead of re-parsing it on every row.
+// The RHS (e.g. "1000" in `price > 1000`) is a literal from the query
+// string -- it never changes across rows within one scan. compareValues()
+// previously called std::stod(conditionValue) fresh on every single row,
+// which for a 500K-row array means 500K redundant re-parses of the exact
+// same string. This returns std::nullopt if the value isn't numeric,
+// matching the old try/catch's behavior of returning false in that case.
+inline std::optional<double> parseConditionValueNumeric(const std::string& conditionValue) {
+    try {
+        return std::stod(conditionValue);
+    } catch (const std::exception&) {
+        return std::nullopt;
+    }
+}
+
 inline bool compareValues(const parser::Node* node, const std::vector<char>& jsonData,
-                           FilterOperators op, const std::string& conditionValue) {
+                           FilterOperators op, const std::string& conditionValue,
+                           const std::optional<double>& rhsNumeric) {
     if (!node) return false;
+#ifdef BENCH_PRE_OPT
+    (void)rhsNumeric; // unused on this path; see the ifdef below
+#endif
 
     if (node->nodeType == parser::NodeType::number) {
-        double lhs, rhs;
+        // [CHANGED] rhs no longer parsed here -- passed in already parsed
+        // by the caller (see parseConditionValueNumeric above). lhs still
+        // must be parsed per-row since the field's actual value legitimately
+        // differs row to row; only the constant RHS parse was redundant.
+        double rhs;
+#ifdef BENCH_PRE_OPT
+        // [NEW] Reproduces the pre-optimization state for this specific
+        // change (RHS hoisting): re-parse the RHS fresh on every row,
+        // ignoring the precomputed rhsNumeric, while keeping Sprint 2's
+        // resolveSingle/string_view fully intact (lhs still reads via
+        // nodeRawValue below, unchanged). BENCH_PRE_OPT is the ONE flag
+        // for the whole "before this round of optimizations vs. after"
+        // comparison -- every new optimization's naive fallback goes
+        // under this same #ifdef, so flipping it reproduces the starting
+        // state as a whole, not just one change in isolation. The
+        // printed label (see benchmark_runner.cpp) can be updated to
+        // name a specific milestone (e.g. "Sprint 4") once the round of
+        // changes is considered final, without touching this flag name.
         try {
-            lhs = std::stod(std::string(nodeRawValue(node, jsonData)));
             rhs = std::stod(conditionValue);
         } catch (const std::exception&) {
             return false;
         }
+#else
+        if (!rhsNumeric.has_value()) return false;
+        rhs = *rhsNumeric;
+#endif
+        double lhs;
+#ifdef BENCH_PRE_OPT
+        // [NEW] Tier 1 #2 baseline: reproduces the old std::stod(std::string(...))
+        // approach, which builds a full heap-allocated copy of the field's raw
+        // bytes on every row just to satisfy std::stod's signature -- even
+        // though nodeRawValue() already returns a zero-copy string_view.
+        try {
+            lhs = std::stod(std::string(nodeRawValue(node, jsonData)));
+        } catch (const std::exception&) {
+            return false;
+        }
+#else
+        // [NEW] Tier 1 #2: std::from_chars parses directly from the
+        // string_view's underlying pointer range -- no std::string
+        // construction, no heap allocation, on the per-row hot path.
+        // Not wrapped in try/catch: from_chars reports failure via its
+        // returned std::errc instead of throwing, matching std::stod's
+        // leniency on trailing non-numeric characters (only requires a
+        // valid numeric prefix, same as std::stod always allowed).
+        {
+            std::string_view raw = nodeRawValue(node, jsonData);
+            auto result = std::from_chars(raw.data(), raw.data() + raw.size(), lhs);
+            if (result.ec != std::errc()) {
+                return false;
+            }
+        }
+#endif
 
         switch (op) {
             case FilterOperators::Equal:              return lhs == rhs;
@@ -302,19 +371,106 @@ inline bool compareValues(const parser::Node* node, const std::vector<char>& jso
     return false;
 }
 
-// [NEW] Evaluates a single WHERE condition against one row, honoring the
-// `negative` flag (NOT). Design decision: a missing field NEVER matches,
-// negated or not -- "missing" is its own category (same principle as the
-// DNE-vs-null distinction elsewhere in this file), not something NOT can
-// flip into a match. This keeps "missing" meaning the same thing whether
-// or not the condition is wrapped in NOT.
+// [NEW] BENCHMARK-ONLY NAIVE BASELINE
+// [MOVED] this block was originally placed after evaluateWhere/before
+// executeFilterQuery, which meant evaluateConditionNaive was referenced
+// (inside evaluateWhere's #ifdef branch) before it was declared -- fails
+// to compile under -DBENCH_NAIVE. Moved here, before evaluateCondition/
+// evaluateWhere, so every naive function is declared before first use.
+#ifdef BENCH_NAIVE
+ 
+// [NEW] Naive counterpart to nodeRawValue(): returns by value instead of
+// string_view, forcing a heap-allocated copy on every call instead of a
+// zero-copy view into jsonData.
+inline std::string nodeRawValueNaive(const parser::Node* node, const std::vector<char>& jsonData) {
+    if (!node) return std::string();
+    switch (node->nodeType) {
+        case parser::NodeType::string:
+            return std::string(jsonData.data() + node->position + 1,
+                                static_cast<size_t>(node->ePosition - node->position - 1));
+        case parser::NodeType::number:
+        case parser::NodeType::boolean:
+            return std::string(jsonData.data() + node->position,
+                                static_cast<size_t>(node->ePosition - node->position + 1));
+        default:
+            return std::string();
+    }
+}
+ 
+// [NEW] Naive counterpart to compareValues(): same comparison semantics,
+// but built on the copying nodeRawValueNaive() instead of the zero-copy
+// string_view path.
+// [CHANGED] now accepts the same precomputed rhsNumeric as compareValues(),
+// so a BENCH_NAIVE build gets Tier-1-#1's hoisting benefit too -- this
+// isolates BENCH_NAIVE to measuring ONLY the Sprint 2 difference
+// (executeStep+copy vs. resolveSingle+string_view), not hoisting as well.
+inline bool compareValuesNaive(const parser::Node* node, const std::vector<char>& jsonData,
+                                FilterOperators op, const std::string& conditionValue,
+                                const std::optional<double>& rhsNumeric) {
+    if (!node) return false;
+ 
+    if (node->nodeType == parser::NodeType::number) {
+        if (!rhsNumeric.has_value()) return false;
+        double lhs;
+        try {
+            lhs = std::stod(nodeRawValueNaive(node, jsonData));
+        } catch (const std::exception&) {
+            return false;
+        }
+        double rhs = *rhsNumeric;
+        switch (op) {
+            case FilterOperators::Equal:              return lhs == rhs;
+            case FilterOperators::NotEqual:           return lhs != rhs;
+            case FilterOperators::LessThan:           return lhs <  rhs;
+            case FilterOperators::LessThanOrEqual:    return lhs <= rhs;
+            case FilterOperators::GreaterThan:        return lhs >  rhs;
+            case FilterOperators::GreaterThanOrEqual: return lhs >= rhs;
+        }
+        return false;
+    }
+ 
+    std::string lhs = nodeRawValueNaive(node, jsonData);  // always a copy
+    if (lhs.find('\\') != std::string::npos) {
+        lhs = decodeJsonString(lhs);
+    }
+ 
+    switch (op) {
+        case FilterOperators::Equal:              return lhs == conditionValue;
+        case FilterOperators::NotEqual:           return lhs != conditionValue;
+        case FilterOperators::LessThan:           return lhs <  conditionValue;
+        case FilterOperators::LessThanOrEqual:    return lhs <= conditionValue;
+        case FilterOperators::GreaterThan:        return lhs >  conditionValue;
+        case FilterOperators::GreaterThanOrEqual: return lhs >= conditionValue;
+    }
+    return false;
+}
+ 
+// [CHANGED] now accepts and passes through rhsNumeric -- see compareValuesNaive above.
+inline bool evaluateConditionNaive(const parser::Node* row, const Condition& cond,
+                                    const std::vector<char>& jsonData,
+                                    const std::optional<double>& rhsNumeric) {
+    std::vector<const parser::Node*> found;
+    executeStep(row, cond.field, 0, found);
+    const parser::Node* fieldNode = found.empty() ? nullptr : found[0];
+    if (!fieldNode) {
+        return false;
+    }
+    bool result = compareValuesNaive(fieldNode, jsonData, cond.comparisonOp, cond.value, rhsNumeric);
+    return cond.negative ? !result : result;
+}
+ 
+#endif  // BENCH_NAIVE
+
+// [NEW] Evaluates a single WHERE condition against one row, honoring the `negative` flag (NOT). Design decision: a missing field NEVER matches negated or not -- "missing" is its own category (same principle as the DNE-vs-null distinction )
+// [CHANGED] now takes the precomputed rhsNumeric (see parseConditionValueNumeric) instead of re-parsing cond.value on every call.
 inline bool evaluateCondition(const parser::Node* row, const Condition& cond,
-                               const std::vector<char>& jsonData) {
+                               const std::vector<char>& jsonData,
+                               const std::optional<double>& rhsNumeric) {
     const parser::Node* fieldNode = resolveSingle(row, cond.field, 0);
     if (!fieldNode) {
         return false; // missing field: never matches, regardless of NOT
     }
-    bool result = compareValues(fieldNode, jsonData, cond.comparisonOp, cond.value);
+    bool result = compareValues(fieldNode, jsonData, cond.comparisonOp, cond.value, rhsNumeric);
     return cond.negative ? !result : result;
 }
 
@@ -335,8 +491,18 @@ inline bool evaluateCondition(const parser::Node* row, const Condition& cond,
 // already included). A conditions list with no OR at all collapses to
 // exactly one group, which reproduces the original AND-only short-circuit
 // behavior unchanged.
+// [CHANGED] now takes parsedRhs: the precomputed numeric parse of each
+// condition's RHS (index-aligned with conditions), built once per query by
+// executeFilterQuery() before the row loop starts, instead of each row
+// re-parsing every condition's RHS from scratch.
+// [FIXED] restored the #ifdef BENCH_NAIVE branch here -- it was missing in
+// this copy of the file, meaning evaluateConditionNaive/compareValuesNaive
+// were defined but never actually called, so a -DBENCH_NAIVE build was
+// running the exact same code path as the normal build. Any earlier
+// benchmark comparison using this file's naive binary needs to be rerun.
 inline bool evaluateWhere(const parser::Node* row, const std::vector<Condition>& conditions,
-                          const std::vector<char>& jsonData) {
+                          const std::vector<char>& jsonData,
+                          const std::vector<std::optional<double>>& parsedRhs) {
     if (conditions.empty()) return true; // no WHERE clause: every row matches
 
     bool anyGroupMatched = false;
@@ -344,7 +510,11 @@ inline bool evaluateWhere(const parser::Node* row, const std::vector<Condition>&
 
     for (size_t i = 0; i < conditions.size(); ++i) {
         if (!currentGroupFailed) {
-            if (!evaluateCondition(row, conditions[i], jsonData)) {
+#ifdef BENCH_NAIVE
+            if (!evaluateConditionNaive(row, conditions[i], jsonData, parsedRhs[i])) {
+#else
+            if (!evaluateCondition(row, conditions[i], jsonData, parsedRhs[i])) {
+#endif
                 currentGroupFailed = true; // short-circuit: skip rest of this AND-group
             }
         }
@@ -364,34 +534,80 @@ inline bool evaluateWhere(const parser::Node* row, const std::vector<Condition>&
     return anyGroupMatched;
 }
 
+// [NEW] Tier 1 #3 helper: does this path contain a wildcard (AllElements)
+// segment? A GET clause without one can only ever resolve to at most one
+// node -- same reasoning that already justified resolveSingle() for WHERE
+// clauses in Sprint 2, now applied to GET.
+inline bool pathHasWildcard(const std::vector<PathPart>& path) {
+    for (const auto& part : path) {
+        if (part.type == PathPartType::AllElements) return true;
+    }
+    return false;
+}
+
 inline std::vector<const parser::Node*> executeFilterQuery(const parser::Node& root,
     const FilterQuery& filter, const std::vector<char>& jsonData) {
     std::vector<const parser::Node*> results;
-
+ 
     std::vector<const parser::Node*> sources;
     executeStep(&root, filter.sourcePath, 0, sources);
 
+    // [NEW] Precompute each condition's RHS numeric parse ONCE per query
+    // (not once per row) -- see parseConditionValueNumeric() above.
+    std::vector<std::optional<double>> parsedRhs;
+    parsedRhs.reserve(filter.conditions.size());
+    for (const auto& cond : filter.conditions) {
+        parsedRhs.push_back(parseConditionValueNumeric(cond.value));
+    }
+
+#ifndef BENCH_PRE_OPT
+    // [NEW] Tier 1 #3: computed once per query, not once per row -- see
+    // pathHasWildcard() above.
+    bool selectIsWildcard = pathHasWildcard(filter.selectField);
+#endif
+ 
     for (const parser::Node* source : sources) {
         if (!source || source->nodeType != parser::NodeType::array) {
             continue;
         }
-
+ 
         results.reserve(results.size() + source->arrayChildNode.size());
-
+ 
         for (const auto& rowNode : source->arrayChildNode) {
             // [CHANGED] was an inline AND-only loop; now delegates to
             // evaluateWhere(), which supports AND/OR/NOT with short-circuit
             // preserved at both the AND-group and OR-group level.
-            if (!evaluateWhere(&rowNode, filter.conditions, jsonData)) continue;
+            if (!evaluateWhere(&rowNode, filter.conditions, jsonData, parsedRhs)) continue;
 
+#ifdef BENCH_PRE_OPT
+            // [NEW] Tier 1 #3 baseline: always goes through executeStep(),
+            // even for a wildcard-free GET clause that could only ever
+            // resolve to one node -- reproduces the pre-Sprint-4 per-row
+            // vector allocation this optimization removes.
             std::vector<const parser::Node*> selected;
             executeStep(&rowNode, filter.selectField, 0, selected);
             for (const parser::Node* sel : selected) {
                 results.push_back(sel);
             }
+#else
+            if (selectIsWildcard) {
+                std::vector<const parser::Node*> selected;
+                executeStep(&rowNode, filter.selectField, 0, selected);
+                for (const parser::Node* sel : selected) {
+                    results.push_back(sel);
+                }
+            } else {
+                // [NEW] Tier 1 #3: no wildcard in the GET path means at
+                // most one result -- resolveSingle() returns it directly,
+                // no vector allocation needed. A null result (missing
+                // field) still gets pushed, same as executeStep would --
+                // nodeToString() turns it into "DNE" either way.
+                results.push_back(resolveSingle(&rowNode, filter.selectField, 0));
+            }
+#endif
         }
     }
-
+ 
     return results;
 }
 
