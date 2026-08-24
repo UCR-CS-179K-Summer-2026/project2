@@ -54,3 +54,41 @@ if(GCOVR_PATH)
 else()
     message(STATUS "gcovr not found. 'coverage' target will be unavailable. Install with: pip install gcovr --break-system-packages")
 endif()
+
+# ---------------------------------------------------------------------------
+# Benchmark executables and live comparison target
+# ---------------------------------------------------------------------------
+# Three variants of the same benchmark_runner.cpp, differing only in which
+# BENCH_* compile-time flag is defined -- reproduces the naive (pre-Sprint-2),
+# pre-optimization (post-Sprint-2, pre-Round-2), and current (post-Round-2)
+# code paths for side-by-side comparison. All three link against json_engine
+# (the same library test_executor uses), so parser/query-parser code is
+# compiled once and shared, not duplicated per binary.
+
+add_executable(bench_naive benchmark_runner.cpp)
+target_link_libraries(bench_naive PRIVATE json_engine)
+target_compile_definitions(bench_naive PRIVATE BENCH_NAIVE)
+target_compile_options(bench_naive PRIVATE -O2 -Wall -Wextra)
+
+add_executable(bench_pre_opt benchmark_runner.cpp)
+target_link_libraries(bench_pre_opt PRIVATE json_engine)
+target_compile_definitions(bench_pre_opt PRIVATE BENCH_PRE_OPT)
+target_compile_options(bench_pre_opt PRIVATE -O2 -Wall -Wextra)
+
+add_executable(bench_current benchmark_runner.cpp)
+target_link_libraries(bench_current PRIVATE json_engine)
+target_compile_options(bench_current PRIVATE -O2 -Wall -Wextra)
+
+# `make benchmark` -- builds all three variants, then runs the comparison
+# script against a default 200MB file (~15-20s total, mostly parse time at
+# that size). For a faster run against a different file -- e.g. during a
+# live demo, without waiting for a rebuild -- invoke the script directly:
+#   python3 scripts/compare_benchmarks.py benchmark_data/bench_20mb.json
+add_custom_target(benchmark
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/compare_benchmarks.py
+            ${CMAKE_SOURCE_DIR}/benchmark_data/bench_200mb.json
+            $<TARGET_FILE_DIR:bench_current>
+    DEPENDS bench_naive bench_pre_opt bench_current
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMENT "Running naive vs. Sprint 2 vs. current benchmark comparison (200MB)"
+)
