@@ -413,7 +413,11 @@ nav.topnav{
         </div>
       </li>
       <li><a href="#tree-verification">Tree Verification</a></li>
-      <li><a href="#query-executor">Query Executor</a></li>
+      <li><a href="#query-executor">Query Executor</a>
+        <div class="dropdown">
+          <a href="#qe-optimizations">Sprint 4 Optimizations</a>
+        </div>
+      </li>
       <li><a href="#query-language">Query Language</a></li>
       <li><a href="#diagrams-testing">Diagrams &amp; Testing</a></li>
     </ul>
@@ -1504,6 +1508,109 @@ auto results = executeQuery(p.getRoot(), q, p.getJsonData());
 for (const auto* node : results) {
     std::cout &lt;&lt; nodeToString(node, p.getJsonData()) &lt;&lt; std::endl;
 }</code></pre>
+
+  <hr style="border:none; border-top:0.5px solid var(--line); margin:2.5rem 0;">
+
+  <h3 id="qe-optimizations">Sprint 4 query search optimizations</h3>
+  <p>Sprint 2 removed the two largest allocation costs from WHERE-clause evaluation (<code>resolveSingle</code> replacing a heap-allocating step function, and a zero-copy raw-value read replacing a per-comparison string copy — see the Sprint 2 row of the benchmark results for those numbers). Sprint 4 targets three further costs sitting underneath that: repeated numeric parsing, and one remaining allocation on the <code>GET</code> side that Sprint 2 didn't touch. All three changes are in <code>query_executor.h</code> only — no changes to Aaron's parser or Tasnim's query parser were needed.</p>
+
+  <div class="card">
+    <h4>1. Hoist the WHERE condition's comparison value out of the per-row loop <span class="pill pill-live">query executor</span></h4>
+    <p style="color:var(--muted); font-size:0.9rem; margin-bottom:1rem;">A query like <code>price &gt; 1000</code> has one fixed comparison value. Before this change, that <code>"1000"</code> was re-parsed from text to a number on every single row scanned — the value never changes, only the row does.</p>
+    <div class="grid-2">
+      <div>
+        <div class="stack-label" style="margin-bottom:0.4rem;">BEFORE — parsed every row</div>
+        <pre><code>for (each row in scan) {
+    double rhs = std::stod(condition.value);
+    if (fieldValue > rhs) { ... }
+}</code></pre>
+      </div>
+      <div>
+        <div class="stack-label" style="margin-bottom:0.4rem;">AFTER — parsed once per query</div>
+        <pre><code>double rhs = std::stod(condition.value);
+for (each row in scan) {
+    if (fieldValue > rhs) { ... }
+}</code></pre>
+      </div>
+    </div>
+    <p style="color:var(--muted); font-size:0.88em; margin-top:1rem; margin-bottom:0;"><strong>Why it's faster:</strong> the literal comparison value is constant for the whole query — parsing it once instead of once per row turns an O(n) cost into O(1), for free.</p>
+  </div>
+
+  <div class="card">
+    <h4>2. Read a row's own numeric field without a string copy <span class="pill pill-live">query executor</span></h4>
+    <p style="color:var(--muted); font-size:0.9rem; margin-bottom:1rem;"><code>std::stod</code> requires a real <code>std::string</code>, so even though the field's bytes were already reachable as a zero-copy <code>string_view</code> (the same one Sprint 2 introduced), every row still paid for a heap-allocated copy just to satisfy that one function's signature.</p>
+    <div class="grid-2">
+      <div>
+        <div class="stack-label" style="margin-bottom:0.4rem;">BEFORE — copy then parse</div>
+        <pre><code>std::string temp(fieldView);   // heap allocation
+double val = std::stod(temp);</code></pre>
+      </div>
+      <div>
+        <div class="stack-label" style="margin-bottom:0.4rem;">AFTER — parse directly from the view</div>
+        <pre><code>double val;
+std::from_chars(
+    fieldView.data(),
+    fieldView.data() + fieldView.size(),
+    val
+);</code></pre>
+      </div>
+    </div>
+    <p style="color:var(--muted); font-size:0.88em; margin-top:1rem; margin-bottom:0;"><strong>Why it's faster:</strong> <code>std::from_chars</code> reads straight from the existing buffer — no intermediate <code>std::string</code>, no heap allocation, per numeric comparison, per row.</p>
+  </div>
+
+  <div class="card">
+    <h4>3. Allocation-free resolution for non-wildcard <code>GET</code> fields <span class="pill pill-live">query executor</span></h4>
+    <p style="color:var(--muted); font-size:0.9rem; margin-bottom:1rem;">A <code>GET</code> clause without <code>[*]</code> can only ever resolve to exactly one node — but it was still going through <code>executeStep</code>, the general-purpose traversal that heap-allocates a <code>std::vector</code> to hold results, even when there's only ever one possible result.</p>
+    <div class="grid-2">
+      <div>
+        <div class="stack-label" style="margin-bottom:0.4rem;">BEFORE — vector for a single result</div>
+        <pre><code>std::vector&lt;const Node*&gt; results =
+    executeStep(root, path);
+// heap-allocates, even for one node</code></pre>
+      </div>
+      <div>
+        <div class="stack-label" style="margin-bottom:0.4rem;">AFTER — one pointer, no allocation</div>
+        <pre><code>const Node* result =
+    resolveSingle(root, path);</code></pre>
+      </div>
+    </div>
+    <p style="color:var(--muted); font-size:0.88em; margin-top:1rem; margin-bottom:0;"><strong>Why it's faster:</strong> the same allocation-free traversal WHERE clauses already used (see <code>resolveSingle</code> above) now also covers the common single-field <code>GET</code> case, instead of reserving vector machinery for a result that's always exactly one node or none.</p>
+  </div>
+
+  <div class="card">
+    <h4>Measured effect — post-optimization vs. pre-optimization</h4>
+    <p style="color:var(--muted); font-size:0.9rem;">Same file, same query set, same <code>-O2</code> build — only these three changes differ between the two binaries. Full methodology, raw timings, and the honest scope of these numbers (including why <code>long-string WHERE</code> shows almost no effect) are in <code>BENCHMARK_RESULTS.md</code>.</p>
+    <table>
+      <tr>
+        <th>Query</th>
+        <th>20MB</th>
+        <th>50MB</th>
+        <th>100MB</th>
+        <th>200MB</th>
+      </tr>
+      <tr>
+        <td>numeric WHERE <span style="color:var(--muted); font-size:0.85em;">(changes 1 &amp; 2)</span></td>
+        <td>22.1%</td><td>29.2%</td><td>25.6%</td><td>31.2%</td>
+      </tr>
+      <tr>
+        <td>OR <span style="color:var(--muted); font-size:0.85em;">(has a numeric condition)</span></td>
+        <td>25.2%</td><td>25.2%</td><td>28.3%</td><td>27.7%</td>
+      </tr>
+      <tr>
+        <td>AND <span style="color:var(--muted); font-size:0.85em;">(no numeric condition — change 3 only)</span></td>
+        <td>6.0%</td><td>3.4%</td><td>11.2%</td><td>9.6%</td>
+      </tr>
+      <tr>
+        <td>long-string WHERE <span style="color:var(--muted); font-size:0.85em;">(matches zero rows)</span></td>
+        <td>&minus;0.4%</td><td>1.4%</td><td>4.3%</td><td>4.3%</td>
+      </tr>
+      <tr style="color:var(--muted); font-style:italic;">
+        <td><em>control — wildcard fan-out</em></td>
+        <td>1.6%</td><td>&minus;0.5%</td><td>&minus;2.4%</td><td>3.5%</td>
+      </tr>
+    </table>
+    <p style="color:var(--muted); font-size:0.88em; margin-bottom:0;">The pattern tracks exactly which change applies to which query: <code>numeric WHERE</code> and <code>OR</code> are touched by all three changes and show the largest gains; <code>AND</code> has no numeric condition so only change 3 applies, giving smaller but still real gains; <code>long-string WHERE</code> matches zero rows in this dataset, so change 3 never executes for it — a near-zero result here is the correct, expected outcome, not a weak version of a real one.</p>
+  </div>
 </section>
 
 <section class="section" id="query-language">
