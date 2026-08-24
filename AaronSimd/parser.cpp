@@ -53,12 +53,24 @@ uint32_t parser::findOddBackSlash(uint32_t B, bool prevBackSlash) {
     uint32_t O = 0xAAAAAAAA;
     
     uint32_t S = B & ~(B << 1);
-    uint32_t ES = S & E;
+    uint32_t ES;
+    if(prevBackSlash) {
+        ES = S & O;
+    }
+    else {
+        ES = S & E;
+    }
     uint32_t EC = B + ES;
     uint32_t ECE = EC & ~B;
     uint32_t OD1 = ECE & ~E;
 
-    uint32_t OS = S & O;
+    uint32_t OS;
+    if(prevBackSlash) {
+        OS = S & O;
+    }
+    else {
+        OS = S & E;
+    }
     uint32_t OC = B + OS;
     uint32_t OCE = OC & ~B;
     uint32_t OD2 = OCE & E;
@@ -79,7 +91,6 @@ uint32_t parser::findString(uint32_t Q) {
     return S4;
 }
 
-//Created this function to determine if our current 32 byte chunk ends with and odd or an even amount of back slashes
 bool parser::backSlashEnd(uint32_t val) {
     int j = 31;
     int sum = 0;
@@ -156,7 +167,7 @@ void parser::indexStructure() {
 
         uint32_t resultWhitespace = resultSpace | resultNL | resultTab | resultCR;
 
-        uint32_t oddNumberBSlash = findOddBackSlash(resultBac);
+        uint32_t oddNumberBSlash = findOddBackSlash(resultBac, isBackSlashOdd);
         uint32_t Q = resultQ & ~oddNumberBSlash;
 
         uint32_t stringM = findString(Q);
