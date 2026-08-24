@@ -67,6 +67,7 @@ private:
     std::vector<char> jsonData;
     int backSlashCounter = 0;
     bool inString = false;
+    bool isBackSlashOdd = false;
     int stringStart = 0;
     int backSlashCount = 0;
     bool inValue = false;

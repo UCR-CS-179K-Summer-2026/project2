@@ -48,10 +48,10 @@ parser::Type parser::detectType(char c) {
 
 }
 
-uint32_t parser::findOddBackSlash(uint32_t B) {
+uint32_t parser::findOddBackSlash(uint32_t B, bool prevBackSlash) {
     uint32_t E = 0x55555555;
     uint32_t O = 0xAAAAAAAA;
-
+    
     uint32_t S = B & ~(B << 1);
     uint32_t ES = S & E;
     uint32_t EC = B + ES;
@@ -77,6 +77,32 @@ uint32_t parser::findString(uint32_t Q) {
 
     
     return S4;
+}
+
+//Created this function to determine if our current 32 byte chunk ends with and odd or an even amount of back slashes
+bool parser::backSlashEnd(uint32_t val) {
+    int j = 31;
+    int sum = 0;
+    while(j >= 0 && (val & (1 << j))) {
+        backSlashCount++;
+        j--;
+    }
+
+    if(isBackSlashOdd) {
+        sum = backSlashCount + 1;
+    }
+    else {
+        sum = backSlashCount;
+    }
+    
+    backSlashCount = 0;
+
+    if(sum % 2 == 1) {
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 void parser::indexStructure() {
@@ -139,12 +165,8 @@ void parser::indexStructure() {
         }
         SV &= ~stringM;
 
-        //compute trailiing backslashes that carry over to the next 32 bytes of data
-        int j = 31;
-        while(j >= 0 && (resultBac & (1 << k))) {
-            backSlashCount++;
-            j--;
-        }
+        //determine the end of the chunck and see if it consist of even or odd amount of backslashes
+        isBackSlashOdd = backSlashEnd(resultBac);
 
         //Find the starting position of numbers/boolean values/null
         uint32_t S = SV;
