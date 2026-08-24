@@ -29,3 +29,9 @@ AaronSimd/high_structural_500mb.json
 AaronSimd/low_structural_100mb.json
 AaronSimd/low_structural_1gb.json
 AaronSimd/low_structural_500mb.json
+verify_check
+Tree_verifier.cpp
+benchmark_data/
+bench_*
+.vscode/
+project
