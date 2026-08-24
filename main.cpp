@@ -174,7 +174,7 @@ int main() {
 				cout << "                RESULTS\n";
 				cout << "\n========================================\n";
 
-				cout << "["
+				cout << "[";
 
 				for (size_t i = 0; i < results.size(); ++i) {
 					cout << nodeToString(results[i], p.getJsonData());
