@@ -103,3 +103,6 @@ Selects a field from records in an array that match a condition. Supports compar
 * **Sprint 2:** Scale algorithms to larger datasets; optimize search and parsing performance.
 * **Sprint 3:** Merge search and parsing into a single working program; source/create a larger dataset for testing.
 * **Sprint 4:** Add a user interface (if applicable), thoroughly test the final package on the larger dataset, and finalize for demo.
+
+## running
+g++ -std=c++17 main.cpp TasnimQueryParser/QueryParser.cpp AaronJsonParser/parser.cpp -o project
