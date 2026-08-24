@@ -319,7 +319,7 @@ one row tells the whole story for that query at that file size: where
 it started, where it landed after each round, and the percent
 improvement at each step.
 
-## 20MB ⚠️ noisier this run — see control row
+## 20MB (noisier run)
 
 | Query                        | Naive (ms) | Post-Sprint 2 (ms) | → Sprint 2 | Current (ms) | → Current |
 | ---------------------------- | ---------: | -----------------: | ---------: | -----------: | --------: |
