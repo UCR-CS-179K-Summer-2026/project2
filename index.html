@@ -65,7 +65,6 @@ th,td{border:0.5px solid var(--line); padding:0.6em 0.8em; text-align:left; vert
 th{background:var(--panel); font-family:var(--mono); font-weight:500;}
 img{max-width:100%; border-radius:8px; border:0.5px solid var(--line);}
 
-/* ---- Sticky nav ---- */
 nav.topnav{
   position:sticky; top:0; z-index:50;
   background:rgba(244,246,248,0.92);
@@ -101,7 +100,6 @@ nav.topnav{
 }
 .dropdown a:hover{background:var(--panel); text-decoration:none;}
 
-/* ---- Hero ---- */
 .hero{max-width:1100px; margin:0 auto; padding:3.5rem 2rem 2.5rem;}
 .hero .eyebrow{
   font-family:var(--mono); font-size:0.82rem; color:var(--muted);
@@ -109,7 +107,6 @@ nav.topnav{
 }
 .hero p.lead{font-size:1.35rem; line-height:1.75; color:#3A3F47; max-width:none;}
 
-/* ---- Sections ---- */
 .section{max-width:1100px; margin:0 auto; padding:2.5rem 2rem; border-top:0.5px solid var(--line);}
 .section-tag{
   display:inline-block; font-family:var(--mono); font-size:1.15rem;
@@ -139,6 +136,257 @@ nav.topnav{
   nav.topnav{padding:0 1rem;}
   .hero, .section{padding-left:1.2rem; padding-right:1.2rem;}
 }
+
+.tree-trace{
+  background:var(--white);
+  border:0.5px solid var(--line);
+  border-radius:12px;
+  padding:1.5rem 1.7rem;
+  margin:1.2rem 0;
+}
+.tree-trace h4{margin:0 0 0.35rem;}
+.tree-trace .trace-sub{font-size:0.92rem; color:var(--muted); margin-bottom:1.1rem;}
+.trace-input{
+  font-family:var(--mono);
+  background:var(--ink);
+  color:#E8EAED;
+  border-radius:8px;
+  padding:0.8rem 1rem;
+  margin-bottom:1rem;
+  overflow-x:auto;
+  white-space:nowrap;
+}
+.trace-byte{
+  display:inline-block;
+  min-width:1.65rem;
+  text-align:center;
+  padding:0.15rem 0.2rem;
+  border-radius:4px;
+}
+.trace-byte.active{
+  background:var(--accent);
+  color:white;
+}
+.trace-slider-row{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:0.8rem;
+  margin:0.8rem 0 1.25rem;
+}
+.trace-slider{
+  width:100%;
+  accent-color:var(--accent);
+}
+.trace-step{
+  font-family:var(--mono);
+  font-size:0.82rem;
+  color:var(--muted);
+  min-width:5.2rem;
+  text-align:right;
+}
+.trace-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:1rem;
+}
+.trace-panel{
+  border:0.5px solid var(--line);
+  border-radius:8px;
+  padding:1rem 1.1rem;
+  background:#FAFBFC;
+}
+.trace-panel-title{
+  font-family:var(--mono);
+  font-weight:600;
+  font-size:0.9rem;
+  margin-bottom:0.65rem;
+}
+.trace-current{
+  font-size:0.9rem;
+  color:#3A3F47;
+  margin-bottom:0.85rem;
+}
+.trace-current code{font-size:0.92em;}
+.trace-stack{
+  min-height:124px;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  align-items:center;
+  gap:6px;
+  padding:0.5rem 0;
+}
+.stack-node{
+  width:min(300px,100%);
+  border:1px solid var(--accent);
+  border-radius:6px;
+  padding:0.5rem 0.7rem;
+  background:#F4F6FF;
+  text-align:center;
+  font-family:var(--mono);
+  font-size:0.82rem;
+}
+.stack-label{
+  font-family:var(--mono);
+  color:var(--muted);
+  font-size:0.75rem;
+}
+.trace-tree{
+  font-family:var(--mono);
+  font-size:0.84rem;
+  line-height:1.6;
+  white-space:pre;
+  overflow-x:auto;
+  min-height:190px;
+  margin:0;
+  background:var(--ink);
+  color:#E8EAED;
+  border-radius:8px;
+  padding:1rem;
+}
+.trace-note{
+  margin-top:0.8rem;
+  font-size:0.86rem;
+  color:var(--muted);
+}
+.trace-actions{
+  display:flex;
+  gap:0.55rem;
+  flex-wrap:wrap;
+}
+.trace-actions button{
+  font-family:var(--mono);
+  font-size:0.78rem;
+  border:0.5px solid var(--line);
+  border-radius:6px;
+  background:var(--white);
+  color:var(--ink);
+  padding:0.42rem 0.75rem;
+  cursor:pointer;
+}
+.trace-actions button:hover{background:var(--panel);}
+.trace-actions button:disabled{opacity:0.45; cursor:default;}
+@media(max-width:700px){
+  .trace-slider-row{grid-template-columns:1fr;}
+  .trace-step{text-align:left;}
+}
+
+
+.trace-stack{
+  min-height:150px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  gap:0;
+  padding:0.25rem 0 0.5rem;
+}
+.stack-top-label,
+.stack-bottom-label{
+  font-family:var(--mono);
+  color:var(--muted);
+  font-size:0.72rem;
+  letter-spacing:0.04em;
+  margin:0.25rem 0;
+}
+.stack-frame{
+  width:min(360px,100%);
+  border-left:1px solid var(--line);
+  border-right:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  border-radius:0 0 8px 8px;
+  padding:0.35rem;
+  background:var(--white);
+}
+.stack-node{
+  width:100%;
+  border:0.5px solid var(--accent);
+  border-radius:6px;
+  padding:0.55rem 0.7rem;
+  background:#F4F6FF;
+  text-align:center;
+  font-family:var(--mono);
+  font-size:0.82rem;
+  margin-bottom:0.35rem;
+}
+.stack-node:last-child{margin-bottom:0;}
+.stack-node.top-item{
+  border-width:1.5px;
+}
+.stack-empty{
+  width:min(360px,100%);
+  border:1px dashed var(--line);
+  border-radius:8px;
+  padding:1rem;
+  text-align:center;
+  font-family:var(--mono);
+  color:var(--muted);
+  font-size:0.82rem;
+}
+.trace-tree{
+  min-height:220px;
+  margin:0;
+  background:transparent;
+  color:var(--ink);
+  border-radius:8px;
+  padding:0.6rem;
+  overflow-x:auto;
+  font-family:var(--sans);
+}
+.tree-empty{
+  border:1px dashed var(--line);
+  border-radius:8px;
+  padding:1rem;
+  text-align:center;
+  color:var(--muted);
+  font-family:var(--mono);
+  font-size:0.82rem;
+}
+.tree-node-box{
+  display:inline-block;
+  min-width:170px;
+  border:0.5px solid var(--line);
+  background:var(--white);
+  border-radius:8px;
+  padding:0.65rem 0.8rem;
+  font-family:var(--mono);
+  font-size:0.8rem;
+}
+.tree-node-box strong{
+  display:block;
+  color:var(--accent);
+  margin-bottom:0.25rem;
+}
+.tree-children{
+  margin-left:2rem;
+  padding-left:1.2rem;
+  border-left:1px solid var(--line);
+  margin-top:0.65rem;
+}
+.tree-edge-label{
+  font-family:var(--mono);
+  font-size:0.76rem;
+  color:var(--muted);
+  margin:0.25rem 0 0.4rem;
+}
+.tree-child{
+  position:relative;
+  margin:0.55rem 0;
+}
+.tree-child::before{
+  content:"";
+  position:absolute;
+  left:-1.2rem;
+  top:1.05rem;
+  width:1rem;
+  border-top:1px solid var(--line);
+}
+.tree-leaf-value{
+  color:#3A3F47;
+  margin-top:0.25rem;
+}
+
 </style>
 </head>
 <body>
@@ -185,29 +433,29 @@ nav.topnav{
         <path d="M2 1L8 5L2 9" fill="none" stroke="#7B8794" stroke-width="1.5"/>
       </marker>
     </defs>
-    <!-- inputs -->
+    
     <rect x="90" y="30" width="180" height="48" rx="8" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
     <text x="180" y="59" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#2C2C2A">JSON file</text>
 
     <rect x="630" y="30" width="180" height="48" rx="8" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
     <text x="720" y="59" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#2C2C2A">Query string</text>
 
-    <!-- json parser (primary) -->
+    
     <rect x="60" y="130" width="220" height="60" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
     <text x="170" y="154" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600" fill="#0C447C">AaronJsonParser</text>
     <text x="170" y="174" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#185FA5">primary, cross-platform</text>
 
-    <!-- json parser (simd, secondary/dashed) -->
+    
     <rect x="300" y="130" width="200" height="60" rx="8" fill="none" stroke="#B4B2A9" stroke-width="1" stroke-dasharray="4 3"/>
     <text x="400" y="154" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" fill="#5F5E5A">AaronSimd</text>
     <text x="400" y="174" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#888780">in progress, x86 only</text>
 
-    <!-- query parser -->
+    
     <rect x="600" y="130" width="240" height="60" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
     <text x="720" y="154" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600" fill="#712B13">QueryParser</text>
     <text x="720" y="174" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#993C1D">dot-path or GET/FROM/WHERE</text>
 
-    <!-- parsed data stores -->
+   
     <rect x="60" y="250" width="220" height="56" rx="4" fill="none" stroke="#0F6E56" stroke-width="1" stroke-dasharray="4 3"/>
     <text x="170" y="278" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#085041">Parsed JSON tree</text>
 
@@ -215,16 +463,16 @@ nav.topnav{
     <text x="720" y="270" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#085041">Parsed query</text>
     <text x="720" y="288" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#0F6E56">DotPathQuery or FilterQuery</text>
 
-    <!-- executor -->
+    
     <rect x="330" y="350" width="240" height="60" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
     <text x="450" y="374" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600" fill="#3C3489">Query executor</text>
     <text x="450" y="394" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#534AB7">walks the tree, evaluates WHERE</text>
 
-    <!-- results -->
+   
     <rect x="360" y="430" width="180" height="26" rx="4" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
     <text x="450" y="447" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#2C2C2A">results</text>
 
-    <!-- arrows -->
+    
     <line x1="170" y1="78" x2="170" y2="130" stroke="#7B8794" stroke-width="1.2" marker-end="url(#arrow)"/>
     <line x1="720" y1="78" x2="720" y2="130" stroke="#7B8794" stroke-width="1.2" marker-end="url(#arrow)"/>
     <line x1="220" y1="78" x2="380" y2="130" stroke="#B4B2A9" stroke-width="1" stroke-dasharray="3 3" marker-end="url(#arrow)"/>
@@ -336,6 +584,41 @@ FOR each token in the token list:
         pop the current container off the stack</code></pre>
   </div>
 
+<div class="tree-trace" id="construct-tree-trace">
+    <h4>constructTree() Interactive Trace</h4>
+    <p class="trace-sub">Move the slider one byte at a time. The stack above and stored tree below update together.</p>
+
+    <div class="trace-input" aria-label="Input sequence">
+      <span class="trace-byte" data-byte="0">{</span><span class="trace-byte" data-byte="1">"</span><span class="trace-byte" data-byte="2">a</span><span class="trace-byte" data-byte="3">"</span><span class="trace-byte" data-byte="4">:</span><span class="trace-byte" data-byte="5">[</span><span class="trace-byte" data-byte="6">1</span><span class="trace-byte" data-byte="7">,</span><span class="trace-byte" data-byte="8">2</span><span class="trace-byte" data-byte="9">]</span><span class="trace-byte" data-byte="10">}</span>
+    </div>
+
+    <div class="trace-actions">
+      <button type="button" id="trace-prev">← Previous</button>
+      <button type="button" id="trace-next">Next →</button>
+    </div>
+
+    <div class="trace-slider-row">
+      <span style="font-family:var(--mono);font-size:0.8rem;color:var(--muted);">Byte</span>
+      <input class="trace-slider" id="tree-trace-slider" type="range" min="0" max="11" value="0" step="1" aria-label="constructTree trace step">
+      <span class="trace-step" id="tree-trace-step">Before parsing</span>
+    </div>
+
+    <div class="trace-grid">
+      <div class="trace-panel">
+        <div class="trace-panel-title">Stack at this moment</div>
+        <div class="trace-current" id="tree-trace-current">No bytes processed yet.</div>
+        <div class="trace-stack" id="tree-trace-stack"></div>
+      </div>
+
+      <div class="trace-panel">
+        <div class="trace-panel-title">Tree stored at this moment</div>
+        <div class="trace-tree" id="tree-trace-tree"><div class="tree-empty">[empty]</div></div>
+        <p class="trace-note" id="tree-trace-note">The root has not been created yet.</p>
+      </div>
+    </div>
+  </div>
+
+
   <div class="func-block">
     <h4>Leaf values store positions, not copies</h4>
     <p>Every leaf node (string, number, boolean) stores only its start and end byte position in the original buffer — never a copy of the text. Reading a value's actual text (for display, or for a WHERE comparison) means slicing that range out of the buffer at the moment it's needed. This is why the buffer itself has to stay alive for as long as the tree does.</p>
@@ -377,9 +660,229 @@ FOR each 32-byte block of the buffer:
     <p style="color:var(--muted); font-size:0.88em;">Reference: the structural-scanning technique here follows the approach described by Geoff Langdale and Daniel Lemire in <em>Parsing Gigabytes of JSON per Second</em>.</p>
   </div>
 
-  <div class="card" style="border-style:dashed;">
-    <h4>More detail coming</h4>
-    <p>This section will be filled in further once Aaron's current <code>AaronSimd</code> source files are available — this pseudocode reflects the design as documented so far, not yet verified line-by-line against the real implementation the way <code>AaronJsonParser</code> has been.</p>
+  <div class="card">
+    <h4>Vector Classification Trace — indexStructure()</h4>
+    <p>Example trace showing how a 32-byte SIMD block is classified into a structural-character bit mask.</p>
+    <pre><code>input sequence: {&quot;abcdefgh&quot;:123}0000000000000000
+
+how it looks loaded into a register(little endian):
+
+value:         0       }  3  2  1  :  &quot;  h  g  f  e  d  c  b  a  &quot;  {
+Hex value:     00      7D 33 32 31 3A 22 68 67 66 65 64 63 62 61 22 7B
+Byte Position: 31-16   15 14 13 12 11 10 9  8  7  6  5  4  3  2  1  0
+
+Character    Hex     Bit Position   Value
+&#x27;[&#x27;          0x5B    bit 0          1
+&#x27;]&#x27;          0x5D    bit 1          2
+&#x27;{&#x27;          0x7B    bit 2          4
+&#x27;}&#x27;          0x7D    bit 3          8
+&#x27;\t&#x27;         0x09    bit 4          16
+&#x27;\n&#x27;         0x0A    bit 4          16
+&#x27;\r&#x27;         0x0D    bit 4          16
+&#x27; &#x27;          0x20    bit 5          32
+&#x27;:&#x27;          0x3A    bit 6          64
+&#x27;,&#x27;          0x2C    bit 7          128
+
+
+Low Nibble Table
+Low Nibble(assigned index)   Bit Set (which chars share this nibble)       Binary        Table Value(Hex)  Table Value(Decimal)
+0x0                          &#x27; &#x27;(bit 5)                                    0010 0000     0x20              32
+0x9                          &#x27;\t&#x27;(bit 4)                                   0001 0000     0x10              16
+0xA                          &#x27;\n&#x27;(bit 4), &#x27;:&#x27;(bit 6)                       0101 0000     0x50              80 
+0xB                          &#x27;[&#x27;(bit 0), &#x27;{&#x27;(bit 2)                        0000 0101     0x05              5
+0xC                          &#x27;,&#x27;(bit 7)                                    1000 0000     0x80              128
+0xD                          &#x27;]&#x27;(bit 1), &#x27;}&#x27;(bit 3), \r(bit 4)             0001 1010     0x1A              26
+
+High Nibble Table
+High Nibble(assigned index)  Bit Set (which chars share this nibble)       Binary      Table Value        Table Value(Decimal)   
+0x0                          &#x27;\t&#x27;(bit 4), &#x27;\n&#x27;(bit 4), &#x27;\r&#x27;(bit 4)         0001 0000    0x10              16
+0x2                          &#x27; &#x27;(bit 5), &#x27;,&#x27;(bit 7)                        1010 0000    0xA0              160
+0x3                          &#x27;:&#x27;(bit 6)                                    0100 0000    0x40              64
+0x5                          &#x27;[&#x27;(bit 0), &#x27;]&#x27;(bit 1)                        0000 0011    0x03              3
+0x7                          &#x27;{&#x27;(bit 2), &#x27;}&#x27;(bit 3)                        0000 1100    0x0C              12
+
+
+
+I already have two registers that contain the Low Nibble and High Nibble values:
+
+lTables register(16 bytes little endian):
+00 00 1A 80 05 50 10 00 00 00 00 00 00 00 00 20
+
+hTables register(16 bytes):
+00 00 00 00 00 00 00 00 0C 00 03 00 40 A0 00 10  
+
+These ltable and Htable registers only fill 128 bits so we make a copy of the first 128bits and paste it over to other 128 bits.
+
+lTable register: 00 00 1A 80 05 50 10 00 00 00 00 00 00 00 00 20 00 00 1A 80 05 50 10 00 00 00 00 00 00 00 00 20
+hTable register: 00 00 00 00 00 00 00 00 0C 00 03 00 40 A0 00 10 00 00 00 00 00 00 00 00 0C 00 03 00 40 A0 00 10
+
+
+Step 1: 32 bytes of data is loaded into the register
+
+value:         0       }  3  2  1  :  &quot;  h  g  f  e  d  c  b  a  &quot;  {
+Hex value:     00      7D 33 32 31 3A 22 68 67 66 65 64 63 62 61 22 7B
+Byte Position: 31-16   15 14 13 12 11 10 9  8  7  6  5  4  3  2  1  0
+
+
+Step 2: Seperate the Low nibble and High nibble into seperate registers and make sure both are the bottom four bits
+
+LN(Low Nibble Register)
+Hex value:     00      0D 03 02 01 0A 02 08 07 06 05 04 03 02 01 02 0B
+Byte Position: 31-16   15 14 13 12 11 10 9  8  7  6  5  4  3  2  1  0
+
+HN(High Nibble Register)
+Hex value:     00      07 03 03 03 03 02 06 06 06 06 06 06 06 06 02 07
+Byte Position: 31-16   15 14 13 12 11 10 9  8  7  6  5  4  3  2  1  0
+
+
+Step 3: Use the _mm256_shuffle_epi8 instrinsic function to 
+
+*Explanation* _mm256_shuffle_epi8(a, b): it uses that lane&#x27;s value(b) as an index, and looks up the byte sitting at that index within (a).
+
+_mm256_shuffle_epi8(lTable, LN)   ex. uses LN(b) as an index so if LN = 0B, lTable[0B] //This is index 11 which results in value 0x05
+
+_mm256_shuffle_epi8(hTable, HN)   ex. uses HN(b) as an index so if HN = 07, hTable[07] //This is index 7 which results in value 0x0C
+
+_mm256_shuffle_epi8(lTable, LN)
+Hex:           00    1A 00 00 00 50 00 00 00 00 00 00 00 00 00 00 05
+Byte Position: 31-16 15 14 13 12 11 10 9  8  7  6  5  4  3  2  1  0
+
+_mm256_shuffle_epi8(HTable, HN)
+Hex:           00    0C 40 40 40 40 A0 00 00 00 00 00 00 00 00 A0 0C
+Byte Position: 31-16 15 14 13 12 11 10 9  8  7  6  5  4  3  2  1  0
+
+
+Step 4:
+**Important** So the values inside these registers dont mean anything specific its basically telling us that if value at index i for lTable and hTable, both evaluate to an actual value besides 0x00
+then we AND both results for example 0x05 &amp; 0x0C = 0x04, since the value is greater than zero this tells us we have match in our table and it tells us we have identified a structural character. Now
+we don&#x27;t exactly which structural character we found but know it is a structural character.
+
+
+Once the correct values have been assigned, we take the results from _mm256_shuffle_epi8(lTable, LN) and _mm256_shuffle_epi8(HTable, HN) then do a bitwise AND between the results.
+
+
+Hex:           00    1A 00 00 00 50 00 00 00 00 00 00 00 00 00 00 05
+Byte Position: 31-16 15 14 13 12 11 10 9  8  7  6  5  4  3  2  1  0
+
+AND
+
+Hex:           00    0C 40 40 40 40 A0 00 00 00 00 00 00 00 00 A0 0C
+Byte Position: 31-16 15 14 13 12 11 10 9  8  7  6  5  4  3  2  1  0
+
+
+Result:
+Hex:           00    08 00 00 00 40 00 00 00 00 00 00 00 00 00 00 04
+Byte Position: 31-16 15 14 13 12 11 10 9  8  7  6  5  4  3  2  1  0                
+
+
+So the result tells us that we found 3 structural values
+
+
+Step 5: Convert our 32 bytes of data into a 32 bit unsigned integer(where at each bit if the value is 1 then that indicates we found a structure value at that position)
+
+We take our result and compare it a register thats filled with all zero&#x27;s
+_mm256_cmpeq_epi8(result, Zero)
+
+This gives us:
+Result:
+Hex:           FF    00 FF FF FF 00 FF FF FF FF FF FF FF FF FF FF 00
+Byte Position: 31-16 15 14 13 12 11 10 9  8  7  6  5  4  3  2  1  0  
+
+Then we negate it: ~Result 
+~Result:
+Hex:           00    FF 00 00 00 FF 00 00 00 00 00 00 00 00 00 00 FF
+Byte Position: 31-16 15 14 13 12 11 10 9  8  7  6  5  4  3  2  1  0  
+
+then we use _mm256_movemask_epi8(result) //this instrinsic function takes the most significant bit of each Byte index, ex if we have 1000 0000, our most significant bit is 1, and it converts it into a 32 bit unsigned integer.
+(32 bit unsigned int)
+Result = 
+
+      }           :                                {
+0     1  0  0  0  1  0  0  0  0  0  0  0  0  0  0  1
+31-16 15 14 13 12 11 10 9  8  7  6  5  4  3  2  1  0
+
+Now we have our first bit mask containing the structural positions</code></pre>
+  </div>
+
+  <div class="card">
+    <h4>findOddBackSlash() Trace</h4>
+    <p>Example trace showing how an escaped quote is identified and removed from the valid quote mask.</p>
+    <pre><code>*Note* resultQ is the bit mask containing the positions of all &#x27;&quot;&#x27; characters.
+
+Step 1: Backslash Mask
+
+There is one backslash at bit position 3.
+
+Bit Position:   9 8 7 6 5 4 3 2 1 0
+B:              0 0 0 0 0 0 1 0 0 0
+
+
+Step 2: Find the position after the odd backslash
+
+Since there is only ONE backslash, the next position
+(bit 4) is marked.
+
+Bit Position:   9 8 7 6 5 4 3 2 1 0
+Odd Mask:       0 0 0 0 0 1 0 0 0 0
+                            ^
+
+
+Step 3: Remove the escaped quote
+
+Quotes are at positions 1, 4, and 6.
+
+Bit Position:   9 8 7 6 5 4 3 2 1 0
+resultQ:        0 0 0 1 0 1 0 0 1 0
+                          ^
+                    escaped quote
+
+Q = resultQ &amp; ~OddMask
+
+Bit Position:   9 8 7 6 5 4 3 2 1 0
+Q:              0 0 0 1 0 0 0 0 1 0
+                      ^         ^
+                   closing    opening
+                    quote      quote
+
+
+Result:
+
+findOddBackSlash() lets us remove the escaped quote,
+so only the real opening and closing quotes remain.</code></pre>
+  </div>
+
+  <div class="card">
+    <h4>findString() Trace</h4>
+    <p>Example trace showing how the valid quote mask is expanded into the final string mask.</p>
+    <pre><code>Step 1: Start with the valid quote mask
+
+Bit Position:   9 8 7 6 5 4 3 2 1 0
+Q:              0 0 0 1 0 0 0 0 1 0
+
+
+Step 2: findString() uses repeated XOR shifts
+
+S0 = Q  ^ (Q  &lt;&lt; 1)
+S1 = S0 ^ (S0 &lt;&lt; 2)
+S2 = S1 ^ (S1 &lt;&lt; 4)
+S3 = S2 ^ (S2 &lt;&lt; 8)
+S4 = S3 ^ (S3 &lt;&lt; 16)
+
+
+Step 3: Final String Mask
+
+input sequence: {&quot;a\&quot;b&quot;:1}
+
+Character:      }  1  :  &quot;  b  &quot;  \  a  &quot;  {
+Bit Position:   9  8  7  6  5  4  3  2  1  0
+stringM:        0  0  0  0  1  1  1  1  1  0
+                            -------------
+
+
+Result:
+
+findString() creates a mask covering the string so
+structural characters inside the string can be ignored.</code></pre>
   </div>
 </section>
 
@@ -993,6 +1496,276 @@ GET price FROM store.products WHERE name = "Wireless Mouse"</code></pre>
   </table>
   <p style="color:var(--muted); font-size:0.9em;">Every behavior documented in this site is backed by a passing test in <code>test_query_executor.cpp</code> — not just reasoning about the code.</p>
 </section>
+
+
+<script>
+(function(){
+  const root = document.getElementById('construct-tree-trace');
+  if(!root || root.dataset.ready === '1') return;
+  root.dataset.ready = '1';
+
+  const slider = root.querySelector('#tree-trace-slider');
+  const stepLabel = root.querySelector('#tree-trace-step');
+  const current = root.querySelector('#tree-trace-current');
+  const stackEl = root.querySelector('#tree-trace-stack');
+  const treeEl = root.querySelector('#tree-trace-tree');
+  const noteEl = root.querySelector('#tree-trace-note');
+  const prev = root.querySelector('#trace-prev');
+  const next = root.querySelector('#trace-next');
+  const bytes = Array.from(root.querySelectorAll('.trace-byte'));
+
+  const states = [
+    {
+      label:'Before parsing',
+      current:'No bytes processed yet.',
+      stack:[],
+      stage:0,
+      note:'The root has not been created yet.'
+    },
+    {
+      label:'Byte 0  {',
+      current:'<code>{</code> completes an <code>objectStart</code> token. Create <code>root</code> and push <code>&root</code>.',
+      stack:['&root'],
+      stage:1,
+      note:'root is now the current container.'
+    },
+    {
+      label:'Byte 1  "',
+      current:'The opening quote begins the key string.',
+      stack:['&root'],
+      stage:1,
+      note:'No tree Node is added while the key is still incomplete.'
+    },
+    {
+      label:'Byte 2  a',
+      current:'The byte <code>a</code> is part of the key text.',
+      stack:['&root'],
+      stage:1,
+      note:'The tree is unchanged.'
+    },
+    {
+      label:'Byte 3  "',
+      current:'The closing quote completes <code>"a"</code>. Because the next token is a colon, <code>key = "a"</code>.',
+      stack:['&root'],
+      stage:1,
+      note:'The key is remembered, but no child Node exists yet.'
+    },
+    {
+      label:'Byte 4  :',
+      current:'<code>:</code> confirms that <code>"a"</code> is the key for the next value.',
+      stack:['&root'],
+      stage:1,
+      note:'The colon itself is not stored as a Node.'
+    },
+    {
+      label:'Byte 5  [',
+      current:'<code>[</code> completes an <code>arrayStart</code> token. Store a new array in <code>root.objectChildNode["a"]</code>, then push its address.',
+      stack:['&root','&root.objectChildNode["a"]'],
+      stage:2,
+      note:'The array is now on top of the stack, so new values are appended to it.'
+    },
+    {
+      label:'Byte 6  1',
+      current:'The number <code>1</code> becomes a leaf Node and is appended to <code>arrayChildNode</code>.',
+      stack:['&root','&root.objectChildNode["a"]'],
+      stage:3,
+      note:'The leaf stores position 6 and ePosition 6, not a copied "1".'
+    },
+    {
+      label:'Byte 7  ,',
+      current:'<code>,</code> separates array elements. It does not create a Node.',
+      stack:['&root','&root.objectChildNode["a"]'],
+      stage:3,
+      note:'The array stays on top of the stack.'
+    },
+    {
+      label:'Byte 8  2',
+      current:'The number <code>2</code> becomes another leaf Node and is appended to the same <code>arrayChildNode</code>.',
+      stack:['&root','&root.objectChildNode["a"]'],
+      stage:4,
+      note:'The array now contains two number Nodes.'
+    },
+    {
+      label:'Byte 9  ]',
+      current:'<code>]</code> completes an <code>arrayEnd</code> token. Pop the array pointer from the stack.',
+      stack:['&root'],
+      stage:4,
+      note:'The array remains stored in the tree; only its working pointer is popped.'
+    },
+    {
+      label:'Byte 10  }',
+      current:'<code>}</code> completes an <code>objectEnd</code> token. Pop <code>&root</code> from the stack.',
+      stack:[],
+      stage:4,
+      note:'The stack is empty, but the completed tree remains stored in root.'
+    }
+  ];
+
+  function renderStack(stack){
+    stackEl.innerHTML = '';
+
+    if(stack.length === 0){
+      const empty = document.createElement('div');
+      empty.className = 'stack-empty';
+      empty.textContent = '[ empty stack ]';
+      stackEl.appendChild(empty);
+      return;
+    }
+
+    const topLabel = document.createElement('div');
+    topLabel.className = 'stack-top-label';
+    topLabel.textContent = 'TOP';
+    stackEl.appendChild(topLabel);
+
+    const frame = document.createElement('div');
+    frame.className = 'stack-frame';
+
+    
+    [...stack].reverse().forEach((label, idx) => {
+      const item = document.createElement('div');
+      item.className = 'stack-node' + (idx === 0 ? ' top-item' : '');
+      item.textContent = label;
+      frame.appendChild(item);
+    });
+
+    stackEl.appendChild(frame);
+
+    const bottomLabel = document.createElement('div');
+    bottomLabel.className = 'stack-bottom-label';
+    bottomLabel.textContent = 'BOTTOM';
+    stackEl.appendChild(bottomLabel);
+  }
+
+  function nodeBox(title, lines){
+    const box = document.createElement('div');
+    box.className = 'tree-node-box';
+
+    const strong = document.createElement('strong');
+    strong.textContent = title;
+    box.appendChild(strong);
+
+    lines.forEach(line => {
+      const div = document.createElement('div');
+      div.textContent = line;
+      box.appendChild(div);
+    });
+
+    return box;
+  }
+
+  function renderTree(stage){
+    treeEl.innerHTML = '';
+
+    if(stage === 0){
+      const empty = document.createElement('div');
+      empty.className = 'tree-empty';
+      empty.textContent = '[ empty ]';
+      treeEl.appendChild(empty);
+      return;
+    }
+
+    const rootNode = nodeBox('root', [
+      'NodeType::object',
+      'objectChildNode'
+    ]);
+    treeEl.appendChild(rootNode);
+
+    if(stage >= 2){
+      const children = document.createElement('div');
+      children.className = 'tree-children';
+
+      const label = document.createElement('div');
+      label.className = 'tree-edge-label';
+      label.textContent = 'key: "a"';
+      children.appendChild(label);
+
+      const arrWrap = document.createElement('div');
+      arrWrap.className = 'tree-child';
+
+      const arrayNode = nodeBox('objectChildNode["a"]', [
+        'NodeType::array',
+        'arrayChildNode'
+      ]);
+      arrWrap.appendChild(arrayNode);
+
+      if(stage >= 3){
+        const arrChildren = document.createElement('div');
+        arrChildren.className = 'tree-children';
+
+        const index0 = document.createElement('div');
+        index0.className = 'tree-edge-label';
+        index0.textContent = '[0]';
+        arrChildren.appendChild(index0);
+
+        const leaf0Wrap = document.createElement('div');
+        leaf0Wrap.className = 'tree-child';
+        leaf0Wrap.appendChild(nodeBox('number Node', [
+          'position = 6',
+          'ePosition = 6'
+        ]));
+        arrChildren.appendChild(leaf0Wrap);
+
+        if(stage >= 4){
+          const index1 = document.createElement('div');
+          index1.className = 'tree-edge-label';
+          index1.textContent = '[1]';
+          arrChildren.appendChild(index1);
+
+          const leaf1Wrap = document.createElement('div');
+          leaf1Wrap.className = 'tree-child';
+          leaf1Wrap.appendChild(nodeBox('number Node', [
+            'position = 8',
+            'ePosition = 8'
+          ]));
+          arrChildren.appendChild(leaf1Wrap);
+        }
+
+        arrWrap.appendChild(arrChildren);
+      }
+
+      children.appendChild(arrWrap);
+      treeEl.appendChild(children);
+    }
+  }
+
+  function render(){
+    let i = Number(slider.value);
+    if(!Number.isFinite(i)) i = 0;
+    i = Math.max(0, Math.min(states.length - 1, i));
+    const s = states[i];
+
+    stepLabel.textContent = s.label;
+    current.innerHTML = s.current;
+    noteEl.textContent = s.note;
+
+    renderStack(s.stack);
+    renderTree(s.stage);
+
+    bytes.forEach((el, idx) => {
+      el.classList.toggle('active', i > 0 && idx === i - 1);
+    });
+
+    prev.disabled = i === 0;
+    next.disabled = i === states.length - 1;
+  }
+
+  slider.min = '0';
+  slider.max = String(states.length - 1);
+  slider.step = '1';
+
+  slider.addEventListener('input', render);
+  prev.addEventListener('click', () => {
+    slider.value = String(Math.max(0, Number(slider.value) - 1));
+    render();
+  });
+  next.addEventListener('click', () => {
+    slider.value = String(Math.min(states.length - 1, Number(slider.value) + 1));
+    render();
+  });
+
+  render();
+})();
+</script>
 
 </body>
 </html>
