@@ -1061,9 +1061,7 @@ structural characters inside the string can be ignored.</code></pre>
 
     null:
         CHECK the exact substring is "null"
-        -- stricter than indexStructure() itself: detectType() treats
-        -- ANY character that isn't a digit/'-'/'t'/'T'/'f'/'F' as null,
-        -- without confirming it actually spells "null"
+        -- ANY character that isn't a digit/'-'/'t'/'T'/'f'/'F' is treated null
 
     object: RECURSE into every objectChildNode
     array:  RECURSE into every arrayChildNode</code></pre>
@@ -1075,8 +1073,7 @@ structural characters inside the string can be ignored.</code></pre>
     <pre><code>treeCounts  = count objects/arrays/strings by walking the TREE
 rawCounts   = count objectStart/arrayStart/string tokens in typeIndex
 
--- a string token immediately followed by a colon was consumed as an
--- object KEY, not a value node, so it must be excluded before comparing
+-- a string token immediately followed by a colon was consumed as an object KEY, not a value node, so it must be excluded before comparing
 rawValueStrings = rawCounts.strings - rawCounts.keyTokens
 
 CHECK treeCounts.objects == rawCounts.objectStarts
