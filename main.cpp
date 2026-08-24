@@ -170,7 +170,11 @@ int main() {
 					p.getJsonData()
 				);
 
-				cout << "\nResults: [";
+				cout << "\n========================================\n";
+				cout << "                RESULTS\n";
+				cout << "\n========================================\n";
+
+				cout << "["
 
 				for (size_t i = 0; i < results.size(); ++i) {
 					cout << nodeToString(results[i], p.getJsonData());
@@ -180,7 +184,7 @@ int main() {
 					}
 				}
 
-				cout << "]\n";
+				cout << "]\n\n";
 				cout << results.size() << " result(s) found.\n";
 			}
 			catch (const exception& e) {
@@ -189,13 +193,13 @@ int main() {
 
 			string menuChoice;
 
-			cout << "\nWhat would you like to do next?\n";
+			cout << "\nWhat would you like to do?\n";
 			cout << "  1: Enter another query\n";
 			cout << "  2: Load a different JSON file\n";
 			cout << "  3: Help\n";
 			cout << "  4: Quit\n";
 
-			cout << "\nEnter choice: ";
+			cout << "\nEnter choice (1-4): ";
 			getline(cin, menuChoice);
 
 			if (menuChoice == "1") {
@@ -217,7 +221,7 @@ int main() {
 			}
 
 			else {
-				cout << "Invalid option. Returning to query input.\n";
+				cout << "Invalid option. Please enter a number from 1 to 4.\n";
 			}
 		
 		}
