@@ -16,7 +16,7 @@ test: build
 
 coverage:
 	cmake -B build-coverage -DCMAKE_BUILD_TYPE=Coverage
-	cmake --build build-coverage
+	cmake --build build-coverage --target engine_tests
 	ctest --test-dir build-coverage --output-on-failure
 	./scripts/coverage.sh
 

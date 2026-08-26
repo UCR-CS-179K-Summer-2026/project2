@@ -35,13 +35,24 @@ int main(int argc, char** argv) {
     std::string filePath = argv[1];
     std::string csvPath = (argc >= 3) ? argv[2] : "";
 
+// #ifdef BENCH_NAIVE
+//     const std::string buildLabel = "naive (pre-Sprint-2)";
+// #elif defined(BENCH_PRE_OPT)
+//     // Provisional label -- rename this string (only this string, no code
+//     // change needed) once this round of optimizations is considered
+//     // final, e.g. to "pre-Sprint-4".
+//     const std::string buildLabel = "pre-optimization (in progress)";
+// #else
+//     const std::string buildLabel = "post-optimization (current)";
+// #endif
 #ifdef BENCH_NAIVE
-    const std::string buildLabel = "naive (pre-Sprint-2)";
+    const std::string buildLabel = "naive";
 #elif defined(BENCH_PRE_OPT)
-    // Provisional label -- rename this string (only this string, no code
-    // change needed) once this round of optimizations is considered
-    // final, e.g. to "pre-Sprint-4".
     const std::string buildLabel = "pre-optimization (in progress)";
+#elif defined(DISABLE_CHANGE2) && defined(DISABLE_CHANGE3)
+    const std::string buildLabel = "stage1 (change1 only)";
+#elif defined(DISABLE_CHANGE3)
+    const std::string buildLabel = "stage2 (change1+2)";
 #else
     const std::string buildLabel = "post-optimization (current)";
 #endif

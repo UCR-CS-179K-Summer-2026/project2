@@ -19,6 +19,7 @@ gcovr --root . \
       --exclude '.*/tests/.*' \
       --exclude '.*/_deps/.*' \
       --exclude 'main\.cpp' \
+       --exclude 'benchmark_runner\.cpp' \
       --object-directory "$BUILD_DIR" \
       --print-summary \
       --html --html-details \

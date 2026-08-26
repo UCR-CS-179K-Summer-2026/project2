@@ -75,6 +75,16 @@ target_link_libraries(bench_pre_opt PRIVATE json_engine)
 target_compile_definitions(bench_pre_opt PRIVATE BENCH_PRE_OPT)
 target_compile_options(bench_pre_opt PRIVATE -O2 -Wall -Wextra)
 
+add_executable(bench_stage1 benchmark_runner.cpp)
+target_link_libraries(bench_stage1 PRIVATE json_engine)
+target_compile_definitions(bench_stage1 PRIVATE DISABLE_CHANGE2 DISABLE_CHANGE3)
+target_compile_options(bench_stage1 PRIVATE -O2 -Wall -Wextra)
+
+add_executable(bench_stage2 benchmark_runner.cpp)
+target_link_libraries(bench_stage2 PRIVATE json_engine)
+target_compile_definitions(bench_stage2 PRIVATE DISABLE_CHANGE3)
+target_compile_options(bench_stage2 PRIVATE -O2 -Wall -Wextra)
+
 add_executable(bench_current benchmark_runner.cpp)
 target_link_libraries(bench_current PRIVATE json_engine)
 target_compile_options(bench_current PRIVATE -O2 -Wall -Wextra)
