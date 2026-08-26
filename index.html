@@ -563,74 +563,6 @@ RETURN true</code></pre>
         mark that a bare value is now being read</code></pre>
   </div>
 
-  <div class="func-block">
-    <h4>constructTree()</h4>
-    <p>Consumes the token list from <code>indexStructure()</code> in order, using a stack of pointers into the tree being built.</p>
-    <pre><code>nodes = empty stack of node pointers
-currentKey = ""
-
-FOR each token in the token list:
-
-    IF token is an object-start or array-start:
-        create the matching container node
-        IF stack is empty:      this becomes the root
-        ELSE IF top of stack is an object:  attach it under currentKey
-        ELSE IF top of stack is an array:   append it
-        push the new node onto the stack
-
-    ELSE IF token is a string:
-        IF the NEXT token is a colon:
-            this string is a KEY -- save its text as currentKey
-        ELSE:
-            this string is a VALUE -- create a leaf node storing its
-            source start/end position, attach/append it the same way
-
-    ELSE IF token is a number, boolean, or null:
-        create the matching leaf node, attach/append it the same way
-
-    ELSE IF token is an object-end or array-end:
-        pop the current container off the stack</code></pre>
-  </div>
-
-<div class="tree-trace" id="construct-tree-trace">
-    <h4>constructTree() Interactive Trace</h4>
-    <p class="trace-sub">Move the slider one byte at a time. The stack above and stored tree below update together.</p>
-
-    <div class="trace-input" aria-label="Input sequence">
-      <span class="trace-byte" data-byte="0">{</span><span class="trace-byte" data-byte="1">"</span><span class="trace-byte" data-byte="2">a</span><span class="trace-byte" data-byte="3">"</span><span class="trace-byte" data-byte="4">:</span><span class="trace-byte" data-byte="5">[</span><span class="trace-byte" data-byte="6">1</span><span class="trace-byte" data-byte="7">,</span><span class="trace-byte" data-byte="8">2</span><span class="trace-byte" data-byte="9">]</span><span class="trace-byte" data-byte="10">}</span>
-    </div>
-
-    <div class="trace-actions">
-      <button type="button" id="trace-prev">← Previous</button>
-      <button type="button" id="trace-next">Next →</button>
-    </div>
-
-    <div class="trace-slider-row">
-      <span style="font-family:var(--mono);font-size:0.8rem;color:var(--muted);">Byte</span>
-      <input class="trace-slider" id="tree-trace-slider" type="range" min="0" max="11" value="0" step="1" aria-label="constructTree trace step">
-      <span class="trace-step" id="tree-trace-step">Before parsing</span>
-    </div>
-
-    <div class="trace-grid">
-      <div class="trace-panel">
-        <div class="trace-panel-title">Stack at this moment</div>
-        <div class="trace-current" id="tree-trace-current">No bytes processed yet.</div>
-        <div class="trace-stack" id="tree-trace-stack"></div>
-      </div>
-
-      <div class="trace-panel">
-        <div class="trace-panel-title">Tree stored at this moment</div>
-        <div class="trace-tree" id="tree-trace-tree"><div class="tree-empty">[empty]</div></div>
-        <p class="trace-note" id="tree-trace-note">The root has not been created yet.</p>
-      </div>
-    </div>
-  </div>
-
-
-  <div class="func-block">
-    <h4>Leaf values store positions, not copies</h4>
-    <p>Every leaf node (string, number, boolean) stores only its start and end byte position in the original buffer — never a copy of the text. Reading a value's actual text (for display, or for a WHERE comparison) means slicing that range out of the buffer at the moment it's needed. This is why the buffer itself has to stay alive for as long as the tree does.</p>
-  </div>
 
   <hr style="border:none; border-top:0.5px solid var(--line); margin:2.5rem 0;">
 
@@ -646,25 +578,22 @@ FOR each token in the token list:
 FOR each 32-byte block of the buffer:
 
     load 32 bytes into a SIMD register
-    split each byte into a low nibble and a high nibble
-    use lookup tables on both nibbles to identify structural characters
-    combine the lookup results into a structural-character mask
 
-    compare all 32 bytes in parallel against the quote character
-    compare all 32 bytes in parallel against the backslash character
+    split each byte into low and high nibbles
+    use both lookup tables to create the structural mask
 
-    find escaped quotes (odd-length backslash runs) and remove them
-    from the quote mask
+    compare all 32 bytes against quotes, backslashes, and whitespace
 
-    find which byte positions fall inside a string, using the
-    corrected quote mask, and remove any structural characters that
-    fall inside a string from the structural mask
+    remove escaped quotes using odd-length backslash detection
+    build a string mask and remove structures inside strings
 
-    WHILE the structural mask still has bits set:
-        find the next set bit's position and the character there
-        record the matching token (object/array start or end, colon,
-        comma) at that position
-        clear that bit from the mask</code></pre>
+    combine structures, quotes, and value starts into collapseResult
+
+    WHILE collapseResult still has bits set:
+        use TZCNT to find the next set bit
+        determine whether it is a structure, quote, or value
+        add the matching token to typeIndex
+        clear that bit from collapseResult</code></pre>
     <p style="color:var(--muted); font-size:0.88em;">Reference: the structural-scanning technique here follows the approach described by Geoff Langdale and Daniel Lemire in <em>Parsing Gigabytes of JSON per Second</em>.</p>
   </div>
 
@@ -809,6 +738,8 @@ Result =
 31-16 15 14 13 12 11 10 9  8  7  6  5  4  3  2  1  0
 
 Now we have our first bit mask containing the structural positions</code></pre>
+  
+    <p style="color:var(--muted); font-size:0.88em;">Reference: based on the vectorized character classification method and lookup-table approach described by Geoff Langdale and Daniel Lemire in <em>Parsing Gigabytes of JSON per Second</em>, Sec. 3.1.2 / Table 1.</p>
   </div>
 
   <div class="card">
@@ -856,6 +787,8 @@ Result:
 
 findOddBackSlash() lets us remove the escaped quote,
 so only the real opening and closing quotes remain.</code></pre>
+  
+    <p style="color:var(--muted); font-size:0.88em;">Reference: based on the odd-length backslash detection method described by Geoff Langdale and Daniel Lemire in <em>Parsing Gigabytes of JSON per Second</em>, Sec. 3.1.1 / Fig. 3.</p>
   </div>
 
   <div class="card">
@@ -890,6 +823,106 @@ Result:
 
 findString() creates a mask covering the string so
 structural characters inside the string can be ignored.</code></pre>
+  
+    <p style="color:var(--muted); font-size:0.88em;">Reference: based on the string-mask XOR technique described by Geoff Langdale and Daniel Lemire in <em>Parsing Gigabytes of JSON per Second</em>, Sec. 3.1.1 / Fig. 4.</p>
+  </div>
+
+
+  <div class="card">
+    <h4>collapseResult Trace</h4>
+    <p>Example trace showing how structural positions, quotes, and value starts are combined into one mask.</p>
+    <pre><code>input sequence: {&quot;a&quot;:123}
+
+Bit Position:   8 7 6 5 4 3 2 1 0
+Character:      } 3 2 1 : &quot; a &quot; {
+
+SV:             1 0 0 0 1 0 0 0 1
+Q:              0 0 0 0 0 1 0 1 0
+
+
+Step 1: Combine structural values and quotes
+
+S = SV | Q
+
+S:              1 0 0 0 1 1 0 1 1
+
+
+Step 2: Mark the start of a value
+
+P = S | resultWhitespace
+P = P &lt;&lt; 1
+P &amp;= ~resultWhitespace &amp; ~stringM
+
+P:              0 0 0 1 0 0 0 0 0
+                      ^
+                  start of 123
+
+
+Step 3: Combine everything
+
+S = S | P
+S = S &amp; ~(Q &amp; ~stringM)
+
+collapseResult = S | Q
+
+collapseResult:
+Bit Position:   8 7 6 5 4 3 2 1 0
+                1 0 0 1 1 1 0 1 1
+
+
+Result:
+
+collapseResult contains the positions that still need
+to be processed: structures, quotes, and value starts.</code></pre>
+    <p style="color:var(--muted); font-size:0.88em;">Reference: based on the pseudo-structural character detection method described by Geoff Langdale and Daniel Lemire in <em>Parsing Gigabytes of JSON per Second</em>, Sec. 3.1.3 / Fig. 5.</p>
+  </div>
+
+
+  <div class="card">
+    <h4>_tzcnt_u32() / Token Trace</h4>
+    <p>Example trace showing how the next set bit is located, converted into a token, and removed from the mask.</p>
+    <pre><code>Starting mask:
+
+Bit Position:   8 7 6 5 4 3 2 1 0
+collapseResult: 1 0 0 1 1 1 0 1 1
+
+
+Step 1: Find the next set bit
+
+j = _tzcnt_u32(collapseResult)
+
+j = 0
+
+pos = i + j
+c = jsonData[pos]
+
+c = '{'
+
+
+Step 2: Create the token
+
+SV has bit 0 set, so:
+
+typeIndex.push_back({
+    Type::objectStart,
+    pos,
+    pos
+});
+
+
+Step 3: Remove that bit
+
+collapseResult &amp;= collapseResult - 1
+
+Before:         1 0 0 1 1 1 0 1 1
+After:          1 0 0 1 1 1 0 1 0
+
+
+Result:
+
+The loop finds the next set bit, creates the correct
+token, removes that bit, and repeats until the mask is 0.</code></pre>
+    <p style="color:var(--muted); font-size:0.88em;">Reference: based on the bitset-to-index extraction method described by Geoff Langdale and Daniel Lemire in <em>Parsing Gigabytes of JSON per Second</em>, Sec. 3.1.4.</p>
   </div>
 
   <hr style="border:none; border-top:0.5px solid var(--line); margin:2.5rem 0;">
@@ -989,6 +1022,81 @@ structural characters inside the string can be ignored.</code></pre>
     </table>
   </div>
 
+
+  <hr style="border:none; border-top:0.5px solid var(--line); margin:2.5rem 0;">
+
+  <h3 id="shared-construct-tree">Shared Tree Construction</h3>
+  <p>Both <code>AaronJsonParser</code> and <code>AaronSimd</code> produce the same <code>typeIndex</code> format, so both use the exact same <code>constructTree()</code> function to build the final JSON tree.</p>
+
+
+  <div class="func-block">
+    <h4>constructTree()</h4>
+    <p>Consumes the token list from <code>indexStructure()</code> in order, using a stack of pointers into the tree being built.</p>
+    <pre><code>nodes = empty stack of node pointers
+currentKey = ""
+
+FOR each token in the token list:
+
+    IF token is an object-start or array-start:
+        create the matching container node
+        IF stack is empty:      this becomes the root
+        ELSE IF top of stack is an object:  attach it under currentKey
+        ELSE IF top of stack is an array:   append it
+        push the new node onto the stack
+
+    ELSE IF token is a string:
+        IF the NEXT token is a colon:
+            this string is a KEY -- save its text as currentKey
+        ELSE:
+            this string is a VALUE -- create a leaf node storing its
+            source start/end position, attach/append it the same way
+
+    ELSE IF token is a number, boolean, or null:
+        create the matching leaf node, attach/append it the same way
+
+    ELSE IF token is an object-end or array-end:
+        pop the current container off the stack</code></pre>
+  </div>
+
+<div class="tree-trace" id="construct-tree-trace">
+    <h4>constructTree() Interactive Trace</h4>
+    <p class="trace-sub">Move the slider one byte at a time. The stack above and stored tree below update together.</p>
+
+    <div class="trace-input" aria-label="Input sequence">
+      <span class="trace-byte" data-byte="0">{</span><span class="trace-byte" data-byte="1">"</span><span class="trace-byte" data-byte="2">a</span><span class="trace-byte" data-byte="3">"</span><span class="trace-byte" data-byte="4">:</span><span class="trace-byte" data-byte="5">[</span><span class="trace-byte" data-byte="6">1</span><span class="trace-byte" data-byte="7">,</span><span class="trace-byte" data-byte="8">2</span><span class="trace-byte" data-byte="9">]</span><span class="trace-byte" data-byte="10">}</span>
+    </div>
+
+    <div class="trace-actions">
+      <button type="button" id="trace-prev">← Previous</button>
+      <button type="button" id="trace-next">Next →</button>
+    </div>
+
+    <div class="trace-slider-row">
+      <span style="font-family:var(--mono);font-size:0.8rem;color:var(--muted);">Byte</span>
+      <input class="trace-slider" id="tree-trace-slider" type="range" min="0" max="11" value="0" step="1" aria-label="constructTree trace step">
+      <span class="trace-step" id="tree-trace-step">Before parsing</span>
+    </div>
+
+    <div class="trace-grid">
+      <div class="trace-panel">
+        <div class="trace-panel-title">Stack at this moment</div>
+        <div class="trace-current" id="tree-trace-current">No bytes processed yet.</div>
+        <div class="trace-stack" id="tree-trace-stack"></div>
+      </div>
+
+      <div class="trace-panel">
+        <div class="trace-panel-title">Tree stored at this moment</div>
+        <div class="trace-tree" id="tree-trace-tree"><div class="tree-empty">[empty]</div></div>
+        <p class="trace-note" id="tree-trace-note">The root has not been created yet.</p>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="func-block">
+    <h4>Leaf values store positions, not copies</h4>
+    <p>Every leaf node (string, number, boolean) stores only its start and end byte position in the original buffer — never a copy of the text. Reading a value's actual text (for display, or for a WHERE comparison) means slicing that range out of the buffer at the moment it's needed. This is why the buffer itself has to stay alive for as long as the tree does.</p>
+  </div>
 </section>
 
 <section class="section" id="tree-verification">
