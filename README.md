@@ -1,4 +1,4 @@
-# 🔍 JSON Analytics Engine
+# JSON Analytics Engine
 
 **A high-performance, C++17 engine for querying large JSON files — built for speed, not just correctness.**
 
