@@ -3,7 +3,7 @@
 **A high-performance, C++17 engine for querying large JSON files — built for speed, not just correctness.**
 
 **Team:** Aaron · Poojan · Tasnim
-**Documentation:** [Full architecture, algorithms, benchmarks & query reference →](#) <ucr-cs-179k-summer-2026.github.io/project2/>
+**Documentation:** [Full architecture, algorithms, benchmarks & query reference →](https://ucr-cs-179k-summer-2026.github.io/project2/)
 
 ---
 
@@ -214,4 +214,4 @@ GET name FROM store.products WHERE category = electronics AND inStock = true OR 
 GET name FROM store.products WHERE NOT inStock = true
 ```
 
-Full syntax reference, edge-case behavior (missing keys, malformed input, empty arrays), and more examples are documented on the [project website](#). <ucr-cs-179k-summer-2026.github.io/project2/>
+Full syntax reference, edge-case behavior (missing keys, malformed input, empty arrays), and more examples are documented on the [project website](#). (https://ucr-cs-179k-summer-2026.github.io/project2/)
