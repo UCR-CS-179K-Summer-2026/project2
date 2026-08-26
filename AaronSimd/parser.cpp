@@ -30,24 +30,8 @@ bool parser::loadFile(const std::string& s) {
     return true;
 }
 
-parser::Type parser::detectType(char c) {
-    
-    if((c >= '0' && c <= '9') || c == '-') {
-        return Type::number;
-    }
-    else if(c == 't' || c == 'T') {
-        return Type::boolean;
-    }
-    else if(c == 'f' || c == 'F') {
-        return Type::boolean;
-    }
-    else {
-        return Type::null;
-    }
-
-
-}
-
+// Based on the method described by Langdale and Lemire, "Parsing Gigabytes of JSON per Second,"
+// Sec. 3.1.1, Fig. 3: branchless detection of odd-length backslash sequences.
 uint32_t parser::findOddBackSlash(uint32_t B, bool prevBackSlash) {
     uint32_t E = 0x55555555;
     uint32_t O = 0xAAAAAAAA;
@@ -80,6 +64,8 @@ uint32_t parser::findOddBackSlash(uint32_t B, bool prevBackSlash) {
     return OD;
 }  
 
+// Based on the XOR technique described by Langdale and Lemire,
+// Sec. 3.1.1 / Fig. 4. This implementation uses XOR shifts instead of CLMUL.
 uint32_t parser::findString(uint32_t Q) {
     uint32_t S0 = Q ^ (Q << 1);
     uint32_t S1 = S0 ^ (S0 << 2);
@@ -125,7 +111,9 @@ void parser::indexStructure() {
     __m256i Tab = _mm256_set1_epi8('\t');
     __m256i CR = _mm256_set1_epi8('\r');
 
-
+    // Based on the Vectorized character classification method from Langdale and Lemire,
+    // Sec. 3.1.2, "Vectorized Classification." High/low nibble lookup tables
+    // are used with AVX2 byte shuffle operations to classify characters.
     __m128i hTables = _mm_setr_epi8(hTable[0], hTable[1], hTable[2], hTable[3], hTable[4], hTable[5], hTable[6], hTable[7], hTable[8], hTable[9], hTable[10], hTable[11], hTable[12], hTable[13], hTable[14], hTable[15]);
     __m256i dupHTable = _mm256_broadcastsi128_si256(hTables);
     __m128i lTables = _mm_setr_epi8(lTable[0], lTable[1], lTable[2], lTable[3], lTable[4], lTable[5], lTable[6], lTable[7], lTable[8], lTable[9], lTable[10], lTable[11], lTable[12], lTable[13], lTable[14], lTable[15]);
@@ -176,10 +164,11 @@ void parser::indexStructure() {
         }
         SV &= ~stringM;
 
-        //determine the end of the chunck and see if it consist of even or odd amount of backslashes
         isBackSlashOdd = backSlashEnd(resultBac);
 
-        //Find the starting position of numbers/boolean values/null
+        // Based on the Pseudo structural character detection method from Langdale and Lemire,
+        // Sec. 3.1.3 / Fig. 5.
+        //Find the starting position of numbers,boolean, and null
         uint32_t S = SV;
         S = S | Q;
         uint32_t P = S | resultWhitespace;
@@ -191,6 +180,8 @@ void parser::indexStructure() {
         uint32_t collapseResult = S | Q;
         
 
+        // Based on the Bitset to index extraction method from Langdale and Lemire, Sec. 3.1.4.
+        // Uses TZCNT to locate the lowest set bit and x &= x - 1 to clear it.
         while (collapseResult != 0) {
             uint32_t j = _tzcnt_u32(collapseResult);
             int pos = i + j;
@@ -295,7 +286,6 @@ void parser::constructTree() {
             }
         }
         else if(typeIndex.at(i).type == Type::string) {
-            // NEW: guard against a string being the very last token (for truncated file)
             bool nextIsColon = (i + 1 < typeIndex.size()) &&
                                 (typeIndex.at(i + 1).type == Type::colon);
 
@@ -310,7 +300,6 @@ void parser::constructTree() {
                 newNode.position = typeIndex.at(i).position;
                 newNode.ePosition = typeIndex.at(i).ePosition;
 
-                // NEW: guard against nodes being empty (bare top-level scalar, malformed input)
                 if(!nodes.empty() && nodes.back()->nodeType == NodeType::object) {
                     nodes.back()->objectChildNode[key] = newNode;
                     containsKey = false;
@@ -368,14 +357,14 @@ void parser::constructTree() {
             
         }
         else if(typeIndex.at(i).type == Type::objectEnd || typeIndex.at(i).type == Type::arrayEnd) {
-            if(!nodes.empty()) {  // NEW: guard against popping an already-empty stack
+            if(!nodes.empty()) {  
                 nodes.pop_back();
             }
         }
     }
 }
 
-// NEW: accessors
+
 const parser::Node& parser::getRoot() const {
     return root;
 }
@@ -385,7 +374,7 @@ const std::vector<char>& parser::getJsonData() const {
 }
 
 
-// NEW: recursive print, so the tree can actually be verified by eye. Since Leaf nodes only store position/ePosition , so this pulls the raw substring back out of json data to display the actual value.
+// recursive print, so the tree can actually be verified by eye. Since Leaf nodes only store position/ePosition , so this pulls the raw substring back out of json data to display the actual value.
 void parser::printNode(const Node& node, int depth) const {
     std::string indent(depth * 2, ' ');
 
@@ -394,13 +383,13 @@ void parser::printNode(const Node& node, int depth) const {
             std::cout << indent << "{" << std::endl;
             for(const auto& [childKey, childNode] : node.objectChildNode) {
                 std::cout << indent << "  \"" << childKey << "\": ";
-                // if child is a container, newline before recursing; otherwise print inline
+                
                 if(childNode.nodeType == NodeType::object || childNode.nodeType == NodeType::array) {
                     std::cout << std::endl;
                     printNode(childNode, depth + 1);
                 }
                 else {
-                    printNode(childNode, 0); // inline leaf, no extra indent needed
+                    printNode(childNode, 0); 
                 }
             }
             std::cout << indent << "}" << std::endl;
@@ -421,7 +410,6 @@ void parser::printNode(const Node& node, int depth) const {
             break;
         }
         case NodeType::string: {
-            // position/ePosition point at the opening/closing '"' themselves, so will exclude both quote chars here, then add our own quotes for display.
             std::string value(jsonData.data() + node.position + 1, jsonData.data() + node.ePosition);
             std::cout << "\"" << value << "\"" << std::endl;
             break;
