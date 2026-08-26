@@ -2953,6 +2953,50 @@ done</code></pre>
     </p>
   </section>
 
+    <section class="section" id="limitations">
+    <span class="section-tag">04 — Current Limitations</span>
+    <h2>Known Limitations</h2>
+    <p> The current implementation supports the project's core JSON parsing and query functionality, 
+      but several features and edge cases are outside of our scope.
+    </p>
+
+    <div class="grid-2">
+      <div class="card">
+      <h4>JSON Parser</h4>
+
+      <p>
+        <strong>SIMD support</strong>
+        The SIMD parser uses AVX2 instructions, so it requires
+        compatibility with x86 hardware.
+      </p>
+
+      <p>
+        <strong>SIMD input validation</strong>
+        Incomplete validation of malformed literals with trailing characters. 
+        For example, a value such as
+        <code>trueeee</code> would not be rejected correctly.
+      </p>
+    </div>
+
+    <div class="card">
+      <h4>Query Parser</h4>
+      
+      <p> <strong> No sorting feature</strong>
+        The query language does not provide
+        <code>ORDER BY</code> / <code>SORT BY</code>, ascending, or descending to order results by.
+      </p>
+
+      <p> <strong> No advanced operations</strong>
+        Aggregations like <code>MIN</code>, <code>MAX</code>, <code>SUM</code>, as well as arithmetic expressions are outside our current scope. 
+          We also don't support multiple fields for the <code>GET</code> condition.
+     </p>
+    </div>
+
+    </div>
+    </section>
+      
+
+
 
   <script>
     (function () {
