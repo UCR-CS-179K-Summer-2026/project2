@@ -17,7 +17,10 @@ bool parser::loadFile(const std::string& s) {
     auto size = file.tellg();
     file.seekg(0, std::ios::beg);
 
-    jsonData.resize(size);
+    size_t actualSize = static_cast<size_t>(size);
+    size_t adjustSize = ((actualSize + 31) / 32) * 32;
+
+    jsonData.resize(adjustSize, ' ');
     file.read(jsonData.data(), size);
     if(!file) {
         std::cout << "Incomplete/Failed Read \n" << std::endl;
@@ -45,17 +48,29 @@ parser::Type parser::detectType(char c) {
 
 }
 
-uint32_t parser::findOddBackSlash(uint32_t B) {
+uint32_t parser::findOddBackSlash(uint32_t B, bool prevBackSlash) {
     uint32_t E = 0x55555555;
     uint32_t O = 0xAAAAAAAA;
-
+    
     uint32_t S = B & ~(B << 1);
-    uint32_t ES = S & E;
+    uint32_t ES;
+    if(prevBackSlash) {
+        ES = S & O;
+    }
+    else {
+        ES = S & E;
+    }
     uint32_t EC = B + ES;
     uint32_t ECE = EC & ~B;
     uint32_t OD1 = ECE & ~E;
 
-    uint32_t OS = S & O;
+    uint32_t OS;
+    if(prevBackSlash) {
+        OS = S & O;
+    }
+    else {
+        OS = S & E;
+    }
     uint32_t OC = B + OS;
     uint32_t OCE = OC & ~B;
     uint32_t OD2 = OCE & E;
@@ -74,6 +89,31 @@ uint32_t parser::findString(uint32_t Q) {
 
     
     return S4;
+}
+
+bool parser::backSlashEnd(uint32_t val) {
+    int j = 31;
+    int sum = 0;
+    while(j >= 0 && (val & (1 << j))) {
+        backSlashCount++;
+        j--;
+    }
+
+    if(isBackSlashOdd) {
+        sum = backSlashCount + 1;
+    }
+    else {
+        sum = backSlashCount;
+    }
+    
+    backSlashCount = 0;
+
+    if(sum % 2 == 1) {
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 void parser::indexStructure() {
@@ -127,11 +167,17 @@ void parser::indexStructure() {
 
         uint32_t resultWhitespace = resultSpace | resultNL | resultTab | resultCR;
 
-        uint32_t oddNumberBSlash = findOddBackSlash(resultBac);
+        uint32_t oddNumberBSlash = findOddBackSlash(resultBac, isBackSlashOdd);
         uint32_t Q = resultQ & ~oddNumberBSlash;
 
         uint32_t stringM = findString(Q);
+        if(inString)  {
+            stringM = ~stringM;
+        }
         SV &= ~stringM;
+
+        //determine the end of the chunck and see if it consist of even or odd amount of backslashes
+        isBackSlashOdd = backSlashEnd(resultBac);
 
         //Find the starting position of numbers/boolean values/null
         uint32_t S = SV;

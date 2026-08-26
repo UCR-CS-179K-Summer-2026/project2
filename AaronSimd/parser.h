@@ -58,8 +58,9 @@ public:
     const Node& getRoot() const;
     const std::vector<char>& getJsonData() const;
     void printTree() const;
-    uint32_t findOddBackSlash(uint32_t B);
+    uint32_t findOddBackSlash(uint32_t B, bool prevBackSlash);
     uint32_t findString(uint32_t Q);
+    bool backSlashEnd(uint32_t val);
 
 
 private:
@@ -67,7 +68,9 @@ private:
     std::vector<char> jsonData;
     int backSlashCounter = 0;
     bool inString = false;
+    bool isBackSlashOdd = false;
     int stringStart = 0;
+    int backSlashCount = 0;
     bool inValue = false;
     std::vector<TypeStruct> typeIndex;
 
@@ -77,8 +80,8 @@ private:
     bool containsKey = false;
 
     void printNode(const Node& node, int depth) const;
-    uint8_t hTable[16] = {64,0,32,16,0,12,0,3,0,0,0,0,0,0,0,0};
-    uint8_t lTable[16] = {0,0,0,0,0,0,0,0,0,64,80,5,32,74,0,0};
+    uint8_t hTable[16] = {16,0,160,64,0,3,0,12,0,0,0,0,0,0,0,0};
+    uint8_t lTable[16] = {32,0,0,0,0,0,0,0,0,16,80,5,128,26,0,0};
 
 };  
 
