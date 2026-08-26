@@ -3,7 +3,7 @@
 ## Quick Start — reproducing every result in this document
 
 Everything below can be independently verified from a clean checkout.
-All benchmarks read/write to `results_ablation.csv` or `results.csv` —
+All benchmarks read/write to `benchmark_results/results_ablation.csv` or `results.csv` —
 console output prints live as each binary runs, and every number in the
 tables below traces back to a specific line in that CSV.
 
@@ -56,7 +56,7 @@ each section then just runs binaries you already have.
 CSV data, instead of reading percentages by hand:
 
 ```bash
-python3 scripts/ablation_report.py results_ablation.csv
+python3 scripts/ablation_report.py benchmark_results/results_ablation.csv
 ```
 
 ---
@@ -380,7 +380,7 @@ one row tells the whole story for that query at that file size: where
 it started, where it landed after each round, and the percent
 improvement at each step.
 
-## 20MB ⚠️ noisier this run — see control row
+## 20MB noisier this run — see control row
 
 | Query                        | Naive (ms) | Post-Sprint 2 (ms) | → Sprint 2 | Current (ms) | → Current |
 | ---------------------------- | ---------: | -----------------: | ---------: | -----------: | --------: |
@@ -485,7 +485,7 @@ marginal % improvement contributed by that specific change alone.
 | long-string WHERE            |        4.695 |       4.170 |       4.106 |        4.556 |     +11.2% |      +1.5% |     −11.0% |   +3.0% |
 | _control — wildcard fan-out_ |      _5.379_ |     _4.560_ |     _5.167_ |      _5.390_ |   _+15.2%_ |   _−13.3%_ |    _−4.3%_ | _−0.2%_ |
 
-⚠️ Control moved +15.2% at the change-1 step — this size's run carries
+Control moved +15.2% at the change-1 step — this size's run carries
 more noise than the other three below. The direction and rough
 magnitude of the real signal (numeric WHERE, OR) is consistent with the
 larger file sizes, but treat this row's exact percentages as
@@ -584,16 +584,16 @@ cmake --build build --target bench_pre_opt bench_stage1 bench_stage2 bench_curre
 
 for f in benchmark_data/bench_20mb.json benchmark_data/bench_50mb.json \
          benchmark_data/bench_100mb.json benchmark_data/bench_200mb.json; do
-    ./build/bench_pre_opt "$f" results_ablation.csv
-    ./build/bench_stage1 "$f" results_ablation.csv
-    ./build/bench_stage2 "$f" results_ablation.csv
-    ./build/bench_current "$f" results_ablation.csv
+    ./build/bench_pre_opt "$f" benchmark_results/results_ablation.csv
+    ./build/bench_stage1 "$f" benchmark_results/results_ablation.csv
+    ./build/bench_stage2 "$f" benchmark_results/results_ablation.csv
+    ./build/bench_current "$f" benchmark_results/results_ablation.csv
 done
 
-python3 scripts/ablation_report.py results_ablation.csv --out ablation_summary.csv
+python3 scripts/ablation_report.py benchmark_results/results_ablation.csv --out benchmark_results/ablation_summary.csv
 ```
 
-`scripts/ablation_report.py` reads directly from `results_ablation.csv`
+`scripts/ablation_report.py` reads directly from `benchmark_results/results_ablation.csv`
 and computes the marginal percentages above automatically — rerunning
 any single binary (e.g. to redo a noisy run, as with 200MB `stage2`
 above) and re-appending is enough; the script takes the most recent
