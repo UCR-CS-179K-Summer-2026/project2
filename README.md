@@ -3,7 +3,7 @@
 **A high-performance, C++17 engine for querying large JSON files — built for speed, not just correctness.**
 
 **Team:** Aaron · Poojan · Tasnim
-**Documentation:** [Full architecture, algorithms, benchmarks & query reference →](https://ucr-cs-179k-summer-2026.github.io/project2/)
+**Documentation:** [Full architecture, algorithms, benchmarks & query reference ](https://ucr-cs-179k-summer-2026.github.io/project2/)
 
 ---
 
