@@ -20,8 +20,7 @@ public:
         string,
         number,
         boolean,
-        null,
-        none
+        null
     };
     enum class NodeType {
         object,
@@ -49,8 +48,6 @@ public:
     };
 
     bool loadFile(const std::string& s);
-    Type detectString(char c);
-    Type detectType(char c);
     void indexStructure();
     const std::vector<TypeStruct>& getTypeIndex() const;
     Type detectValue();  
@@ -66,12 +63,10 @@ public:
 private:
 
     std::vector<char> jsonData;
-    int backSlashCounter = 0;
     bool inString = false;
     bool isBackSlashOdd = false;
     int stringStart = 0;
     int backSlashCount = 0;
-    bool inValue = false;
     std::vector<TypeStruct> typeIndex;
 
     Node root;
@@ -80,6 +75,9 @@ private:
     bool containsKey = false;
 
     void printNode(const Node& node, int depth) const;
+
+    // Based on the Lookup tables used in the vectorized classification technique from
+    // Langdale and Lemire, Sec. 3.1.2 / Table 1.
     uint8_t hTable[16] = {16,0,160,64,0,3,0,12,0,0,0,0,0,0,0,0};
     uint8_t lTable[16] = {32,0,0,0,0,0,0,0,0,16,80,5,128,26,0,0};
 
