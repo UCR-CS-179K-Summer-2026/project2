@@ -674,6 +674,7 @@
           </div>
         </li>
         <li><a href="#limitations">Current Limitations</a></li>
+        <li><a href="#references">References</a></li>
       </ul>
     </div>
   </nav>
@@ -3038,7 +3039,64 @@ done</code></pre>
 
     </div>
     </section>
-      
+
+    <section class="section" id="references">
+    <span class="section-tag">10 — References</span>
+
+    <p>
+      External documentation, papers, and prior art consulted while designing and implementing
+      each component of the system.
+    </p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h4>Query Executor</h4>
+        <ol style="padding-left: 1.2em; margin: 0;">
+          <li><a href="https://en.cppreference.com/w/cpp/utility/from_chars" target="_blank" rel="noopener">cppreference.com. <em>std::from_chars</em>.</a></li>
+          <li><a href="https://en.cppreference.com/w/cpp/string/basic_string_view" target="_blank" rel="noopener">cppreference.com. <em>std::basic_string_view</em>.</a></li>
+          <li><a href="https://en.cppreference.com/w/cpp/string/basic_string/stof" target="_blank" rel="noopener">cppreference.com. <em>std::stod, std::stof, std::stold</em>.</a></li>
+          <li><a href="https://en.cppreference.com/w/cpp/container/list" target="_blank" rel="noopener">cppreference.com. <em>std::list</em>.</a></li>
+          <li><a href="https://en.cppreference.com/w/cpp/iterator/advance" target="_blank" rel="noopener">cppreference.com. <em>std::advance</em>.</a></li>
+          <li><a href="https://en.cppreference.com/w/cpp/memory/shared_ptr" target="_blank" rel="noopener">cppreference.com. <em>std::shared_ptr</em>.</a></li>
+          <li><a href="https://en.cppreference.com/w/cpp/language/operator_logical" target="_blank" rel="noopener">cppreference.com. <em>Logical AND operator / Logical OR operator</em>.</a></li>
+          <li><a href="https://google.github.io/googletest/" target="_blank" rel="noopener">Google. <em>GoogleTest User's Guide</em>.</a></li>
+          <li><a href="https://gcovr.com/en/stable/" target="_blank" rel="noopener">gcovr Documentation.</a></li>
+          <li><a href="https://cmake.org/cmake/help/latest/module/FetchContent.html" target="_blank" rel="noopener">Kitware. <em>CMake FetchContent Documentation</em>.</a></li>
+          <li><a href="https://docs.python.org/3/" target="_blank" rel="noopener">Python Software Foundation. <em>Python 3 Documentation</em>.</a></li>
+          <li><a href="https://www.rfc-editor.org/rfc/rfc8259" target="_blank" rel="noopener">Bray, T., Ed. (2017). <em>The JavaScript Object Notation (JSON) Data Interchange Format</em>. RFC 8259. IETF.</a></li>
+          <li><a href="https://goessner.net/articles/JsonPath/" target="_blank" rel="noopener">Goessner, S. (2007). <em>JSONPath — XPath for JSON</em>.</a></li>
+          <li><a href="https://www.youtube.com/watch?v=kPR8h4-qZdk" target="_blank" rel="noopener">Ormrod, N. (2016). <em>The strange details of std::string at Facebook</em>. CppCon 2016.</a></li>
+          <li>Cormen, T. H., Leiserson, C. E., Rivest, R. L., &amp; Stein, C. (2009). <em>Introduction to Algorithms</em> (3rd ed.). MIT Press.</li>
+          <li>Jain, R. (1991). <em>The Art of Computer Systems Performance Analysis: Techniques for Experimental Design, Measurement, Simulation, and Modeling</em>. Wiley.</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h4>JSON Parser</h4>
+        <p style="color:var(--muted); font-size:0.88em; margin-top:0;">
+          The SIMD parsing techniques below follow the structural-scanning approach described in
+          Langdale &amp; Lemire's simdjson paper.
+        </p>
+        <ol style="padding-left: 1.2em; margin: 0;">
+          <li><a href="https://arxiv.org/abs/1902.08318" target="_blank" rel="noopener">Langdale, G., &amp; Lemire, D. (2019). <em>Parsing Gigabytes of JSON per Second</em>. arXiv:1902.08318.</a> — structural-scanning technique used for the overall SIMD tokenization pass.</li>
+          <li>Langdale, G., &amp; Lemire, D. (2019). <em>Parsing Gigabytes of JSON per Second</em>, Sec. 3.1.2 / Table 1. — vectorized character classification via lookup table.</li>
+          <li>Langdale, G., &amp; Lemire, D. (2019). <em>Parsing Gigabytes of JSON per Second</em>, Sec. 3.1.1 / Fig. 3. — odd-length backslash detection.</li>
+          <li>Langdale, G., &amp; Lemire, D. (2019). <em>Parsing Gigabytes of JSON per Second</em>, Sec. 3.1.1 / Fig. 4. — string-mask XOR technique.</li>
+          <li>Langdale, G., &amp; Lemire, D. (2019). <em>Parsing Gigabytes of JSON per Second</em>, Sec. 3.1.3 / Fig. 5. — pseudo-structural character detection.</li>
+          <li>Langdale, G., &amp; Lemire, D. (2019). <em>Parsing Gigabytes of JSON per Second</em>, Sec. 3.1.4. — bitset-to-index extraction.</li>
+          <li><a href="https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#avxnewtechs=AVX2" target="_blank" rel="noopener">Intel Corporation. <em>Intel Intrinsics Guide</em> (AVX2).</a> — reference for the specific AVX2 intrinsics used in the SIMD parser implementation.</li>
+        </ol>
+      </div>
+    </div>
+
+    <p style="color:var(--muted); font-size:0.85em; margin-top:1rem;">
+      Additional guidance on C++ performance optimization techniques (allocation avoidance, hoisting
+      invariant computation out of loops) and general Python scripting patterns was drawn from a mix
+      of standard documentation and online references consulted throughout development; specific
+      sources for those were not all individually retained.
+    </p>
+    </section>
+
 
 
 
