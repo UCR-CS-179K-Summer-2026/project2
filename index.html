@@ -2977,6 +2977,21 @@ done</code></pre>
         For example, a value such as
         <code>trueeee</code> would not be rejected correctly.
       </p>
+
+      <p>
+        <strong>No malformed-JSON validation</strong>
+        <code>indexStructure()</code> / <code>constructTree()</code> don't throw
+        or return an error status on malformed input. Defensive guards quietly
+        skip bad pieces rather than flagging them, so malformed JSON can
+        produce silently wrong output instead of a visible error.
+      </p>
+
+      <p>
+        <strong>Empty/zero-byte files degrade silently</strong>
+        An empty file loads successfully but produces an empty tree, so
+        queries against it quietly return <code>null</code> rather than
+        surfacing "file was empty" as an error.
+      </p>
     </div>
 
     <div class="card">
@@ -2996,7 +3011,29 @@ done</code></pre>
       <div class="card">
       <h4>Query Executor</h4>
 
-      
+      <p>
+        <strong>No persistent indexing</strong>
+        Every query performs a full tree traversal (<code>resolveSingle</code> /
+        <code>executeStep</code>). There is no hash index for equality lookups
+        or sorted index for range queries, so cost scales linearly with data
+        size regardless of query selectivity.
+      </p>
+
+      <p>
+        <strong>O(n) array indexing</strong>
+        <code>arrayChildNode</code> is a <code>std::list</code>, chosen for
+        pointer stability during tree construction, so indexed access like
+        <code>items[5]</code> requires <code>std::advance()</code> rather
+        than direct O(1) access — a known, deferred trade-off.
+      </p>
+
+      <p>
+        <strong>No parallelism</strong>
+        Row scanning in <code>WHERE</code> evaluation is independent per row
+        and could be split across threads, but multi-threading was scoped
+        out from the start to keep the project achievable within the sprint
+        timeline.
+      </p>
     </div>
 
     </div>
