@@ -291,7 +291,7 @@ inline bool compareValues(const parser::Node* node, const std::vector<char>& jso
         // must be parsed per-row since the field's actual value legitimately
         // differs row to row; only the constant RHS parse was redundant.
         double rhs;
-#ifdef BENCH_PRE_OPT
+#if defined(BENCH_PRE_OPT) || defined(DISABLE_CHANGE1)
         // [NEW] Reproduces the pre-optimization state for this specific
         // change (RHS hoisting): re-parse the RHS fresh on every row,
         // ignoring the precomputed rhsNumeric, while keeping Sprint 2's
@@ -314,7 +314,7 @@ inline bool compareValues(const parser::Node* node, const std::vector<char>& jso
         rhs = *rhsNumeric;
 #endif
         double lhs;
-#ifdef BENCH_PRE_OPT
+#if defined(BENCH_PRE_OPT) || defined(DISABLE_CHANGE2)
         // [NEW] Tier 1 #2 baseline: reproduces the old std::stod(std::string(...))
         // approach, which builds a full heap-allocated copy of the field's raw
         // bytes on every row just to satisfy std::stod's signature -- even
@@ -560,9 +560,7 @@ inline std::vector<const parser::Node*> executeFilterQuery(const parser::Node& r
         parsedRhs.push_back(parseConditionValueNumeric(cond.value));
     }
 
-#ifndef BENCH_PRE_OPT
-    // [NEW] Tier 1 #3: computed once per query, not once per row -- see
-    // pathHasWildcard() above.
+#if !defined(BENCH_PRE_OPT) && !defined(DISABLE_CHANGE3)
     bool selectIsWildcard = pathHasWildcard(filter.selectField);
 #endif
  
@@ -579,7 +577,7 @@ inline std::vector<const parser::Node*> executeFilterQuery(const parser::Node& r
             // preserved at both the AND-group and OR-group level.
             if (!evaluateWhere(&rowNode, filter.conditions, jsonData, parsedRhs)) continue;
 
-#ifdef BENCH_PRE_OPT
+#if defined(BENCH_PRE_OPT) || defined(DISABLE_CHANGE3)
             // [NEW] Tier 1 #3 baseline: always goes through executeStep(),
             // even for a wildcard-free GET clause that could only ever
             // resolve to one node -- reproduces the pre-Sprint-4 per-row
